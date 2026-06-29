@@ -1,29 +1,31 @@
 import { Mail, MapPin, Phone } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext.jsx';
 
 export default function Contact() {
+  const { t } = useLanguage();
   return (
     <main className="section page-grid">
-      <div>
-        <p className="eyebrow">Contact</p>
-        <h1>Talk to the FoodBridge coordination team</h1>
-        <p>Use this page for donor support, NGO verification, volunteer coordination, recipient assistance, and platform help.</p>
+      <div id="partner-support">
+        <p className="eyebrow">{t("Contact")}</p>
+        <h1>{t("Talk to the FoodBridge coordination team")}</h1>
+        <p>{t("Use this page for donor support, NGO verification, volunteer coordination, recipient assistance, and platform help.")}</p>
       </div>
       <div className="info-list contact-list">
-        <p><Mail size={20} /> support@foodbridge.org</p>
-        <p><Phone size={20} /> +91 98765 43210</p>
+        <p id="support-email"><Mail size={20} /> support@foodbridge.org</p>
+        <p id="emergency-assistance"><Phone size={20} /> +91 98765 43210</p>
         <p><MapPin size={20} /> Community Food Coordination Center, India</p>
         <form className="contact-form">
-          <input placeholder="Full name" />
-          <input placeholder="Email address" />
+          <input placeholder={t("Full name")} />
+          <input placeholder={t("Email address")} />
           <select defaultValue="">
-            <option value="" disabled>Reason for contact</option>
-            <option>Donor support</option>
-            <option>NGO verification</option>
-            <option>Volunteer coordination</option>
-            <option>Recipient assistance</option>
+            <option value="" disabled>{t("Reason for contact")}</option>
+            <option>{t("Donor support")}</option>
+            <option>{t("NGO verification")}</option>
+            <option>{t("Volunteer coordination")}</option>
+            <option>{t("Recipient assistance")}</option>
           </select>
-          <textarea placeholder="How can we help?" />
-          <button>Send Message</button>
+          <textarea placeholder={t("How can we help?")} />
+          <button type="button">{t("Send Message")}</button>
         </form>
       </div>
     </main>
