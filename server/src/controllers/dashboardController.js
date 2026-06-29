@@ -121,7 +121,8 @@ export const dashboard = asyncHandler(async (req, res) => {
       pendingPickups,
       activeVolunteers: await User.countDocuments({ role: 'volunteer', isActive: true }),
       verifiedNgos: await User.countDocuments({ role: 'ngo', 'profile.verificationStatus': 'verified' }),
-      mealsDelivered
+      mealsDelivered,
+      foodRequests: await SupportRequest.countDocuments({ status: 'open' })
     };
     data.pendingNgos = await User.find({ role: 'ngo', 'profile.verificationStatus': 'pending' }).select('-passwordHash').limit(8);
     data.recentDonations = allDonations.slice(0, 12);

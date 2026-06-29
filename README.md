@@ -42,7 +42,7 @@ All seeded demo users use password `Password123!`.
 - NGO: `ngo@foodbridge.org`
 - Volunteer: `volunteer@foodbridge.org`
 - Recipient: `recipient@foodbridge.org`
-- Admin: `admin@foodbridge.org`
+- Admin: ` `
 
 
 

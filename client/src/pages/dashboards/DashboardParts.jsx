@@ -1,4 +1,4 @@
-import { BarChart3, Bell, ClipboardList, HeartHandshake, Home, LayoutDashboard, LogOut, MapPin, PackageCheck, RefreshCcw, Settings, Star, Truck, UserRoundCog, UsersRound } from 'lucide-react';
+import { BarChart3, Bell, ClipboardList, HeartHandshake, Home, LayoutDashboard, LogOut, MapPin, PackageCheck, RefreshCcw, Settings, ShieldCheck, Soup, Star, Truck, UserRoundCog, UsersRound } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { formatDate, titleCase } from '../../utils.js';
@@ -44,14 +44,18 @@ export function DashboardShell({ eyebrow, title, children, actions }) {
       [UserRoundCog, 'Profile']
     ],
     admin: [
-      [LayoutDashboard, 'Dashboard'],
-      [UsersRound, 'Users'],
-      [PackageCheck, 'Donors'],
-      [HeartHandshake, 'NGOs'],
-      [Truck, 'Volunteers'],
-      [ClipboardList, 'Donations'],
-      [BarChart3, 'Reports'],
-      [Settings, 'Settings']
+      [LayoutDashboard, 'Dashboard', '#admin-home'],
+      [UsersRound, 'Users', '#users'],
+      [PackageCheck, 'Donors', '#donors'],
+      [HeartHandshake, 'NGOs', '#ngos'],
+      [Truck, 'Volunteers', '#volunteers'],
+      [ClipboardList, 'Donations', '#donations'],
+      [Soup, 'Food Requests', '#food-requests'],
+      [BarChart3, 'Reports', '#reports'],
+      [BarChart3, 'Analytics', '#analytics'],
+      [ShieldCheck, 'Verification', '#verification'],
+      [Bell, 'Notifications', '#notifications'],
+      [Settings, 'Settings', '#settings']
     ]
   };
   const navItems = menuByRole[user?.role] || menuByRole.donor;
