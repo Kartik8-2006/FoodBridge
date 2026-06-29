@@ -5,14 +5,14 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { dashboardPath } from '../utils.js';
 
 const links = [
-  { label: 'Home', path: '/', items: [['Our story', '/'], ['Impact facts', '/'], ['Latest updates', '/resources']] },
-  { label: 'Donate Food', path: '/donate-food', items: [['Post food availability', '/donate-food'], ['Donation guidelines', '/resources'], ['Food safety checklist', '/resources'], ['Pickup preparation', '/how-it-works']] },
-  { label: 'Find Food', path: '/find-food', items: [['Available food', '/find-food'], ['Request food support', '/find-food'], ['Nearby distribution points', '/find-food'], ['Emergency assistance', '/contact']] },
-  { label: 'Become Volunteer', path: '/volunteer', items: [['Volunteer signup', '/volunteer'], ['Nearby pickups', '/volunteer'], ['Assigned deliveries', '/volunteer'], ['Completed deliveries', '/volunteer']] },
-  { label: 'NGOs', path: '/ngos', items: [['NGO registration', '/signup'], ['Available donations', '/ngos'], ['Beneficiaries', '/resources'], ['Verification process', '/resources']] },
-  { label: 'Resources', path: '/resources', items: [['Food safety', '/resources'], ['Donor handbook', '/resources'], ['Volunteer guide', '/resources'], ['Reports', '/resources']] },
-  { label: 'About', path: '/about', items: [['Project objective', '/about'], ['How it works', '/how-it-works'], ['Our mission', '/about']] },
-  { label: 'Contact', path: '/contact', items: [['Support email', '/contact'], ['Partner support', '/contact'], ['Emergency coordination', '/contact']] }
+  { label: 'Home', path: '/', items: [['Our story', '/#our-story'], ['Impact facts', '/#impact-facts'], ['Latest updates', '/#latest-updates']] },
+  { label: 'Donate Food', path: '/donate-food', items: [['Donate funds', '/#donate-funds'], ['Donate food', '/#donate-food-section'], ['Food safety checklist', '/#food-safety'], ['Pickup preparation', '/#pickup-preparation']] },
+  { label: 'Find Food', path: '/find-food', items: [['Available food', '/#available-food'], ['Request food support', '/#request-food'], ['Nearby distribution points', '/#distribution-points'], ['Emergency assistance', '/#emergency-assistance']] },
+  { label: 'Become Volunteer', path: '/volunteer', items: [['Volunteer signup', '/#volunteer-signup'], ['Nearby pickups', '/#nearby-pickups'], ['Assigned deliveries', '/#assigned-deliveries'], ['Completed deliveries', '/#completed-deliveries']] },
+  { label: 'NGOs', path: '/ngos', items: [['NGO registration', '/#ngo-registration'], ['Available donations', '/#ngo-donations'], ['Beneficiaries', '/#beneficiaries'], ['Verification process', '/#ngo-verification']] },
+  { label: 'Resources', path: '/resources', items: [['Food safety', '/#food-safety'], ['Donor handbook', '/#donor-handbook'], ['Volunteer guide', '/#volunteer-guide'], ['Reports', '/#reports-section']] },
+  { label: 'About', path: '/about', items: [['Project objective', '/#project-objective'], ['How it works', '/#how-platform-works'], ['Our mission', '/#our-mission']] },
+  { label: 'Contact', path: '/contact', items: [['Support email', '/#support-email'], ['Partner support', '/#partner-support'], ['Emergency coordination', '/#emergency-assistance']] }
 ];
 
 export default function Layout({ children }) {
@@ -35,34 +35,31 @@ export default function Layout({ children }) {
           </Link>
 
           <div className="top-nav-center">
-            {/* <span><strong>English</strong> / Hindi</span> */}
+            <span><strong>English</strong> / Hindi</span>
             <Search size={30} strokeWidth={2.6} />
           </div>
 
           <div className="utility-actions">
             <Link className="utility-find" to="/find-food"><ShoppingCart size={24} /> Find Food</Link>
-            <button className="utility-donate" type="button" onClick={() => setDonationOpen(true)}><CircleDollarSign size={23} /> Donate Now!</button>
+            <button className="utility-donate" type="button" onClick={() => setAuthModal('signup')}><CircleDollarSign size={23} /> Donate Food</button>
             {user ? (
               <>
-                <button className="notification-button" type="button" aria-label="Notifications"><Bell size={20} /><span>3</span></button>
                 <Link className="utility-dashboard" to={dashboardPath(user.role)}><UserCircle size={20} /> Dashboard</Link>
                 <div className="profile-menu">
                   <button className="profile-trigger" type="button">
                     <span className="profile-avatar">{user.name?.charAt(0) || 'U'}</span>
-                    Profile <ChevronDown size={15} />
+                    <ChevronDown size={15} />
                   </button>
                   <div className="profile-dropdown">
                     <Link to={dashboardPath(user.role)}>My Dashboard</Link>
                     <Link to={dashboardPath(user.role)}>Profile Settings</Link>
                     <button type="button" onClick={logout}><LogOut size={16} /> Logout</button>
                   </div>
+                <button className="notification-button" type="button" aria-label="Notifications"><Bell size={20} /><span>3</span></button>
                 </div>
               </>
             ) : (
-              <>
-                <button className="utility-login" type="button" onClick={() => setAuthModal('login')}><LogIn size={18} /> Login</button>
-                <button className="utility-signup" type="button" onClick={() => setAuthModal('signup')}><UserPlus size={18} /> Sign Up</button>
-              </>
+              null
             )}
           </div>
         </div>
