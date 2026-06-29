@@ -11,27 +11,25 @@ FoodBridge Network is a MERN food donation management platform inspired by the p
 
 ## Setup
 
-1. Install dependencies:
+Install package:
 
-```bash
-npm run install:all
-```
+  `cd client`
+  `npm init -y`
+  `npm install`
 
-2. Create `server/.env` from `server/.env.example`.
+  same for server
+  `cd server`
+  `npm init -y`
+  `npm install`
 
-3. Start MongoDB locally or use MongoDB Atlas.
 
-4. Seed demo users and food donations:
-
-```bash
-npm run seed
-```
-
-5. Run the app:
-
-```bash
-npm run dev
-```
+Run the app:
+for server:
+    `cd server`
+    `npm run dev`
+for frontend:
+    `cd client`
+    `npm run dev`
 
 Client: `http://localhost:5173`
 
@@ -47,19 +45,7 @@ All seeded demo users use password `Password123!`.
 - Recipient: `recipient@foodbridge.org`
 - Admin: `admin@foodbridge.org`
 
-## Dashboard Login Flow
 
-Start the full MERN app:
-
-```bash
-npm run dev
-```
-
-Open:
-
-```text
-http://localhost:5173
-```
 
 Login with one of the demo accounts. After login, click `Dashboard`.
 
