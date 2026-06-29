@@ -1,25 +1,28 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Bell, CheckCircle2, ChevronDown, CircleDollarSign, Heart, HeartHandshake, LockKeyhole, LogIn, LogOut, Menu, Search, ShieldCheck, ShoppingCart, UserCircle, UserPlus, X } from 'lucide-react';
+import { Bell, CheckCircle2, ChevronDown, CircleDollarSign, Heart, HeartHandshake, LockKeyhole, LogIn, LogOut, Menu, ShieldCheck, ShoppingCart, UserCircle, UserPlus, X } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import { dashboardPath } from '../utils.js';
-
-const links = [
-  { label: 'Home', path: '/', items: [['Our story', '/#our-story'], ['Impact facts', '/#impact-facts'], ['Latest updates', '/#latest-updates']] },
-  { label: 'Donate Food', path: '/donate-food', items: [['Donate funds', '/#donate-funds'], ['Donate food', '/#donate-food-section'], ['Food safety checklist', '/#food-safety'], ['Pickup preparation', '/#pickup-preparation']] },
-  { label: 'Find Food', path: '/find-food', items: [['Available food', '/#available-food'], ['Request food support', '/#request-food'], ['Nearby distribution points', '/#distribution-points'], ['Emergency assistance', '/#emergency-assistance']] },
-  { label: 'Become Volunteer', path: '/volunteer', items: [['Volunteer signup', '/#volunteer-signup'], ['Nearby pickups', '/#nearby-pickups'], ['Assigned deliveries', '/#assigned-deliveries'], ['Completed deliveries', '/#completed-deliveries']] },
-  { label: 'NGOs', path: '/ngos', items: [['NGO registration', '/#ngo-registration'], ['Available donations', '/#ngo-donations'], ['Beneficiaries', '/#beneficiaries'], ['Verification process', '/#ngo-verification']] },
-  { label: 'Resources', path: '/resources', items: [['Food safety', '/#food-safety'], ['Donor handbook', '/#donor-handbook'], ['Volunteer guide', '/#volunteer-guide'], ['Reports', '/#reports-section']] },
-  { label: 'About', path: '/about', items: [['Project objective', '/#project-objective'], ['How it works', '/#how-platform-works'], ['Our mission', '/#our-mission']] },
-  { label: 'Contact', path: '/contact', items: [['Support email', '/#support-email'], ['Partner support', '/#partner-support'], ['Emergency coordination', '/#emergency-assistance']] }
-];
+import SearchInput from './SearchInput.jsx';
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
+  const { language, setLanguage, t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [donationOpen, setDonationOpen] = useState(false);
   const [authModal, setAuthModal] = useState(null);
+
+  const links = [
+    { label: t('HOME'), path: '/', items: [[t('Our story'), '/#our-story'], [t('Impact facts'), '/#impact-facts'], [t('Latest updates'), '/#latest-updates']] },
+    { label: t('DONATE FOOD'), path: '/donate-food', items: [[t('Donate funds'), '/#donate-funds'], [t('Donate food'), '/#donate-food-section'], [t('Food safety checklist'), '/#food-safety'], [t('Pickup preparation'), '/#pickup-preparation']] },
+    { label: t('FIND FOOD'), path: '/find-food', items: [[t('Available food'), '/#available-food'], [t('Request food support'), '/#request-food'], [t('Nearby distribution points'), '/#distribution-points'], [t('Emergency assistance'), '/#emergency-assistance']] },
+    { label: t('BECOME VOLUNTEER'), path: '/volunteer', items: [[t('Volunteer signup'), '/#volunteer-signup'], [t('Nearby pickups'), '/#nearby-pickups'], [t('Assigned deliveries'), '/#assigned-deliveries'], [t('Completed deliveries'), '/#completed-deliveries']] },
+    { label: t('NGOS'), path: '/ngos', items: [[t('NGO registration'), '/#ngo-registration'], [t('Available donations'), '/#ngo-donations'], [t('Beneficiaries'), '/#beneficiaries'], [t('Verification process'), '/#ngo-verification']] },
+    { label: t('RESOURCES'), path: '/resources', items: [[t('Food safety'), '/#food-safety'], [t('Donor handbook'), '/#donor-handbook'], [t('Volunteer guide'), '/#volunteer-guide'], [t('Reports'), '/#reports-section']] },
+    { label: t('ABOUT'), path: '/about', items: [[t('Project objective'), '/#project-objective'], [t('How it works'), '/#how-platform-works'], [t('Our mission'), '/#our-mission']] },
+    { label: t('CONTACT'), path: '/contact', items: [[t('Support email'), '/#support-email'], [t('Partner support'), '/#partner-support'], [t('Emergency coordination'), '/#emergency-assistance']] }
+  ];
 
   return (
     <>
@@ -31,31 +34,46 @@ export default function Layout({ children }) {
               <small>FOODBRIDGE</small>
               <strong>NETWORK</strong>
             </span>
-            {/* <span className="feeding-mark">MEMBER OF<br />COMMUNITY FOOD RELIEF</span> */}
           </Link>
 
           <div className="top-nav-center">
-            <span><strong>English</strong> / Hindi</span>
-            <Search size={30} strokeWidth={2.6} />
+            <div className="language-selector">
+              <button 
+                type="button" 
+                className={language === 'en' ? 'lang-btn active' : 'lang-btn'}
+                onClick={() => setLanguage('en')}
+              >
+                English
+              </button>
+              <span className="lang-separator">/</span>
+              <button 
+                type="button" 
+                className={language === 'hi' ? 'lang-btn active' : 'lang-btn'}
+                onClick={() => setLanguage('hi')}
+              >
+                हिंदी
+              </button>
+            </div>
+            <SearchInput />
           </div>
 
           <div className="utility-actions">
-            <Link className="utility-find" to="/find-food"><ShoppingCart size={24} /> Find Food</Link>
-            <button className="utility-donate" type="button" onClick={() => setAuthModal('signup')}><CircleDollarSign size={23} /> Donate Food</button>
+            <Link className="utility-find" to="/find-food"><ShoppingCart size={24} /> {t("FIND FOOD")}</Link>
+            <button className="utility-donate" type="button" onClick={() => setAuthModal('signup')}><CircleDollarSign size={23} /> {t("DONATE FOOD")}</button>
             {user ? (
               <>
-                <Link className="utility-dashboard" to={dashboardPath(user.role)}><UserCircle size={20} /> Dashboard</Link>
+                <Link className="utility-dashboard" to={dashboardPath(user.role)}><UserCircle size={20} /> {t("DASHBOARD")}</Link>
+                <button className="notification-button" type="button" aria-label="Notifications"><Bell size={20} /><span>3</span></button>
                 <div className="profile-menu">
                   <button className="profile-trigger" type="button">
                     <span className="profile-avatar">{user.name?.charAt(0) || 'U'}</span>
                     <ChevronDown size={15} />
                   </button>
                   <div className="profile-dropdown">
-                    <Link to={dashboardPath(user.role)}>My Dashboard</Link>
-                    <Link to={dashboardPath(user.role)}>Profile Settings</Link>
-                    <button type="button" onClick={logout}><LogOut size={16} /> Logout</button>
+                    <Link to={dashboardPath(user.role)}>{t("MY DASHBOARD")}</Link>
+                    <Link to={dashboardPath(user.role)}>{t("PROFILE SETTINGS")}</Link>
+                    <button type="button" onClick={logout}><LogOut size={16} /> {t("LOGOUT")}</button>
                   </div>
-                <button className="notification-button" type="button" aria-label="Notifications"><Bell size={20} /><span>3</span></button>
                 </div>
               </>
             ) : (
@@ -89,25 +107,24 @@ export default function Layout({ children }) {
         </div>
       </header>
       <Link className="gift-tab" to="/signup">
-        <span>TRIPLE Your Gift for Local Families!</span>
+        <span>{t("TRIPLE YOUR GIFT FOR LOCAL FAMILIES!")}</span>
         <Heart size={18} fill="currentColor" />
       </Link>
       {children}
       {donationOpen && <DonationModal onClose={() => setDonationOpen(false)} />}
       {authModal && <AuthModal initialMode={authModal} onClose={() => setAuthModal(null)} />}
       <footer className="footer foodbank-footer">
-        <div className="seed-border" />
         <section className="footer-newsletter">
-          <h2>Stay Up To Date</h2>
+          <h2>{t("STAY UP TO DATE")}</h2>
           <form>
             <div className="footer-name-row">
-              <input placeholder="First name" />
-              <input placeholder="Last name" />
+              <input placeholder={t("FIRST NAME")} />
+              <input placeholder={t("LAST NAME")} />
             </div>
-            <input placeholder="Phone Number" />
+            <input placeholder={t("PHONE NUMBER")} />
             <div className="footer-email-row">
-              <input placeholder="Email" />
-              <button>Subscribe</button>
+              <input placeholder={t("EMAIL")} />
+              <button type="button">{t("SUBSCRIBE")}</button>
             </div>
           </form>
         </section>
@@ -117,7 +134,7 @@ export default function Layout({ children }) {
             <span className="brand-type"><small>FOODBRIDGE</small><strong>NETWORK</strong></span>
           </div>
           <div>
-            <strong>Call Us</strong>
+            <strong>{t("CALL US")}</strong>
             <p>+91 98765 43210</p>
             <strong>FoodBridge Network</strong>
             <p>Community Food Coordination Center, India</p>
@@ -125,10 +142,10 @@ export default function Layout({ children }) {
           <div>
             <strong>Registry:</strong>
             <p>Verified NGO and donor coordination platform</p>
-            <strong>Email Us</strong>
+            <strong>{t("EMAIL US")}</strong>
             <p>support@foodbridge.org</p>
           </div>
-          <Link className="footer-contact-btn" to="/about">Contact Us</Link>
+          <Link className="footer-contact-btn" to="/about">{t("CONTACT US")}</Link>
         </section>
       </footer>
     </>
@@ -238,7 +255,7 @@ function AuthModal({ initialMode, onClose }) {
           })
         : await login(form.email, form.password);
       onClose();
-      navigate(dashboardPath(user.role));
+      navigate('/');
     } catch (err) {
       setError(err.message);
     }
