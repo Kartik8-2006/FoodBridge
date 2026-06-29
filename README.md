@@ -12,7 +12,6 @@ FoodBridge Network is a MERN food donation management platform inspired by the p
 ## Setup
 
 Install package:
-
   `cd client`
   `npm init -y`
   `npm install`
