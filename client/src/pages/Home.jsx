@@ -13,7 +13,7 @@ export default function Home() {
             support. We create simple pathways to move food from donors to people with dignity, speed, and care.
           </p>
           <Link className="maroon-pill" to="/find-food">Find Food</Link>
-          <div className="seed-row" />
+          {/* <div className="seed-row" /> */}
         </div>
         <div className="story-image" aria-label="FoodBridge distribution center" />
       </section>
