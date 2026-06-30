@@ -15,13 +15,13 @@ export default function Layout({ children }) {
 
   const links = [
     { label: t('HOME'), path: '/', items: [[t('Our story'), '/#our-story'], [t('Impact facts'), '/#impact-facts'], [t('Latest updates'), '/#latest-updates']] },
-    { label: t('DONATE FOOD'), path: '/donate-food', items: [[t('Donate funds'), '/#donate-funds'], [t('Donate food'), '/#donate-food-section'], [t('Food safety checklist'), '/#food-safety'], [t('Pickup preparation'), '/#pickup-preparation']] },
-    { label: t('FIND FOOD'), path: '/find-food', items: [[t('Available food'), '/#available-food'], [t('Request food support'), '/#request-food'], [t('Nearby distribution points'), '/#distribution-points'], [t('Emergency assistance'), '/#emergency-assistance']] },
-    { label: t('BECOME VOLUNTEER'), path: '/volunteer', items: [[t('Volunteer signup'), '/#volunteer-signup'], [t('Nearby pickups'), '/#nearby-pickups'], [t('Assigned deliveries'), '/#assigned-deliveries'], [t('Completed deliveries'), '/#completed-deliveries']] },
-    { label: t('NGOS'), path: '/ngos', items: [[t('NGO registration'), '/#ngo-registration'], [t('Available donations'), '/#ngo-donations'], [t('Beneficiaries'), '/#beneficiaries'], [t('Verification process'), '/#ngo-verification']] },
-    { label: t('RESOURCES'), path: '/resources', items: [[t('Food safety'), '/#food-safety'], [t('Donor handbook'), '/#donor-handbook'], [t('Volunteer guide'), '/#volunteer-guide'], [t('Reports'), '/#reports-section']] },
-    { label: t('ABOUT'), path: '/about', items: [[t('Project objective'), '/#project-objective'], [t('How it works'), '/#how-platform-works'], [t('Our mission'), '/#our-mission']] },
-    { label: t('CONTACT'), path: '/contact', items: [[t('Support email'), '/#support-email'], [t('Partner support'), '/#partner-support'], [t('Emergency coordination'), '/#emergency-assistance']] }
+    { label: t('DONATE FOOD'), path: '/donate-food', items: [[t('Donate funds'), '/donate-food#donate-funds'], [t('Donate food'), '/donate-food#donate-food-section'], [t('Food safety checklist'), '/donate-food#food-safety'], [t('Pickup preparation'), '/donate-food#pickup-preparation']] },
+    { label: t('FIND FOOD'), path: '/find-food', items: [[t('Available food'), '/find-food#available-food'], [t('Request food support'), '/find-food#request-food'], [t('Nearby distribution points'), '/find-food#distribution-points'], [t('Emergency assistance'), '/find-food#emergency-assistance']] },
+    { label: t('BECOME VOLUNTEER'), path: '/volunteer', items: [[t('Volunteer signup'), '/volunteer#volunteer-signup'], [t('Nearby pickups'), '/volunteer#nearby-pickups'], [t('Assigned deliveries'), '/volunteer#assigned-deliveries'], [t('Completed deliveries'), '/volunteer#completed-deliveries']] },
+    { label: t('NGOS'), path: '/ngos', items: [[t('NGO registration'), '/ngos#ngo-registration'], [t('Available donations'), '/ngos#ngo-donations'], [t('Beneficiaries'), '/ngos#beneficiaries'], [t('Verification process'), '/ngos#ngo-verification']] },
+    { label: t('RESOURCES'), path: '/resources', items: [[t('Food safety'), '/resources#food-safety'], [t('Donor handbook'), '/resources#donor-handbook'], [t('Volunteer guide'), '/resources#volunteer-guide'], [t('Reports'), '/resources#reports-section']] },
+    { label: t('ABOUT'), path: '/about', items: [[t('Project objective'), '/about#project-objective'], [t('How it works'), '/about#how-platform-works'], [t('Our mission'), '/about#our-mission']] },
+    { label: t('CONTACT'), path: '/contact', items: [[t('Support email'), '/contact#support-email'], [t('Partner support'), '/contact#partner-support'], [t('Emergency coordination'), '/contact#emergency-assistance']] }
   ];
 
   return (
