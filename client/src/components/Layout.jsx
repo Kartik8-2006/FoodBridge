@@ -1,6 +1,7 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { Bell, CheckCircle2, ChevronDown, CircleDollarSign, Heart, HeartHandshake, LockKeyhole, LogIn, LogOut, Menu, ShieldCheck, ShoppingCart, UserCircle, UserPlus, X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { api } from '../api.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { dashboardPath } from '../utils.js';
@@ -9,9 +10,15 @@ import SearchInput from './SearchInput.jsx';
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
   const { language, setLanguage, t } = useLanguage();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [donationOpen, setDonationOpen] = useState(false);
   const [authModal, setAuthModal] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [toastNotification, setToastNotification] = useState(null);
+  const seenNotificationIds = useRef(new Set());
 
   const links = [
     { label: t('HOME'), path: '/', items: [[t('Our story'), '/#our-story'], [t('Impact facts'), '/#impact-facts'], [t('Latest updates'), '/#latest-updates']] },
@@ -23,6 +30,53 @@ export default function Layout({ children }) {
     { label: t('ABOUT'), path: '/about', items: [[t('Project objective'), '/about#project-objective'], [t('How it works'), '/about#how-platform-works'], [t('Our mission'), '/about#our-mission']] },
     { label: t('CONTACT'), path: '/contact', items: [[t('Support email'), '/contact#support-email'], [t('Partner support'), '/contact#partner-support'], [t('Emergency coordination'), '/contact#emergency-assistance']] }
   ];
+
+  async function loadNotifications({ showToast = false } = {}) {
+    if (!user) return;
+    try {
+      const data = await api('/notifications');
+      setNotifications(data.notifications || []);
+      setUnreadCount(data.unreadCount || 0);
+
+      if (showToast) {
+        const fresh = (data.notifications || []).find((item) => !item.readAt && !seenNotificationIds.current.has(item._id));
+        if (fresh) {
+          seenNotificationIds.current.add(fresh._id);
+          setToastNotification(fresh);
+          window.setTimeout(() => setToastNotification(null), 5200);
+        }
+      } else {
+        (data.notifications || []).forEach((item) => seenNotificationIds.current.add(item._id));
+      }
+    } catch {
+      setNotifications([]);
+      setUnreadCount(0);
+    }
+  }
+
+  async function openNotification(notification) {
+    try {
+      await api(`/notifications/${notification._id}/read`, { method: 'PATCH' });
+    } catch {
+      // Navigation should still happen even if read status fails.
+    }
+    setNotificationOpen(false);
+    setToastNotification(null);
+    loadNotifications();
+    navigate(notification.link || dashboardPath(user.role));
+  }
+
+  useEffect(() => {
+    if (!user) {
+      setNotifications([]);
+      setUnreadCount(0);
+      return undefined;
+    }
+
+    loadNotifications();
+    const timer = window.setInterval(() => loadNotifications({ showToast: true }), 15000);
+    return () => window.clearInterval(timer);
+  }, [user?.id]);
 
   return (
     <>
@@ -63,7 +117,30 @@ export default function Layout({ children }) {
             {user ? (
               <>
                 <Link className="utility-dashboard" to={dashboardPath(user.role)}><UserCircle size={20} /> {t("DASHBOARD")}</Link>
-                <button className="notification-button" type="button" aria-label="Notifications"><Bell size={20} /><span>3</span></button>
+                <div className="site-notification-menu">
+                  <button className="notification-button" type="button" aria-label="Notifications" onClick={() => setNotificationOpen((value) => !value)}>
+                    <Bell size={20} />
+                    {unreadCount > 0 && <span>{unreadCount > 9 ? '9+' : unreadCount}</span>}
+                  </button>
+                  {notificationOpen && (
+                    <div className="site-notification-popover">
+                      <div className="notification-popover-head">
+                        <strong>{t("Notifications")}</strong>
+                        {unreadCount > 0 && <small>{unreadCount} new</small>}
+                      </div>
+                      <div className="site-notification-list">
+                        {notifications.map((notification) => (
+                          <button className={notification.readAt ? 'site-notification-item' : 'site-notification-item unread'} type="button" key={notification._id} onClick={() => openNotification(notification)}>
+                            <strong>{notification.title}</strong>
+                            <span>{notification.message}</span>
+                            {notification.distanceLabel && <em>{notification.distanceLabel} from donor</em>}
+                          </button>
+                        ))}
+                        {!notifications.length && <p>No notifications yet.</p>}
+                      </div>
+                    </div>
+                  )}
+                </div>
                 <div className="profile-menu">
                   <button className="profile-trigger" type="button">
                     <span className="profile-avatar">{user.name?.charAt(0) || 'U'}</span>
@@ -106,6 +183,15 @@ export default function Layout({ children }) {
           </nav>
         </div>
       </header>
+      {toastNotification && (
+        <button className="notification-toast" type="button" onClick={() => openNotification(toastNotification)}>
+          <Bell size={20} />
+          <span>
+            <strong>{toastNotification.title}</strong>
+            <small>{toastNotification.message}</small>
+          </span>
+        </button>
+      )}
       <Link className="gift-tab" to="/signup">
         <span>{t("TRIPLE YOUR GIFT FOR LOCAL FAMILIES!")}</span>
         <Heart size={18} fill="currentColor" />

@@ -3,6 +3,7 @@ import { Notification } from '../models/Notification.js';
 import { PickupSchedule } from '../models/PickupSchedule.js';
 import { User } from '../models/User.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { addDistanceToDonation, cityRegex, sortUsersByDistance } from '../utils/distance.js';
 
 export const listDonations = asyncHandler(async (req, res) => {
   const { status, city, mine } = req.query;
@@ -14,6 +15,11 @@ export const listDonations = asyncHandler(async (req, res) => {
   if (!status && ['ngo', 'volunteer', 'recipient'].includes(req.user.role)) {
     filter.status = { $in: ['posted', 'accepted', 'pickup_scheduled'] };
   }
+  if (!city && ['ngo', 'volunteer'].includes(req.user.role)) {
+    const userCity = req.user.profile?.city || req.user.profile?.serviceArea;
+    const sameCity = cityRegex(userCity);
+    if (sameCity) filter.city = sameCity;
+  }
 
   const donations = await Donation.find(filter)
     .populate('donor', 'name email profile')
@@ -21,7 +27,7 @@ export const listDonations = asyncHandler(async (req, res) => {
     .populate('assignedVolunteer', 'name role')
     .sort({ createdAt: -1 });
 
-  res.json({ donations });
+  res.json({ donations: donations.map((donation) => addDistanceToDonation(donation, req.user)) });
 });
 
 export const createDonation = asyncHandler(async (req, res) => {
@@ -35,15 +41,37 @@ export const createDonation = asyncHandler(async (req, res) => {
     donor: req.user._id
   });
 
-  const nearbyOperators = await User.find({ role: { $in: ['ngo', 'volunteer'] }, isActive: true });
-  await Notification.insertMany(
-    nearbyOperators.map((user) => ({
+  const donorCity = donation.city || req.user.profile?.city;
+  const sameCity = cityRegex(donorCity);
+  const sameCityNgos = sameCity
+    ? await User.find({ role: 'ngo', isActive: true, 'profile.city': sameCity }).limit(20)
+    : [];
+  const fallbackNgos = sameCityNgos.length
+    ? []
+    : await User.find({ role: 'ngo', isActive: true }).limit(20);
+  const nearestNgos = sortUsersByDistance(sameCityNgos.length ? sameCityNgos : fallbackNgos, donorCity).slice(0, 5);
+
+  if (nearestNgos.length) {
+    await Notification.insertMany(nearestNgos.map((user) => {
+      const donationWithDistance = addDistanceToDonation(donation, user);
+      return {
       user: user._id,
       title: 'New food donation available',
-      message: `${donation.title} is available in ${donation.city}.`,
-      type: 'donation'
-    }))
-  );
+      message: `${donation.title} is available in ${donation.city}. Donor is about ${donationWithDistance.distanceLabel} from your NGO.`,
+      type: 'donation',
+      donation: donation._id,
+      link: '/dashboard/ngo#available-donations',
+      distanceKm: donationWithDistance.distanceKm,
+      distanceLabel: donationWithDistance.distanceLabel,
+      metadata: {
+        donorCity,
+        ngoCity: user.profile?.city || user.profile?.serviceArea,
+        donorName: req.user.name,
+        donationTitle: donation.title
+      }
+    };
+    }));
+  }
 
   res.status(201).json({ donation });
 });
@@ -76,8 +104,39 @@ export const acceptDonation = asyncHandler(async (req, res) => {
     user: donation.donor,
     title: 'Donation accepted',
     message: `${donation.title} has been accepted for pickup coordination.`,
-    type: 'donation'
+    type: 'donation',
+    donation: donation._id,
+    link: '/dashboard/donor#track-donations'
   });
+
+  if (req.user.role === 'ngo') {
+    const sameCity = cityRegex(donation.city);
+    const volunteers = await User.find({
+      role: 'volunteer',
+      isActive: true,
+      ...(sameCity ? { 'profile.city': sameCity } : {})
+    }).limit(5);
+
+    if (volunteers.length) {
+      await Notification.insertMany(volunteers.map((volunteer) => {
+        const donationWithDistance = addDistanceToDonation(donation, volunteer);
+        return {
+          user: volunteer._id,
+          title: 'Pickup task available',
+          message: `${donation.title} needs pickup in ${donation.city}. Donor is about ${donationWithDistance.distanceLabel} from you.`,
+          type: 'pickup',
+          donation: donation._id,
+          link: '/dashboard/volunteer#available-pickups',
+          distanceKm: donationWithDistance.distanceKm,
+          distanceLabel: donationWithDistance.distanceLabel,
+          metadata: {
+            donationTitle: donation.title,
+            donorCity: donation.city
+          }
+        };
+      }));
+    }
+  }
 
   res.json({ donation });
 });

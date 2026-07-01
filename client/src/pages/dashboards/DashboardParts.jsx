@@ -1,5 +1,7 @@
 import { BarChart3, Bell, ClipboardList, HeartHandshake, Home, LayoutDashboard, LogOut, MapPin, PackageCheck, RefreshCcw, Settings, ShieldCheck, Soup, Star, Truck, UserRoundCog, UsersRound } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Children, cloneElement, isValidElement, useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { api } from '../../api.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useLanguage } from '../../context/LanguageContext.jsx';
 import { formatDate, titleCase } from '../../utils.js';
@@ -7,6 +9,11 @@ import { formatDate, titleCase } from '../../utils.js';
 export function DashboardShell({ eyebrow, title, children, actions }) {
   const { user, logout } = useAuth();
   const { t } = useLanguage();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   
   const menuByRole = {
     donor: [
@@ -63,6 +70,45 @@ export function DashboardShell({ eyebrow, title, children, actions }) {
   };
   
   const navItems = menuByRole[user?.role] || menuByRole.donor;
+  const defaultHref = navItems[0]?.[2] || '#dashboard-home';
+  const [activeHref, setActiveHref] = useState(location.hash || defaultHref);
+  const activeTarget = activeHref.replace('#', '');
+  const visibleChildren = useMemo(() => filterDashboardChildren(children, activeTarget), [children, activeTarget]);
+
+  async function loadNotifications() {
+    try {
+      const data = await api('/notifications');
+      setNotifications(data.notifications || []);
+      setUnreadCount(data.unreadCount || 0);
+    } catch {
+      setNotifications([]);
+      setUnreadCount(0);
+    }
+  }
+
+  async function openNotification(notification) {
+    try {
+      await api(`/notifications/${notification._id}/read`, { method: 'PATCH' });
+    } catch {
+      // Continue with navigation even if read status update fails.
+    }
+    setNotificationOpen(false);
+    await loadNotifications();
+    const link = notification.link || `/dashboard/${user.role}`;
+    const hash = link.includes('#') ? `#${link.split('#')[1]}` : defaultHref;
+    setActiveHref(hash);
+    navigate(link);
+  }
+
+  useEffect(() => {
+    loadNotifications();
+    const timer = window.setInterval(loadNotifications, 15000);
+    return () => window.clearInterval(timer);
+  }, [user?.id]);
+
+  useEffect(() => {
+    setActiveHref(location.hash || defaultHref);
+  }, [location.hash, defaultHref]);
 
   return (
     <div className="app-dashboard">
@@ -76,8 +122,17 @@ export function DashboardShell({ eyebrow, title, children, actions }) {
           <div><strong>{user?.name}</strong><small>{t(titleCase(user?.role || ''))}</small></div>
         </div>
         <nav>
-          {navItems.map(([Icon, label, href = '#'], index) => (
-            <a className={index === 0 ? 'active' : ''} href={href} key={label}>
+          {navItems.map(([Icon, label, href = '#']) => (
+            <a
+              className={activeHref === href ? 'active' : ''}
+              href={href}
+              key={label}
+              onClick={(event) => {
+                event.preventDefault();
+                setActiveHref(href);
+                window.history.replaceState(null, '', `${location.pathname}${href}`);
+              }}
+            >
               <Icon size={19} /> {t(label)}
             </a>
           ))}
@@ -94,15 +149,72 @@ export function DashboardShell({ eyebrow, title, children, actions }) {
           <div className="dashboard-top-actions">
             <span className="live-chip"><span /> {t("Live Update")}</span>
             <button aria-label="Refresh dashboard"><RefreshCcw size={18} /></button>
-            <button aria-label="Notifications"><Bell size={18} /></button>
+            <div className="dashboard-notification-menu">
+              <button className="dashboard-bell" type="button" aria-label="Notifications" onClick={() => setNotificationOpen((value) => !value)}>
+                <Bell size={18} />
+                {unreadCount > 0 && <span>{unreadCount > 9 ? '9+' : unreadCount}</span>}
+              </button>
+              {notificationOpen && (
+                <div className="dashboard-notification-popover">
+                  <div className="notification-popover-head">
+                    <strong>{t("Notifications")}</strong>
+                    {unreadCount > 0 && <small>{unreadCount} {t("new")}</small>}
+                  </div>
+                  <div className="site-notification-list">
+                    {notifications.map((notification) => (
+                      <button
+                        className={notification.readAt ? 'site-notification-item' : 'site-notification-item unread'}
+                        key={notification._id}
+                        type="button"
+                        onClick={() => openNotification(notification)}
+                      >
+                        <strong>{notification.title}</strong>
+                        <span>{notification.message}</span>
+                        {notification.distanceLabel && <em>{notification.distanceLabel} {t("from donor")}</em>}
+                      </button>
+                    ))}
+                    {!notifications.length && <p className="empty-state">{t("No notifications yet.")}</p>}
+                  </div>
+                </div>
+              )}
+            </div>
             <Link className="dashboard-home" to="/"><Home size={18} /> {t("Public Site")}</Link>
             {actions}
           </div>
         </header>
-        <main className="dashboard-content">{children}</main>
+        <main className="dashboard-content">{visibleChildren}</main>
       </section>
     </div>
   );
+}
+
+function elementMatchesTarget(element, targetId) {
+  if (!isValidElement(element)) return false;
+  return element.props?.id === targetId || element.props?.['data-dashboard-section'] === targetId;
+}
+
+function pruneToTarget(node, targetId) {
+  if (!isValidElement(node)) return null;
+  if (elementMatchesTarget(node, targetId)) return node;
+
+  const children = Children.toArray(node.props?.children);
+  const prunedChildren = children.map((child) => pruneToTarget(child, targetId)).filter(Boolean);
+
+  if (!prunedChildren.length) return null;
+  const filteredClass = prunedChildren.length === 1 ? 'dashboard-filtered-group dashboard-filtered-single' : 'dashboard-filtered-group';
+  return cloneElement(node, { className: `${node.props.className || ''} ${filteredClass}`.trim() }, prunedChildren);
+}
+
+function filterDashboardChildren(children, targetId) {
+  const childArray = Children.toArray(children);
+  const homeTargets = ['dashboard-home', 'ngo-home', 'volunteer-home', 'admin-home'];
+
+  if (homeTargets.includes(targetId)) {
+    return childArray.slice(0, 2);
+  }
+
+  const filtered = childArray.map((child) => pruneToTarget(child, targetId)).filter(Boolean);
+  return filtered.length ? filtered : childArray.slice(0, 2);
 }
 
 export function StatGrid({ stats = {} }) {
@@ -159,14 +271,26 @@ export function DonationTable({ donations = [], onAccept, onDeliver }) {
 
 export function NotificationList({ items = [] }) {
   const { t } = useLanguage();
+  const navigate = useNavigate();
+
+  async function openNotification(item) {
+    try {
+      await api(`/notifications/${item._id}/read`, { method: 'PATCH' });
+    } catch {
+      // Keep the notification card useful even if the server update fails.
+    }
+    navigate(item.link || '#notifications');
+  }
+
   return (
-    <section className="dashboard-panel">
+    <section className="dashboard-panel" id="notifications">
       <h2>{t("Notifications")}</h2>
       {items.map((item) => (
-        <article className="notification" key={item._id}>
+        <button className={item.readAt ? 'notification dashboard-notification-card' : 'notification dashboard-notification-card unread'} type="button" key={item._id} onClick={() => openNotification(item)}>
           <strong>{item.title}</strong>
           <p>{item.message}</p>
-        </article>
+          {item.distanceLabel && <small>{item.distanceLabel} {t("from donor")}</small>}
+        </button>
       ))}
       {!items.length && <p>{t("No notifications yet.")}</p>}
     </section>

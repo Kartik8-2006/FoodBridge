@@ -10,6 +10,14 @@ const notificationSchema = new mongoose.Schema(
       enum: ['donation', 'pickup', 'verification', 'system'],
       default: 'system'
     },
+    donation: { type: mongoose.Schema.Types.ObjectId, ref: 'Donation' },
+    link: String,
+    distanceKm: Number,
+    distanceLabel: String,
+    metadata: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {}
+    },
     readAt: Date
   },
   { timestamps: true }

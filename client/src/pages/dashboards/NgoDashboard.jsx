@@ -129,7 +129,7 @@ export default function NgoDashboard() {
             {availableDonations.map((donation, index) => (
               <DonationClaimCard
                 donation={donation}
-                distance={`${(index + 1) * 1.8} km`}
+                distance={donation.distanceLabel || `${(index + 1) * 1.8} km`}
                 key={donation._id}
                 onAccept={() => accept(donation._id)}
               />
@@ -175,7 +175,7 @@ export default function NgoDashboard() {
                 type="button"
                 onClick={() => setSelectedDonationId(donation._id)}
               >
-                <span><strong>{donation.title}</strong><small>{donation.donor?.name || t('Registered food donor')} · {donation.quantity}</small></span>
+                <span><strong>{donation.title}</strong><small>{donation.donor?.name || t('Registered food donor')} · {donation.quantity} · {donation.distanceLabel || t('Distance unavailable')}</small></span>
                 <em>{t(titleCase(donation.status))}</em>
               </button>
             ))}

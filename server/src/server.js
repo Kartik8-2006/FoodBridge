@@ -9,6 +9,7 @@ import { adminRoutes } from './routes/adminRoutes.js';
 import { authRoutes } from './routes/authRoutes.js';
 import { dashboardRoutes } from './routes/dashboardRoutes.js';
 import { donationRoutes } from './routes/donationRoutes.js';
+import { notificationRoutes } from './routes/notificationRoutes.js';
 import { supportRoutes } from './routes/supportRoutes.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 
@@ -30,6 +31,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/donations', donationRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/notifications', notificationRoutes);
 app.use('/api/support-requests', supportRoutes);
 
 app.use(notFound);

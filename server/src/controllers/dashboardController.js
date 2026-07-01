@@ -5,6 +5,7 @@ import { PickupSchedule } from '../models/PickupSchedule.js';
 import { SupportRequest } from '../models/SupportRequest.js';
 import { User } from '../models/User.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { addDistanceToDonation, cityRegex } from '../utils/distance.js';
 
 export const dashboard = asyncHandler(async (req, res) => {
   const userId = req.user._id;
@@ -39,8 +40,13 @@ export const dashboard = asyncHandler(async (req, res) => {
       openRequests: await SupportRequest.countDocuments({ status: 'open' }),
       todaysDistribution: totalMealsDistributed
     };
-    data.availableDonations = await Donation.find({ status: 'posted' }).populate('donor', 'name email profile').sort({ safeBefore: 1 }).limit(12);
-    data.acceptedDonations = await Donation.find({ acceptedBy: userId }).populate('donor', 'name email profile').populate('assignedVolunteer', 'name role profile').sort({ updatedAt: -1 }).limit(12);
+    const userCity = req.user.profile?.city || req.user.profile?.serviceArea;
+    const sameCity = cityRegex(userCity);
+    const availableFilter = sameCity ? { status: 'posted', city: sameCity } : { status: 'posted' };
+    const availableDonations = await Donation.find(availableFilter).populate('donor', 'name email profile').sort({ safeBefore: 1 }).limit(12);
+    const acceptedDonationRows = await Donation.find({ acceptedBy: userId }).populate('donor', 'name email profile').populate('assignedVolunteer', 'name role profile').sort({ updatedAt: -1 }).limit(12);
+    data.availableDonations = availableDonations.map((donation) => addDistanceToDonation(donation, req.user));
+    data.acceptedDonations = acceptedDonationRows.map((donation) => addDistanceToDonation(donation, req.user));
     data.foodRequests = await SupportRequest.find({ status: 'open' }).populate('recipient', 'name email profile').sort({ createdAt: -1 }).limit(8);
     data.reports = {
       mealsDistributed: totalMealsDistributed,
@@ -52,8 +58,13 @@ export const dashboard = asyncHandler(async (req, res) => {
   }
 
   if (role === 'volunteer') {
+    const userCity = req.user.profile?.city || req.user.profile?.serviceArea;
+    const sameCity = cityRegex(userCity);
     const volunteerTasks = await Donation.find({
-      $or: [{ status: 'posted' }, { assignedVolunteer: userId }]
+      $or: [
+        sameCity ? { status: 'posted', city: sameCity } : { status: 'posted' },
+        { assignedVolunteer: userId }
+      ]
     })
       .populate('donor', 'name email profile')
       .populate('acceptedBy', 'name role profile')
@@ -70,9 +81,9 @@ export const dashboard = asyncHandler(async (req, res) => {
       estimatedDistanceKm: volunteerTasks.length ? volunteerTasks.length * 4 : 0,
       mealsDelivered: completedDeliveries.reduce((sum, item) => sum + Number(item.estimatedMeals || 0), 0)
     };
-    data.tasks = volunteerTasks;
-    data.assignedDeliveries = assignedDeliveries;
-    data.deliveryHistory = completedDeliveries;
+    data.tasks = volunteerTasks.map((donation) => addDistanceToDonation(donation, req.user));
+    data.assignedDeliveries = assignedDeliveries.map((donation) => addDistanceToDonation(donation, req.user));
+    data.deliveryHistory = completedDeliveries.map((donation) => addDistanceToDonation(donation, req.user));
     data.performance = {
       totalDeliveries: completedDeliveries.length,
       rating: completedDeliveries.length ? '4.8' : 'New',
@@ -168,6 +179,7 @@ export const dashboard = asyncHandler(async (req, res) => {
   }
 
   data.notifications = await Notification.find({ user: userId }).sort({ createdAt: -1 }).limit(6);
+  data.unreadNotificationCount = await Notification.countDocuments({ user: userId, readAt: { $exists: false } });
 
   res.json(data);
 });

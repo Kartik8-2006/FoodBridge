@@ -88,7 +88,7 @@ export default function VolunteerDashboard() {
           <div className="pickup-card-list">
             {tasks.map((task, index) => (
               <PickupCard
-                distance={`${(index + 1) * 2} km`}
+                distance={task.distanceLabel || `${(index + 1) * 2} km`}
                 key={task._id}
                 onAccept={() => accept(task._id)}
                 onSelect={() => setSelectedId(task._id)}
