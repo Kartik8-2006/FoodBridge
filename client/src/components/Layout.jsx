@@ -298,7 +298,7 @@ function AuthModal({ initialMode, onClose }) {
                   <option value="donor">Donor</option>
                   <option value="ngo">NGO</option>
                   <option value="volunteer">Volunteer</option>
-                  <option value="recipient">Recipient</option>
+                  
                 </select>
                 <input name="organizationName" placeholder="Organization or household name" value={form.organizationName} onChange={update} />
                 <input name="city" placeholder="City" value={form.city} onChange={update} required />
