@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Camera, CheckCircle2, Clock, ImagePlus, MapPin, PackageCheck, Phone, Plus, Truck, UserCheck } from 'lucide-react';
 import { api } from '../../api.js';
+import TrackingMap from '../../components/TrackingMap.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useLanguage } from '../../context/LanguageContext.jsx';
 import { formatDate, titleCase } from '../../utils.js';
@@ -158,7 +159,10 @@ export default function DonorDashboard() {
               <h2>{selectedDonation?.title || t('No donation selected')}</h2>
             </div>
           </div>
-          <DonationTimeline donation={selectedDonation} />
+          <div className="tracking-stack">
+            <DonationTimeline donation={selectedDonation} />
+            <TrackingMap donation={selectedDonation} />
+          </div>
         </article>
       </section>
 

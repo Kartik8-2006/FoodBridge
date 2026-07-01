@@ -44,7 +44,9 @@ const userSchema = new mongoose.Schema(
       required: true
     },
     profile: { type: profileSchema, default: {} },
-    isActive: { type: Boolean, default: true }
+    isActive: { type: Boolean, default: true },
+    passwordResetToken: String,
+    passwordResetExpires: Date
   },
   { timestamps: true }
 );

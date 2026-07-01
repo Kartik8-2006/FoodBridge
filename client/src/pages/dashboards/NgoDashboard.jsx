@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
-import { CheckCircle2, Clock, Home, MapPin, PackageCheck, School, Soup, Truck, UsersRound } from 'lucide-react';
+import { CheckCircle2, Clock, Home, PackageCheck, School, Soup, Truck, UsersRound } from 'lucide-react';
 import { api } from '../../api';
+import TrackingMap from '../../components/TrackingMap.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useLanguage } from '../../context/LanguageContext.jsx';
 import { formatDate, titleCase } from '../../utils.js';
@@ -32,6 +33,12 @@ export default function NgoDashboard() {
   const [deliveryTarget, setDeliveryTarget] = useState('families');
   const [beneficiaryCount, setBeneficiaryCount] = useState(40);
   const [message, setMessage] = useState('');
+  const [pickupForm, setPickupForm] = useState({
+    assignedVolunteer: '',
+    scheduledAt: '',
+    deliveryLocation: '',
+    notes: ''
+  });
 
   const availableDonations = data?.availableDonations || [];
   const claimedDonations = data?.acceptedDonations || [];
@@ -58,6 +65,31 @@ export default function NgoDashboard() {
       await api(`/donations/${id}/accept`, { method: 'PATCH' });
       setSelectedDonationId(id);
       setMessage(t('Donation claimed. Assign a volunteer and track pickup progress.'));
+      refresh();
+    } catch (err) {
+      setMessage(err.message);
+    }
+  }
+
+  function updatePickupForm(event) {
+    const { name, value } = event.target;
+    setPickupForm((current) => ({ ...current, [name]: value }));
+  }
+
+  async function schedulePickup(id) {
+    setMessage('');
+    try {
+      await api(`/donations/${id}/pickups`, {
+        method: 'POST',
+        body: JSON.stringify({
+          assignedVolunteer: pickupForm.assignedVolunteer || undefined,
+          scheduledAt: pickupForm.scheduledAt || new Date().toISOString(),
+          deliveryLocation: pickupForm.deliveryLocation || selectedDonation?.pickupAddress || '',
+          notes: pickupForm.notes || ''
+        })
+      });
+      setPickupForm({ assignedVolunteer: '', scheduledAt: '', deliveryLocation: '', notes: '' });
+      setMessage(t('Pickup scheduled successfully. Volunteer route is ready.'));
       refresh();
     } catch (err) {
       setMessage(err.message);
@@ -154,6 +186,38 @@ export default function NgoDashboard() {
               <button type="button" onClick={() => markDelivered(selectedDonation._id)} disabled={selectedDonation.status === 'delivered'}>
                 <CheckCircle2 size={16} /> {t("Mark Delivered")}
               </button>
+            </div>
+          )}
+          {selectedDonation && selectedDonation.acceptedBy && (
+            <div className="ngo-panel schedule-panel" style={{ marginTop: '1rem' }}>
+              <div className="panel-heading">
+                <div>
+                  <p className="dashboard-kicker">{t("Schedule Pickup")}</p>
+                  <h2>{t("Plan volunteer handoff")}</h2>
+                </div>
+              </div>
+              <div className="donor-form">
+                <label>{t("Assign Volunteer")}
+                  <select name="assignedVolunteer" value={pickupForm.assignedVolunteer} onChange={updatePickupForm}>
+                    <option value="">{t("Choose volunteer")}</option>
+                    {(data.volunteers || []).map((volunteer) => (
+                      <option key={volunteer._id} value={volunteer._id}>{volunteer.name} · {volunteer.profile?.city || t('City not set')}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>{t("Scheduled At")}
+                  <input name="scheduledAt" type="datetime-local" value={pickupForm.scheduledAt} onChange={updatePickupForm} />
+                </label>
+                <label>{t("Delivery Location")}
+                  <input name="deliveryLocation" value={pickupForm.deliveryLocation} onChange={updatePickupForm} placeholder={selectedDonation?.pickupAddress || t('Pickup address')} />
+                </label>
+                <label>{t("Notes")}
+                  <textarea name="notes" value={pickupForm.notes} onChange={updatePickupForm} placeholder={t("Pickup instructions, contact detail, gate code...")} />
+                </label>
+                <button type="button" className="donor-submit" onClick={() => schedulePickup(selectedDonation._id)}>
+                  {t("Schedule Pickup")}
+                </button>
+              </div>
             </div>
           )}
         </article>
@@ -260,19 +324,10 @@ export default function NgoDashboard() {
 
       <section className="ngo-panel ngo-map-panel">
         <div>
-          <p className="dashboard-kicker">{t("Google Maps Integration")}</p>
-          <h2>{t("Pickup location map")}</h2>
+          <p className="dashboard-kicker">{t("Route Tracking")}</p>
+          <h2>{t("Pickup and volunteer location")}</h2>
         </div>
-        <div className="ngo-map">
-          {selectedDonation?.pickupAddress ? (
-            <iframe
-              title="Donation pickup map"
-              src={`https://maps.google.com/maps?q=${encodeURIComponent(`${selectedDonation.pickupAddress} ${selectedDonation.city}`)}&output=embed`}
-            />
-          ) : (
-            <><MapPin /><span>{t("Select a donation to preview pickup location.")}</span></>
-          )}
-        </div>
+        <TrackingMap donation={selectedDonation} />
       </section>
 
       <section id="notifications"><NotificationList items={data.notifications} /></section>
