@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { api } from '../api.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { dashboardPath } from '../utils.js';
 
@@ -7,9 +8,13 @@ const roles = ['donor', 'ngo', 'volunteer', 'recipient'];
 
 export default function AuthPage({ mode }) {
   const isSignup = mode === 'signup';
+  const isForgot = mode === 'forgot';
+  const isReset = mode === 'reset';
   const { login, register } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -28,7 +33,27 @@ export default function AuthPage({ mode }) {
   async function submit(event) {
     event.preventDefault();
     setError('');
+    setMessage('');
     try {
+      if (isForgot) {
+        const data = await api('/auth/forgot-password', {
+          method: 'POST',
+          body: JSON.stringify({ email: form.email })
+        });
+        setMessage(data.message);
+        return;
+      }
+
+      if (isReset) {
+        const data = await api('/auth/reset-password', {
+          method: 'POST',
+          body: JSON.stringify({ token: searchParams.get('token'), password: form.password })
+        });
+        setMessage(data.message);
+        setForm((current) => ({ ...current, password: '' }));
+        return;
+      }
+
       const user = isSignup
         ? await register({
             name: form.name,
@@ -54,12 +79,12 @@ export default function AuthPage({ mode }) {
   return (
     <main className="auth-page">
       <section className="auth-card">
-        <p className="eyebrow">{isSignup ? 'Create Account' : 'Welcome Back'}</p>
-        <h1>{isSignup ? 'Join FoodBridge Network' : 'Log in to your dashboard'}</h1>
+        <p className="eyebrow">{isSignup ? 'Create Account' : isForgot ? 'Password Help' : isReset ? 'Reset Password' : 'Welcome Back'}</p>
+        <h1>{isSignup ? 'Join FoodBridge Network' : isForgot ? 'Get a reset link' : isReset ? 'Create a new password' : 'Log in to your dashboard'}</h1>
         <form onSubmit={submit} className="form-grid">
           {isSignup && <input name="name" placeholder="Full name or organization contact" value={form.name} onChange={update} required />}
-          <input name="email" type="email" placeholder="Email address" value={form.email} onChange={update} required />
-          <input name="password" type="password" placeholder="Password" value={form.password} onChange={update} required />
+          {!isReset && <input name="email" type="email" placeholder="Email address" value={form.email} onChange={update} required />}
+          {!isForgot && <input name="password" type="password" placeholder={isReset ? 'New password' : 'Password'} value={form.password} onChange={update} required />}
           {isSignup && (
             <>
               <select name="role" value={form.role} onChange={update}>{roles.map((role) => <option key={role} value={role}>{role}</option>)}</select>
@@ -70,7 +95,10 @@ export default function AuthPage({ mode }) {
             </>
           )}
           {error && <div className="error">{error}</div>}
-          <button className="button button-primary">{isSignup ? 'Create Account' : 'Login'}</button>
+          {message && <div className="notice">{message}</div>}
+          <button className="button button-primary">{isSignup ? 'Create Account' : isForgot ? 'Send reset link' : isReset ? 'Reset password' : 'Login'}</button>
+          {!isSignup && !isForgot && !isReset && <Link className="forgot-password-link" to="/forgot-password">Forgot password?</Link>}
+          {(isForgot || isReset) && <Link className="forgot-password-link" to="/login">Back to login</Link>}
         </form>
       </section>
     </main>

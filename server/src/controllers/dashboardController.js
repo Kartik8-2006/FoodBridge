@@ -48,6 +48,7 @@ export const dashboard = asyncHandler(async (req, res) => {
     data.availableDonations = availableDonations.map((donation) => addDistanceToDonation(donation, req.user));
     data.acceptedDonations = acceptedDonationRows.map((donation) => addDistanceToDonation(donation, req.user));
     data.foodRequests = await SupportRequest.find({ status: 'open' }).populate('recipient', 'name email profile').sort({ createdAt: -1 }).limit(8);
+    data.volunteers = await User.find({ role: 'volunteer', isActive: true }).select('-passwordHash').sort({ name: 1 }).limit(25);
     data.reports = {
       mealsDistributed: totalMealsDistributed,
       foodReceived: acceptedDonations.reduce((sum, item) => sum + Number(item.estimatedMeals || 0), 0),

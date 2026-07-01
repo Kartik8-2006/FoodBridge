@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { CheckCircle2, Clock, MapPin, Navigation, PackageCheck, Star, Timer, Truck } from 'lucide-react';
+import { CheckCircle2, Clock, Navigation, PackageCheck, Star, Timer, Truck } from 'lucide-react';
 import { api } from '../../api.js';
+import TrackingMap from "../../components/TrackingMap.jsx";
 import { useAuth } from '../../context/AuthContext.jsx';
 import { formatDate, titleCase } from '../../utils.js';
 import { DashboardShell, NotificationList, StatGrid } from './DashboardParts.jsx';
@@ -19,15 +20,22 @@ export default function VolunteerDashboard() {
   const { data, error, refresh } = useDashboardData();
   const [selectedId, setSelectedId] = useState('');
   const [message, setMessage] = useState('');
+  const [isSharingLocation, setIsSharingLocation] = useState(false);
 
   const tasks = data?.tasks || [];
   const assignedDeliveries = data?.assignedDeliveries || [];
   const history = data?.deliveryHistory || [];
+  const availablePickups = tasks.filter((task) => task.status === 'posted');
   const selectedDelivery =
     assignedDeliveries.find((item) => item._id === selectedId) ||
     tasks.find((item) => item._id === selectedId) ||
     assignedDeliveries[0] ||
+    availablePickups[0] ||
     tasks[0];
+  const mapDestination = selectedDelivery?.pickupAddress
+    ? `${selectedDelivery.pickupAddress}, ${selectedDelivery.city || ''}`.trim()
+    : '';
+  const directionsUrl = mapDestination ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapDestination)}` : '#';
 
   if (!data) return <main className="dashboard"><p>{error || 'Loading volunteer dashboard...'}</p></main>;
 
@@ -37,7 +45,7 @@ export default function VolunteerDashboard() {
       await api(`/donations/${id}/accept`, { method: 'PATCH' });
       setSelectedId(id);
       setMessage('Pickup accepted. Navigate to the donor location and update progress.');
-      refresh();
+      await refresh();
     } catch (err) {
       setMessage(err.message);
     }
@@ -51,10 +59,56 @@ export default function VolunteerDashboard() {
         body: JSON.stringify({ status })
       });
       setMessage(status === 'picked_up' ? 'Pickup confirmed. Head to the NGO destination.' : 'Delivery completed. Thank you for the impact.');
-      refresh();
+      await refresh();
     } catch (err) {
       setMessage(err.message);
     }
+  }
+
+  async function shareLocation() {
+    if (!selectedDelivery) return;
+
+    if (!selectedDelivery.assignedVolunteer && selectedDelivery.status === 'posted') {
+      setMessage('Accept this pickup before sharing your tracking location.');
+      return;
+    }
+
+    if (!navigator.geolocation) {
+      setMessage('Location sharing is not available in this browser.');
+      return;
+    }
+
+    setIsSharingLocation(true);
+    setMessage('');
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          await api(`/donations/${selectedDelivery._id}/tracking`, {
+            method: 'PATCH',
+            body: JSON.stringify({
+              location: {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+                accuracy: position.coords.accuracy,
+                label: 'Volunteer live location'
+              }
+            })
+          });
+          setMessage('Location shared. Donor and NGO dashboards can now track the pickup.');
+          await refresh();
+        } catch (err) {
+          setMessage(err.message);
+        } finally {
+          setIsSharingLocation(false);
+        }
+      },
+      (geoError) => {
+        setMessage(geoError.message || 'Unable to access your location.');
+        setIsSharingLocation(false);
+      },
+      { enableHighAccuracy: true, maximumAge: 30000, timeout: 12000 }
+    );
   }
 
   return (
@@ -68,7 +122,7 @@ export default function VolunteerDashboard() {
       </section>
 
       <section className="volunteer-summary-grid">
-        <article><span>Today&apos;s Tasks</span><strong>{tasks.length}</strong><small>Deliveries</small></article>
+        <article><span>Today&apos;s Tasks</span><strong>{availablePickups.length}</strong><small>Available pickups</small></article>
         <article><span>Estimated Distance</span><strong>{data.stats.estimatedDistanceKm || 0} km</strong><small>Route estimate</small></article>
         <article><span>Completed</span><strong>{data.performance?.totalDeliveries || data.stats.completed}</strong><small>Deliveries</small></article>
       </section>
@@ -83,10 +137,10 @@ export default function VolunteerDashboard() {
               <p className="dashboard-kicker">Nearby Pickups</p>
               <h2>Accept food pickup tasks</h2>
             </div>
-            <span>{tasks.filter((item) => item.status === 'posted').length} available</span>
+            <span>{availablePickups.length} available</span>
           </div>
           <div className="pickup-card-list">
-            {tasks.map((task, index) => (
+            {availablePickups.map((task, index) => (
               <PickupCard
                 distance={task.distanceLabel || `${(index + 1) * 2} km`}
                 key={task._id}
@@ -96,7 +150,7 @@ export default function VolunteerDashboard() {
                 task={task}
               />
             ))}
-            {!tasks.length && <p>No nearby pickups right now.</p>}
+            {!availablePickups.length && <p>No nearby pickups right now.</p>}
           </div>
         </article>
 
@@ -107,14 +161,13 @@ export default function VolunteerDashboard() {
               <h2>{selectedDelivery?.title || 'Select a pickup'}</h2>
             </div>
           </div>
-          <div className="volunteer-map">
-            {selectedDelivery?.pickupAddress ? (
-              <iframe
-                title="Volunteer route map"
-                src={`https://maps.google.com/maps?q=${encodeURIComponent(`${selectedDelivery.pickupAddress} ${selectedDelivery.city}`)}&output=embed`}
-              />
-            ) : (
-              <><MapPin /><span>Select a pickup to open map navigation.</span></>
+          <div className="volunteer-map-wrap">
+            <TrackingMap donation={selectedDelivery} mode="volunteer" onShareLocation={shareLocation} isSharing={isSharingLocation} />
+            {mapDestination && (
+              <div className="volunteer-route-footer">
+                <span>{selectedDelivery?.pickupAddress}</span>
+                <a href={directionsUrl} target="_blank" rel="noreferrer">Open directions</a>
+              </div>
             )}
           </div>
         </article>
@@ -240,7 +293,7 @@ function DeliveryTimeline({ delivery }) {
   return (
     <div className="volunteer-timeline">
       {deliverySteps.map(([status, label], index) => {
-        const complete = delivery.status === 'delivered' || index <= activeIndex + 1;
+        const complete = index <= activeIndex;
         return (
           <div className={complete ? 'complete' : ''} key={`${status}-${label}`}>
             <span>{complete ? <CheckCircle2 size={16} /> : <Clock size={16} />}</span>

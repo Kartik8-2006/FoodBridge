@@ -5,6 +5,23 @@ import { User } from '../models/User.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { addDistanceToDonation, cityRegex, sortUsersByDistance } from '../utils/distance.js';
 
+function normalizeLocation(value, label) {
+  if (!value) return undefined;
+
+  const latitude = Number(value.latitude);
+  const longitude = Number(value.longitude);
+
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return undefined;
+  if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) return undefined;
+
+  return {
+    latitude,
+    longitude,
+    ...(value.accuracy !== undefined && Number.isFinite(Number(value.accuracy)) ? { accuracy: Number(value.accuracy) } : {}),
+    label: value.label || label
+  };
+}
+
 export const listDonations = asyncHandler(async (req, res) => {
   const { status, city, mine } = req.query;
   const filter = {};
@@ -164,9 +181,50 @@ export const schedulePickup = asyncHandler(async (req, res) => {
 
   donation.status = 'pickup_scheduled';
   donation.assignedVolunteer = req.body.assignedVolunteer;
+  donation.deliveryAddress = req.body.deliveryLocation;
+  const deliveryLocation = normalizeLocation(req.body.deliveryCoordinates, req.body.deliveryLocation);
+  if (deliveryLocation) donation.deliveryLocation = deliveryLocation;
   await donation.save();
 
   res.status(201).json({ pickup, donation });
+});
+
+export const updateDonationTracking = asyncHandler(async (req, res) => {
+  const donation = await Donation.findById(req.params.id);
+  if (!donation) {
+    res.status(404);
+    throw new Error('Donation not found');
+  }
+
+  const canTrack =
+    req.user.role === 'admin' ||
+    donation.acceptedBy?.equals(req.user._id) ||
+    donation.assignedVolunteer?.equals(req.user._id);
+
+  if (!canTrack) {
+    res.status(403);
+    throw new Error('You cannot update tracking for this donation');
+  }
+
+  const location = normalizeLocation(req.body.location, req.body.label || 'Volunteer location');
+  if (!location) {
+    res.status(400);
+    throw new Error('A valid latitude and longitude are required');
+  }
+
+  donation.volunteerLocation = {
+    ...location,
+    updatedAt: new Date()
+  };
+
+  if (req.body.status && ['picked_up', 'delivered'].includes(req.body.status)) {
+    donation.status = req.body.status;
+    if (req.body.status === 'delivered') donation.deliveredAt = new Date();
+  }
+
+  await donation.save();
+
+  res.json({ donation });
 });
 
 export const updateDonationStatus = asyncHandler(async (req, res) => {
@@ -198,6 +256,8 @@ export const updateDonationStatus = asyncHandler(async (req, res) => {
   donation.status = status;
   if (req.body.distributionTarget) donation.distributionTarget = req.body.distributionTarget;
   if (req.body.beneficiaryCount !== undefined) donation.beneficiaryCount = req.body.beneficiaryCount;
+  const volunteerLocation = normalizeLocation(req.body.location, 'Volunteer location');
+  if (volunteerLocation) donation.volunteerLocation = { ...volunteerLocation, updatedAt: new Date() };
   if (status === 'delivered') donation.deliveredAt = new Date();
   await donation.save();
 
