@@ -7,122 +7,61 @@ import { formatDate, titleCase } from '../../utils.js';
 export function DashboardShell({ eyebrow, title, children, actions }) {
   const { user, logout } = useAuth();
   const { t } = useLanguage();
-
+  
   const menuByRole = {
     donor: [
-      {
-        section: 'Overview',
-        items: [
-          [LayoutDashboard, 'Dashboard', '#dashboard-home'],
-          [Bell, 'Notifications', '#notifications'],
-          [UserRoundCog, 'Profile', '#profile']
-        ]
-      },
-      {
-        section: 'Donation Flow',
-        items: [
-          [PackageCheck, 'Donate Food', '#donate-food'],
-          [ClipboardList, 'My Active Donations', '#active-donations'],
-          [ClipboardList, 'Donation History', '#donation-history'],
-          [MapPin, 'Track Donations', '#track-donations'],
-          [Settings, 'Settings', '#settings']
-        ]
-      }
+      [LayoutDashboard, 'Dashboard', '#dashboard-home'],
+      [PackageCheck, 'Donate Food', '#donate-food'],
+      [ClipboardList, 'My Active Donations', '#active-donations'],
+      [ClipboardList, 'Donation History', '#donation-history'],
+      [MapPin, 'Track Donations', '#track-donations'],
+      [Bell, 'Notifications', '#notifications'],
+      [UserRoundCog, 'Profile', '#profile'],
+      [Settings, 'Settings', '#settings']
     ],
     ngo: [
-      {
-        section: 'Overview',
-        items: [
-          [LayoutDashboard, 'Dashboard', '#ngo-home'],
-          [Bell, 'Notifications', '#notifications'],
-          [UserRoundCog, 'Profile', '#profile']
-        ]
-      },
-      {
-        section: 'Operations',
-        items: [
-          [PackageCheck, 'Available Donations', '#available-donations'],
-          [Truck, 'Claimed Donations', '#claimed-donations'],
-          [ClipboardList, 'Food Requests', '#food-requests'],
-          [UsersRound, 'Beneficiaries', '#beneficiaries'],
-          [Truck, 'Volunteers', '#volunteers']
-        ]
-      },
-      {
-        section: 'Insights',
-        items: [
-          [BarChart3, 'Reports', '#reports']
-        ]
-      }
+      [LayoutDashboard, 'Dashboard', '#ngo-home'],
+      [PackageCheck, 'Available Donations', '#available-donations'],
+      [Truck, 'Claimed Donations', '#claimed-donations'],
+      [ClipboardList, 'Food Requests', '#food-requests'],
+      [UsersRound, 'Beneficiaries', '#beneficiaries'],
+      [Truck, 'Volunteers', '#volunteers'],
+      [BarChart3, 'Reports', '#reports'],
+      [Bell, 'Notifications', '#notifications'],
+      [UserRoundCog, 'Profile', '#profile']
     ],
     volunteer: [
-      {
-        section: 'Overview',
-        items: [
-          [LayoutDashboard, 'Dashboard', '#volunteer-home'],
-          [MapPin, 'Available Pickups', '#available-pickups'],
-          [Truck, 'Assigned Deliveries', '#assigned-deliveries']
-        ]
-      },
-      {
-        section: 'Route Work',
-        items: [
-          [MapPin, 'Navigation', '#navigation'],
-          [PackageCheck, 'Delivery History', '#delivery-history'],
-          [BarChart3, 'Performance', '#performance']
-        ]
-      },
-      {
-        section: 'Support',
-        items: [
-          [Bell, 'Notifications', '#notifications'],
-          [UserRoundCog, 'Profile', '#profile']
-        ]
-      }
+      [LayoutDashboard, 'Dashboard', '#volunteer-home'],
+      [MapPin, 'Available Pickups', '#available-pickups'],
+      [Truck, 'Assigned Deliveries', '#assigned-deliveries'],
+      [PackageCheck, 'Delivery History', '#delivery-history'],
+      [MapPin, 'Navigation', '#navigation'],
+      [Bell, 'Notifications', '#notifications'],
+      [UserRoundCog, 'Profile', '#profile']
     ],
     recipient: [
-      {
-        section: 'Overview',
-        items: [
-          [LayoutDashboard, 'Dashboard'],
-          [ClipboardList, 'Request Food'],
-          [MapPin, 'Nearby Support'],
-          [Bell, 'Notifications'],
-          [UserRoundCog, 'Profile']
-        ]
-      }
+      [LayoutDashboard, 'Dashboard'],
+      [ClipboardList, 'Request Food'],
+      [MapPin, 'Nearby Support'],
+      [Bell, 'Notifications'],
+      [UserRoundCog, 'Profile']
     ],
     admin: [
-      {
-        section: 'Overview',
-        items: [
-          [LayoutDashboard, 'Dashboard', '#admin-home'],
-          [Bell, 'Notifications', '#notifications'],
-          [Settings, 'Settings', '#settings']
-        ]
-      },
-      {
-        section: 'People',
-        items: [
-          [UsersRound, 'Users', '#users'],
-          [PackageCheck, 'Donors', '#donors'],
-          [HeartHandshake, 'NGOs', '#ngos'],
-          [Truck, 'Volunteers', '#volunteers']
-        ]
-      },
-      {
-        section: 'Operations',
-        items: [
-          [ClipboardList, 'Donations', '#donations'],
-          [Soup, 'Food Requests', '#food-requests'],
-          [BarChart3, 'Reports', '#reports'],
-          [BarChart3, 'Analytics', '#analytics'],
-          [ShieldCheck, 'Verification', '#verification']
-        ]
-      }
+      [LayoutDashboard, 'Dashboard', '#admin-home'],
+      [UsersRound, 'Users', '#users'],
+      [PackageCheck, 'Donors', '#donors'],
+      [HeartHandshake, 'NGOs', '#ngos'],
+      [Truck, 'Volunteers', '#volunteers'],
+      [ClipboardList, 'Donations', '#donations'],
+      [Soup, 'Food Requests', '#food-requests'],
+      [BarChart3, 'Reports', '#reports'],
+      [BarChart3, 'Analytics', '#analytics'],
+      [ShieldCheck, 'Verification', '#verification'],
+      [Bell, 'Notifications', '#notifications'],
+      [Settings, 'Settings', '#settings']
     ]
   };
-
+  
   const navItems = menuByRole[user?.role] || menuByRole.donor;
 
   return (
@@ -137,15 +76,10 @@ export function DashboardShell({ eyebrow, title, children, actions }) {
           <div><strong>{user?.name}</strong><small>{t(titleCase(user?.role || ''))}</small></div>
         </div>
         <nav>
-          {navItems.map((group) => (
-            <div className="dashboard-nav-group" key={group.section || 'group'}>
-              {group.section && <span className="dashboard-nav-section">{t(group.section)}</span>}
-              {group.items.map(([Icon, label, href = '#'], index) => (
-                <a className={index === 0 && group.section === 'Overview' ? 'active' : ''} href={href} key={label}>
-                  <Icon size={19} /> {t(label)}
-                </a>
-              ))}
-            </div>
+          {navItems.map(([Icon, label, href = '#'], index) => (
+            <a className={index === 0 ? 'active' : ''} href={href} key={label}>
+              <Icon size={19} /> {t(label)}
+            </a>
           ))}
         </nav>
         <button className="dashboard-logout" onClick={logout}><LogOut size={18} /> {t("Logout")}</button>

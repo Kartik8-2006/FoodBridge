@@ -140,7 +140,7 @@ export default function SearchInput() {
 
   return (
     <Container ref={containerRef}>
-      <SearchWrapper $expanded={expanded}>
+      <SearchWrapper expanded={expanded}>
         <SearchIconBtn type="button" onClick={handleSearchClick} aria-label="Search">
           <Search size={20} />
         </SearchIconBtn>
@@ -156,13 +156,13 @@ export default function SearchInput() {
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder={t("SEARCH...") || "Search..."}
-          $expanded={expanded}
+          expanded={expanded}
           autoComplete="off"
         />
 
         <ClearIconBtn 
           type="button" 
-          $visible={expanded && !!query} 
+          visible={expanded && !!query} 
           onClick={handleClear}
           aria-label="Clear search"
         >
@@ -203,19 +203,19 @@ const SearchWrapper = styled.div`
   display: flex;
   align-items: center;
   position: relative;
-  width: ${props => props.$expanded ? '250px' : '40px'};
+  width: ${props => props.expanded ? '250px' : '40px'};
   height: 40px;
-  background: ${props => props.$expanded ? '#ffffff' : 'transparent'};
-  border: 1px solid ${props => props.$expanded ? '#d8dce2' : 'transparent'};
+  background: ${props => props.expanded ? '#ffffff' : 'transparent'};
+  border: 1px solid ${props => props.expanded ? '#d8dce2' : 'transparent'};
   border-radius: 20px;
   transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   box-sizing: border-box;
-  box-shadow: ${props => props.$expanded ? '0 2px 8px rgba(0, 0, 0, 0.06)' : 'none'};
+  box-shadow: ${props => props.expanded ? '0 2px 8px rgba(0, 0, 0, 0.06)' : 'none'};
 
   &:hover {
-    background: ${props => props.$expanded ? '#ffffff' : 'rgba(0, 0, 0, 0.04)'};
-    border-color: ${props => props.$expanded ? '#c0c4cc' : 'transparent'};
+    background: ${props => props.expanded ? '#ffffff' : 'rgba(0, 0, 0, 0.04)'};
+    border-color: ${props => props.expanded ? '#c0c4cc' : 'transparent'};
   }
 `;
 
@@ -228,9 +228,9 @@ const StyledInput = styled.input`
   padding: 0 34px 0 38px;
   font-size: 14px;
   color: #303133;
-  opacity: ${props => props.$expanded ? 1 : 0};
+  opacity: ${props => props.expanded ? 1 : 0};
   transition: opacity 0.2s ease;
-  pointer-events: ${props => props.$expanded ? 'auto' : 'none'};
+  pointer-events: ${props => props.expanded ? 'auto' : 'none'};
   font-family: inherit;
   box-sizing: border-box;
 `;
@@ -271,8 +271,8 @@ const ClearIconBtn = styled.button`
   cursor: pointer;
   border-radius: 50%;
   z-index: 2;
-  opacity: ${props => props.$visible ? 1 : 0};
-  pointer-events: ${props => props.$visible ? 'auto' : 'none'};
+  opacity: ${props => props.visible ? 1 : 0};
+  pointer-events: ${props => props.visible ? 'auto' : 'none'};
   transition: all 0.2s ease;
 
   &:hover {

@@ -83,3 +83,8 @@ Role protection is enforced by JWT. Example: a donor token can open `/api/dashbo
 - Pickup status moves from posted to accepted, pickup scheduled, picked up, delivered, cancelled, or expired.
 - Recipients can request assistance.
 - Admins verify NGOs, monitor donations, and review platform activity.
+
+Shubham 
+
+
+kartik

@@ -3,7 +3,6 @@ import { Bell, CheckCircle2, ChevronDown, CircleDollarSign, Heart, HeartHandshak
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
-import { api } from '../api.js';
 import { dashboardPath } from '../utils.js';
 import SearchInput from './SearchInput.jsx';
 
@@ -13,8 +12,6 @@ export default function Layout({ children }) {
   const [open, setOpen] = useState(false);
   const [donationOpen, setDonationOpen] = useState(false);
   const [authModal, setAuthModal] = useState(null);
-  const [newsletter, setNewsletter] = useState({ firstName: '', lastName: '', phone: '', email: '' });
-  const [newsletterMessage, setNewsletterMessage] = useState('');
 
   const links = [
     { label: t('HOME'), path: '/', items: [[t('Our story'), '/#our-story'], [t('Impact facts'), '/#impact-facts'], [t('Latest updates'), '/#latest-updates']] },
@@ -26,25 +23,6 @@ export default function Layout({ children }) {
     { label: t('ABOUT'), path: '/about', items: [[t('Project objective'), '/about#project-objective'], [t('How it works'), '/about#how-platform-works'], [t('Our mission'), '/about#our-mission']] },
     { label: t('CONTACT'), path: '/contact', items: [[t('Support email'), '/contact#support-email'], [t('Partner support'), '/contact#partner-support'], [t('Emergency coordination'), '/contact#emergency-assistance']] }
   ];
-
-  function updateNewsletter(event) {
-    setNewsletter({ ...newsletter, [event.target.name]: event.target.value });
-  }
-
-  async function submitNewsletter(event) {
-    event.preventDefault();
-    setNewsletterMessage('');
-    try {
-      const data = await api('/newsletter/subscribe', {
-        method: 'POST',
-        body: JSON.stringify(newsletter)
-      });
-      setNewsletter({ firstName: '', lastName: '', phone: '', email: '' });
-      setNewsletterMessage(data.message || 'Subscribed successfully.');
-    } catch (err) {
-      setNewsletterMessage(err.message);
-    }
-  }
 
   return (
     <>
@@ -138,17 +116,16 @@ export default function Layout({ children }) {
       <footer className="footer foodbank-footer">
         <section className="footer-newsletter">
           <h2>{t("STAY UP TO DATE")}</h2>
-          <form onSubmit={submitNewsletter}>
+          <form>
             <div className="footer-name-row">
-              <input name="firstName" placeholder={t("FIRST NAME")} value={newsletter.firstName} onChange={updateNewsletter} />
-              <input name="lastName" placeholder={t("LAST NAME")} value={newsletter.lastName} onChange={updateNewsletter} />
+              <input placeholder={t("FIRST NAME")} />
+              <input placeholder={t("LAST NAME")} />
             </div>
-            <input name="phone" placeholder={t("PHONE NUMBER")} value={newsletter.phone} onChange={updateNewsletter} />
+            <input placeholder={t("PHONE NUMBER")} />
             <div className="footer-email-row">
-              <input name="email" type="email" placeholder={t("EMAIL")} value={newsletter.email} onChange={updateNewsletter} required />
-              <button type="submit">{t("SUBSCRIBE")}</button>
+              <input placeholder={t("EMAIL")} />
+              <button type="button">{t("SUBSCRIBE")}</button>
             </div>
-            {newsletterMessage && <div className="footer-newsletter-message">{newsletterMessage}</div>}
           </form>
         </section>
         <section className="footer-contact">
@@ -321,7 +298,7 @@ function AuthModal({ initialMode, onClose }) {
                   <option value="donor">Donor</option>
                   <option value="ngo">NGO</option>
                   <option value="volunteer">Volunteer</option>
-                  <option value="recipient">Recipient</option>
+                  
                 </select>
                 <input name="organizationName" placeholder="Organization or household name" value={form.organizationName} onChange={update} />
                 <input name="city" placeholder="City" value={form.city} onChange={update} required />
@@ -330,7 +307,6 @@ function AuthModal({ initialMode, onClose }) {
               </>
             )}
           </div>
-          {!isSignup && <Link className="forgot-password-link" to="/forgot-password" onClick={onClose}>Forgot password?</Link>}
           {error && <div className="error">{error}</div>}
           <div className="donation-assurance">
             <LockKeyhole size={17} />
