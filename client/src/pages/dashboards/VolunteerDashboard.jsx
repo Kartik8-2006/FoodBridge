@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { CheckCircle2, Clock, Navigation, PackageCheck, Star, Timer, Truck } from 'lucide-react';
 import { api } from '../../api.js';
-import TrackingMap from "../../components/TrackingMap.jsx";
+import TrackingMap from '../../components/TrackingMap.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { formatDate, titleCase } from '../../utils.js';
 import { DashboardShell, NotificationList, StatGrid } from './DashboardParts.jsx';
