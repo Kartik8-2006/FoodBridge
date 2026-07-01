@@ -4,7 +4,8 @@ import {
   createDonation,
   listDonations,
   schedulePickup,
-  updateDonationStatus
+  updateDonationStatus,
+  updateDonationTracking
 } from '../controllers/donationController.js';
 import { authenticate } from '../middleware/auth.js';
 
@@ -15,4 +16,5 @@ donationRoutes.get('/', listDonations);
 donationRoutes.post('/', createDonation);
 donationRoutes.patch('/:id/accept', acceptDonation);
 donationRoutes.post('/:id/pickups', schedulePickup);
+donationRoutes.patch('/:id/tracking', updateDonationTracking);
 donationRoutes.patch('/:id/status', updateDonationStatus);

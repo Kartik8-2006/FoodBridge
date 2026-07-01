@@ -11,28 +11,33 @@ FoodBridge Network is a MERN food donation management platform inspired by the p
 
 ## Setup
 
-Install package:
-  `cd client`
-  `npm init -y`
-  `npm install`
+Install dependencies for the full app:
+  `npm run install:all`
 
-  same for server
-  `cd server`
-  `npm init -y`
-  `npm install`
+Start MongoDB locally (one-time setup):
+  `mongod --dbpath <your-mongodb-data-folder>`
 
+  If you use MongoDB Atlas instead, update `server/.env` with your `MONGO_URI`.
+
+Seed demo data:
+  `npm run seed --prefix server`
 
 Run the app:
-for server:
-    `cd server`
-    `npm run dev`
-for frontend:
-    `cd client`
-    `npm run dev`
+  `npm run dev`
 
-Client: `http://localhost:5173`
+This starts the backend and the React frontend together using the root package scripts.
 
-Server: `http://localhost:5000`
+Individual services:
+  `npm run dev:server`
+  `npm run dev:client`
+
+Client: `http://localhost:5175`
+
+Server: `http://localhost:5001`
+
+Email setup for newsletter and password reset:
+  Add SMTP values in `server/.env`. For Gmail, use a Gmail App Password, not your normal Gmail password.
+  Required keys: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`, and `CLIENT_URL`.
 
 ## Demo Users
 
@@ -41,7 +46,7 @@ All seeded demo users use password `Password123!`.
 - Donor: `donor@foodbridge.org`
 - NGO: `ngo@foodbridge.org`
 - Volunteer: `volunteer@foodbridge.org`
-- Recipient: `recipient@foodbridge.org`
+<!-- - Recipient: `recipient@foodbridge.org` -->
 - Admin: `admin@foodbridge.org`
 
 

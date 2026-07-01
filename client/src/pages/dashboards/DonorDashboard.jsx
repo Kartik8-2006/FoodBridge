@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
 import { Camera, CheckCircle2, Clock, ImagePlus, MapPin, PackageCheck, Phone, Plus, Truck, UserCheck } from 'lucide-react';
 import { api } from '../../api.js';
+import TrackingMap from '../../components/TrackingMap.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
+import { useLanguage } from '../../context/LanguageContext.jsx';
 import { formatDate, titleCase } from '../../utils.js';
 import { DashboardShell, NotificationList, StatGrid } from './DashboardParts.jsx';
 import { useDashboardData } from './dashboardHooks.js';
@@ -31,6 +33,7 @@ const initialForm = {
 
 export default function DonorDashboard() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const { data, error, refresh } = useDashboardData();
   const [form, setForm] = useState(initialForm);
   const [selectedDonationId, setSelectedDonationId] = useState('');
@@ -53,15 +56,15 @@ export default function DonorDashboard() {
 
     return [
       ['Total Donations', donations.length],
-      ['Food Saved (kg)', foodSavedKg || 'Pending'],
+      ['Food Saved (kg)', foodSavedKg || t('Pending')],
       ['Meals Provided', totalMeals],
       ['NGOs Helped', ngosHelped],
       ['Volunteers Assigned', volunteersAssigned],
-      ['Average Pickup Time', donations.length ? '2.4 hrs' : 'Pending']
+      ['Average Pickup Time', donations.length ? '2.4 hrs' : t('Pending')]
     ];
-  }, [donations]);
+  }, [donations, t]);
 
-  if (!data) return <main className="dashboard"><p>{error || 'Loading donor dashboard...'}</p></main>;
+  if (!data) return <main className="dashboard"><p>{t(error) || t('Loading donor dashboard...')}</p></main>;
 
   function update(event) {
     setForm({ ...form, [event.target.name]: event.target.value });
@@ -72,7 +75,7 @@ export default function DonorDashboard() {
     if (!file) return;
 
     if (file.size > 650000) {
-      setFormMessage('Image is too large. Please upload an image under 650 KB.');
+      setFormMessage(t('Image is too large. Please upload an image under 650 KB.'));
       return;
     }
 
@@ -100,7 +103,7 @@ export default function DonorDashboard() {
         })
       });
       setForm(initialForm);
-      setFormMessage('Donation created. NGOs and volunteers have been notified.');
+      setFormMessage(t('Donation created. NGOs and volunteers have been notified.'));
       refresh();
     } catch (err) {
       setFormMessage(err.message);
@@ -108,13 +111,13 @@ export default function DonorDashboard() {
   }
 
   return (
-    <DashboardShell eyebrow="Donor Dashboard" title="Food donation workspace" actions={<a className="button button-primary" href="#donate-food"><Plus size={17} /> Donate Food</a>}>
+    <DashboardShell eyebrow="Donor Dashboard" title="Food donation workspace" actions={<a className="button button-primary" href="#donate-food"><Plus size={17} /> {t("Donate Food")}</a>}>
       <section className="donor-hero" id="dashboard-home">
         <div>
-          <p>Hello, {user?.name || 'Donor'}</p>
-          <h2>Ready to help someone today?</h2>
+          <p>{t("Hello")}, {user?.name || t('Donor')}</p>
+          <h2>{t("Ready to help someone today?")}</h2>
         </div>
-        <a href="#donate-food"><Plus size={18} /> Donate Food</a>
+        <a href="#donate-food"><Plus size={18} /> {t("Donate Food")}</a>
       </section>
 
       <StatGrid stats={data.stats} />
@@ -123,10 +126,10 @@ export default function DonorDashboard() {
         <article className="donor-panel large" id="active-donations">
           <div className="panel-heading">
             <div>
-              <p className="dashboard-kicker">Recent Donations</p>
-              <h2>My Active Donations</h2>
+              <p className="dashboard-kicker">{t("Recent Donations")}</p>
+              <h2>{t("My Active Donations")}</h2>
             </div>
-            <span>{activeDonations.length} active</span>
+            <span>{activeDonations.length} {t("active")}</span>
           </div>
           <div className="donor-donation-list">
             {activeDonations.map((donation) => (
@@ -140,23 +143,26 @@ export default function DonorDashboard() {
                 <span>
                   <strong>{donation.title}</strong>
                   <small>{donation.quantity} · {donation.city}</small>
-                  <small>{donation.acceptedBy ? 'NGO Accepted' : 'Waiting for NGO'}</small>
+                  <small>{donation.acceptedBy ? t('NGO Accepted') : t('Waiting for NGO')}</small>
                 </span>
-                <em>{titleCase(donation.status)}</em>
+                <em>{t(titleCase(donation.status))}</em>
               </button>
             ))}
-            {!activeDonations.length && <p>No active donations yet. Create one from the Donate Food form.</p>}
+            {!activeDonations.length && <p>{t("No active donations yet. Create one from the Donate Food form.")}</p>}
           </div>
         </article>
 
         <article className="donor-panel" id="track-donations">
           <div className="panel-heading">
             <div>
-              <p className="dashboard-kicker">Track Donation</p>
-              <h2>{selectedDonation?.title || 'No donation selected'}</h2>
+              <p className="dashboard-kicker">{t("Track Donation")}</p>
+              <h2>{selectedDonation?.title || t('No donation selected')}</h2>
             </div>
           </div>
-          <DonationTimeline donation={selectedDonation} />
+          <div className="tracking-stack">
+            <DonationTimeline donation={selectedDonation} />
+            <TrackingMap donation={selectedDonation} />
+          </div>
         </article>
       </section>
 
@@ -164,52 +170,52 @@ export default function DonorDashboard() {
         <article className="donor-panel large" id="donate-food">
           <div className="panel-heading">
             <div>
-              <p className="dashboard-kicker">Donate Food</p>
-              <h2>Create a pickup-ready donation</h2>
+              <p className="dashboard-kicker">{t("Donate Food")}</p>
+              <h2>{t("Create a pickup-ready donation")}</h2>
             </div>
           </div>
           <form className="donor-form" onSubmit={submitDonation}>
             <div className="two-col">
-              <label>Food Name<input name="title" value={form.title} onChange={update} placeholder="Rice meal, chapati, fruit boxes" required /></label>
-              <label>Quantity<input name="quantity" value={form.quantity} onChange={update} placeholder="25 kg or 80 packets" required /></label>
+              <label>{t("Food Name")}<input name="title" value={form.title} onChange={update} placeholder="Rice meal, chapati, fruit boxes" required /></label>
+              <label>{t("Quantity")}<input name="quantity" value={form.quantity} onChange={update} placeholder="25 kg or 80 packets" required /></label>
             </div>
             <div className="two-col">
-              <label>Veg / Non Veg
+              <label>{t("Veg / Non Veg")}
                 <select name="dietType" value={form.dietType} onChange={update}>
-                  <option value="veg">Veg</option>
-                  <option value="non-veg">Non Veg</option>
-                  <option value="vegan">Vegan</option>
-                  <option value="mixed">Mixed</option>
+                  <option value="veg">{t("Veg")}</option>
+                  <option value="non-veg">{t("Non Veg")}</option>
+                  <option value="vegan">{t("Vegan")}</option>
+                  <option value="mixed">{t("Mixed")}</option>
                 </select>
               </label>
-              <label>Food Type
+              <label>{t("Food Type")}
                 <select name="foodType" value={form.foodType} onChange={update}>
-                  <option value="cooked">Cooked</option>
-                  <option value="raw">Raw</option>
-                  <option value="packaged">Packaged</option>
-                  <option value="bakery">Bakery</option>
-                  <option value="produce">Produce</option>
-                  <option value="mixed">Mixed</option>
+                  <option value="cooked">{t("Cooked")}</option>
+                  <option value="raw">{t("Raw")}</option>
+                  <option value="packaged">{t("Packaged")}</option>
+                  <option value="bakery">{t("Bakery")}</option>
+                  <option value="produce">{t("Produce")}</option>
+                  <option value="mixed">{t("Mixed")}</option>
                 </select>
               </label>
             </div>
             <div className="two-col">
-              <label>Estimated Meals<input name="estimatedMeals" type="number" min="1" value={form.estimatedMeals} onChange={update} required /></label>
-              <label>Expiry / Safe Before<input name="safeBefore" type="datetime-local" value={form.safeBefore} onChange={update} required /></label>
+              <label>{t("Estimated Meals")}<input name="estimatedMeals" type="number" min="1" value={form.estimatedMeals} onChange={update} required /></label>
+              <label>{t("Expiry / Safe Before")}<input name="safeBefore" type="datetime-local" value={form.safeBefore} onChange={update} required /></label>
             </div>
-            <label>Pickup Address<input name="pickupAddress" value={form.pickupAddress} onChange={update} placeholder="Full pickup address" required /></label>
+            <label>{t("Pickup Address")}<input name="pickupAddress" value={form.pickupAddress} onChange={update} placeholder="Full pickup address" required /></label>
             <div className="two-col">
-              <label>City<input name="city" value={form.city} onChange={update} placeholder="Bengaluru" required /></label>
-              <label>Contact Number<input name="contactNumber" value={form.contactNumber} onChange={update} placeholder="+91 98765 43210" required /></label>
+              <label>{t("City")}<input name="city" value={form.city} onChange={update} placeholder="Bengaluru" required /></label>
+              <label>{t("Contact Number")}<input name="contactNumber" value={form.contactNumber} onChange={update} placeholder="+91 98765 43210" required /></label>
             </div>
             <div className="two-col">
-              <label>Storage Instructions<textarea name="storageInstructions" value={form.storageInstructions} onChange={update} placeholder="Keep warm, refrigerated, sealed packets..." /></label>
-              <label>Allergen Notes<textarea name="allergenNotes" value={form.allergenNotes} onChange={update} placeholder="Contains dairy, wheat, nuts..." /></label>
+              <label>{t("Storage Instructions")}<textarea name="storageInstructions" value={form.storageInstructions} onChange={update} placeholder="Keep warm, refrigerated, sealed packets..." /></label>
+              <label>{t("Allergen Notes")}<textarea name="allergenNotes" value={form.allergenNotes} onChange={update} placeholder="Contains dairy, wheat, nuts..." /></label>
             </div>
             <div className="donor-form-extras">
               <label className="image-upload">
                 {form.imageUrl ? <img src={form.imageUrl} alt="Donation preview" /> : <ImagePlus />}
-                <span><Camera size={16} /> Image Upload</span>
+                <span><Camera size={16} /> {t("Image Upload")}</span>
                 <input type="file" accept="image/*" onChange={updateImage} />
               </label>
               <div className="mini-map">
@@ -221,27 +227,27 @@ export default function DonorDashboard() {
                 ) : (
                   <>
                     <MapPin />
-                    <strong>Google Map</strong>
-                    <span>Pickup location preview appears here</span>
+                    <strong>{t("Google Map")}</strong>
+                    <span>{t("Pickup location preview appears here")}</span>
                   </>
                 )}
               </div>
             </div>
-            {formMessage && <div className="notice">{formMessage}</div>}
-            <button className="donor-submit"><Plus size={18} /> Submit Donation</button>
+            {formMessage && <div className="notice">{t(formMessage)}</div>}
+            <button className="donor-submit"><Plus size={18} /> {t("Submit Donation")}</button>
           </form>
         </article>
 
         <article className="donor-panel">
           <div className="panel-heading">
             <div>
-              <p className="dashboard-kicker">Quick Statistics</p>
-              <h2>Donation Analytics</h2>
+              <p className="dashboard-kicker">{t("Quick Statistics")}</p>
+              <h2>{t("Donation Analytics")}</h2>
             </div>
           </div>
           <div className="quick-stat-list">
             {quickStats.map(([label, value]) => (
-              <div key={label}><span>{label}</span><strong>{value}</strong></div>
+              <div key={label}><span>{t(label)}</span><strong>{value}</strong></div>
             ))}
           </div>
         </article>
@@ -251,16 +257,16 @@ export default function DonorDashboard() {
         <article className="donor-panel" id="donation-history">
           <div className="panel-heading">
             <div>
-              <p className="dashboard-kicker">Donation History</p>
-              <h2>Completed and closed donations</h2>
+              <p className="dashboard-kicker">{t("Donation History")}</p>
+              <h2>{t("Completed and closed donations")}</h2>
             </div>
           </div>
           <div className="history-list">
             {(donationHistory.length ? donationHistory : donations).map((donation) => (
               <div key={donation._id}>
                 <strong>{donation.title}</strong>
-                <span>{titleCase(donation.status)} · {formatDate(donation.safeBefore)}</span>
-                <button type="button" onClick={() => setSelectedDonationId(donation._id)}>View Details</button>
+                <span>{t(titleCase(donation.status))} · {formatDate(donation.safeBefore)}</span>
+                <button type="button" onClick={() => setSelectedDonationId(donation._id)}>{t("View Details")}</button>
               </div>
             ))}
           </div>
@@ -269,8 +275,8 @@ export default function DonorDashboard() {
         <article className="donor-panel">
           <div className="panel-heading">
             <div>
-              <p className="dashboard-kicker">Recent Activity</p>
-              <h2>Timeline</h2>
+              <p className="dashboard-kicker">{t("Recent Activity")}</p>
+              <h2>{t("Timeline")}</h2>
             </div>
           </div>
           <ActivityTimeline donation={selectedDonation} />
@@ -281,14 +287,14 @@ export default function DonorDashboard() {
 
       <section className="donor-dashboard-grid">
         <article className="donor-panel" id="profile">
-          <h2>Profile</h2>
+          <h2>{t("Profile")}</h2>
           <p><UserCheck size={17} /> {user?.name}</p>
-          <p><Phone size={17} /> {user?.profile?.phone || 'Phone not added'}</p>
-          <p><MapPin size={17} /> {user?.profile?.city || 'City not added'}</p>
+          <p><Phone size={17} /> {user?.profile?.phone || t('Phone not added')}</p>
+          <p><MapPin size={17} /> {user?.profile?.city || t('City not added')}</p>
         </article>
         <article className="donor-panel" id="settings">
-          <h2>Settings</h2>
-          <p>Notification preferences, pickup contact details, and donor verification settings will be managed here.</p>
+          <h2>{t("Settings")}</h2>
+          <p>{t("Notification preferences, pickup contact details, and donor verification settings will be managed here.") || "Notification preferences, pickup contact details, and donor verification settings will be managed here."}</p>
         </article>
       </section>
     </DashboardShell>
@@ -296,7 +302,8 @@ export default function DonorDashboard() {
 }
 
 function DonationTimeline({ donation }) {
-  if (!donation) return <p>No donation available for tracking.</p>;
+  const { t } = useLanguage();
+  if (!donation) return <p>{t("No donation available for tracking.")}</p>;
 
   const activeIndex = Math.max(0, statusSteps.findIndex(([status]) => status === donation.status));
 
@@ -306,8 +313,8 @@ function DonationTimeline({ donation }) {
         <div className={index <= activeIndex ? 'complete' : ''} key={status}>
           <span>{index <= activeIndex ? <CheckCircle2 size={16} /> : <Clock size={16} />}</span>
           <div>
-            <strong>{label}</strong>
-            <small>{index <= activeIndex ? 'Completed or in progress' : 'Waiting'}</small>
+            <strong>{t(label)}</strong>
+            <small>{index <= activeIndex ? t('Completed or in progress') : t('Waiting')}</small>
           </div>
         </div>
       ))}
@@ -316,7 +323,8 @@ function DonationTimeline({ donation }) {
 }
 
 function ActivityTimeline({ donation }) {
-  if (!donation) return <p>Create a donation to see activity.</p>;
+  const { t } = useLanguage();
+  if (!donation) return <p>{t("Create a donation to see activity.")}</p>;
 
   const activeIndex = Math.max(0, statusSteps.findIndex(([status]) => status === donation.status));
   return (
@@ -324,11 +332,11 @@ function ActivityTimeline({ donation }) {
       {statusSteps.map(([, label], index) => (
         <div className={index <= activeIndex ? 'done' : ''} key={label}>
           <span>✓</span>
-          <p>{label}</p>
+          <p>{t(label)}</p>
         </div>
       ))}
       {donation.status === 'accepted' && (
-        <div className="done"><span>✓</span><p>Volunteer Assigned</p></div>
+        <div className="done"><span>✓</span><p>{t("Volunteer Assigned")}</p></div>
       )}
     </div>
   );

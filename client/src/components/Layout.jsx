@@ -1,25 +1,50 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Bell, CheckCircle2, ChevronDown, CircleDollarSign, Heart, HeartHandshake, LockKeyhole, LogIn, LogOut, Menu, Search, ShieldCheck, ShoppingCart, UserCircle, UserPlus, X } from 'lucide-react';
+import { Bell, CheckCircle2, ChevronDown, CircleDollarSign, Heart, HeartHandshake, LockKeyhole, LogIn, LogOut, Menu, ShieldCheck, ShoppingCart, UserCircle, UserPlus, X } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
+import { api } from '../api.js';
 import { dashboardPath } from '../utils.js';
-
-const links = [
-  { label: 'Home', path: '/', items: [['Our story', '/'], ['Impact facts', '/'], ['Latest updates', '/resources']] },
-  { label: 'Donate Food', path: '/donate-food', items: [['Post food availability', '/donate-food'], ['Donation guidelines', '/resources'], ['Food safety checklist', '/resources'], ['Pickup preparation', '/how-it-works']] },
-  { label: 'Find Food', path: '/find-food', items: [['Available food', '/find-food'], ['Request food support', '/find-food'], ['Nearby distribution points', '/find-food'], ['Emergency assistance', '/contact']] },
-  { label: 'Become Volunteer', path: '/volunteer', items: [['Volunteer signup', '/volunteer'], ['Nearby pickups', '/volunteer'], ['Assigned deliveries', '/volunteer'], ['Completed deliveries', '/volunteer']] },
-  { label: 'NGOs', path: '/ngos', items: [['NGO registration', '/signup'], ['Available donations', '/ngos'], ['Beneficiaries', '/resources'], ['Verification process', '/resources']] },
-  { label: 'Resources', path: '/resources', items: [['Food safety', '/resources'], ['Donor handbook', '/resources'], ['Volunteer guide', '/resources'], ['Reports', '/resources']] },
-  { label: 'About', path: '/about', items: [['Project objective', '/about'], ['How it works', '/how-it-works'], ['Our mission', '/about']] },
-  { label: 'Contact', path: '/contact', items: [['Support email', '/contact'], ['Partner support', '/contact'], ['Emergency coordination', '/contact']] }
-];
+import SearchInput from './SearchInput.jsx';
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
+  const { language, setLanguage, t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [donationOpen, setDonationOpen] = useState(false);
   const [authModal, setAuthModal] = useState(null);
+  const [newsletter, setNewsletter] = useState({ firstName: '', lastName: '', phone: '', email: '' });
+  const [newsletterMessage, setNewsletterMessage] = useState('');
+
+  const links = [
+    { label: t('HOME'), path: '/', items: [[t('Our story'), '/#our-story'], [t('Impact facts'), '/#impact-facts'], [t('Latest updates'), '/#latest-updates']] },
+    { label: t('DONATE FOOD'), path: '/donate-food', items: [[t('Donate funds'), '/donate-food#donate-funds'], [t('Donate food'), '/donate-food#donate-food-section'], [t('Food safety checklist'), '/donate-food#food-safety'], [t('Pickup preparation'), '/donate-food#pickup-preparation']] },
+    { label: t('FIND FOOD'), path: '/find-food', items: [[t('Available food'), '/find-food#available-food'], [t('Request food support'), '/find-food#request-food'], [t('Nearby distribution points'), '/find-food#distribution-points'], [t('Emergency assistance'), '/find-food#emergency-assistance']] },
+    { label: t('BECOME VOLUNTEER'), path: '/volunteer', items: [[t('Volunteer signup'), '/volunteer#volunteer-signup'], [t('Nearby pickups'), '/volunteer#nearby-pickups'], [t('Assigned deliveries'), '/volunteer#assigned-deliveries'], [t('Completed deliveries'), '/volunteer#completed-deliveries']] },
+    { label: t('NGOS'), path: '/ngos', items: [[t('NGO registration'), '/ngos#ngo-registration'], [t('Available donations'), '/ngos#ngo-donations'], [t('Beneficiaries'), '/ngos#beneficiaries'], [t('Verification process'), '/ngos#ngo-verification']] },
+    { label: t('RESOURCES'), path: '/resources', items: [[t('Food safety'), '/resources#food-safety'], [t('Donor handbook'), '/resources#donor-handbook'], [t('Volunteer guide'), '/resources#volunteer-guide'], [t('Reports'), '/resources#reports-section']] },
+    { label: t('ABOUT'), path: '/about', items: [[t('Project objective'), '/about#project-objective'], [t('How it works'), '/about#how-platform-works'], [t('Our mission'), '/about#our-mission']] },
+    { label: t('CONTACT'), path: '/contact', items: [[t('Support email'), '/contact#support-email'], [t('Partner support'), '/contact#partner-support'], [t('Emergency coordination'), '/contact#emergency-assistance']] }
+  ];
+
+  function updateNewsletter(event) {
+    setNewsletter({ ...newsletter, [event.target.name]: event.target.value });
+  }
+
+  async function submitNewsletter(event) {
+    event.preventDefault();
+    setNewsletterMessage('');
+    try {
+      const data = await api('/newsletter/subscribe', {
+        method: 'POST',
+        body: JSON.stringify(newsletter)
+      });
+      setNewsletter({ firstName: '', lastName: '', phone: '', email: '' });
+      setNewsletterMessage(data.message || 'Subscribed successfully.');
+    } catch (err) {
+      setNewsletterMessage(err.message);
+    }
+  }
 
   return (
     <>
@@ -31,38 +56,50 @@ export default function Layout({ children }) {
               <small>FOODBRIDGE</small>
               <strong>NETWORK</strong>
             </span>
-            {/* <span className="feeding-mark">MEMBER OF<br />COMMUNITY FOOD RELIEF</span> */}
           </Link>
 
           <div className="top-nav-center">
-            {/* <span><strong>English</strong> / Hindi</span> */}
-            <Search size={30} strokeWidth={2.6} />
+            <div className="language-selector">
+              <button 
+                type="button" 
+                className={language === 'en' ? 'lang-btn active' : 'lang-btn'}
+                onClick={() => setLanguage('en')}
+              >
+                English
+              </button>
+              <span className="lang-separator">/</span>
+              <button 
+                type="button" 
+                className={language === 'hi' ? 'lang-btn active' : 'lang-btn'}
+                onClick={() => setLanguage('hi')}
+              >
+                हिंदी
+              </button>
+            </div>
+            <SearchInput />
           </div>
 
           <div className="utility-actions">
-            <Link className="utility-find" to="/find-food"><ShoppingCart size={24} /> Find Food</Link>
-            <button className="utility-donate" type="button" onClick={() => setDonationOpen(true)}><CircleDollarSign size={23} /> Donate Now!</button>
+            <Link className="utility-find" to="/find-food"><ShoppingCart size={24} /> {t("FIND FOOD")}</Link>
+            <button className="utility-donate" type="button" onClick={() => setAuthModal('signup')}><CircleDollarSign size={23} /> {t("DONATE FOOD")}</button>
             {user ? (
               <>
+                <Link className="utility-dashboard" to={dashboardPath(user.role)}><UserCircle size={20} /> {t("DASHBOARD")}</Link>
                 <button className="notification-button" type="button" aria-label="Notifications"><Bell size={20} /><span>3</span></button>
-                <Link className="utility-dashboard" to={dashboardPath(user.role)}><UserCircle size={20} /> Dashboard</Link>
                 <div className="profile-menu">
                   <button className="profile-trigger" type="button">
                     <span className="profile-avatar">{user.name?.charAt(0) || 'U'}</span>
-                    Profile <ChevronDown size={15} />
+                    <ChevronDown size={15} />
                   </button>
                   <div className="profile-dropdown">
-                    <Link to={dashboardPath(user.role)}>My Dashboard</Link>
-                    <Link to={dashboardPath(user.role)}>Profile Settings</Link>
-                    <button type="button" onClick={logout}><LogOut size={16} /> Logout</button>
+                    <Link to={dashboardPath(user.role)}>{t("MY DASHBOARD")}</Link>
+                    <Link to={dashboardPath(user.role)}>{t("PROFILE SETTINGS")}</Link>
+                    <button type="button" onClick={logout}><LogOut size={16} /> {t("LOGOUT")}</button>
                   </div>
                 </div>
               </>
             ) : (
-              <>
-                <button className="utility-login" type="button" onClick={() => setAuthModal('login')}><LogIn size={18} /> Login</button>
-                <button className="utility-signup" type="button" onClick={() => setAuthModal('signup')}><UserPlus size={18} /> Sign Up</button>
-              </>
+              null
             )}
           </div>
         </div>
@@ -92,26 +129,26 @@ export default function Layout({ children }) {
         </div>
       </header>
       <Link className="gift-tab" to="/signup">
-        <span>TRIPLE Your Gift for Local Families!</span>
+        <span>{t("TRIPLE YOUR GIFT FOR LOCAL FAMILIES!")}</span>
         <Heart size={18} fill="currentColor" />
       </Link>
       {children}
       {donationOpen && <DonationModal onClose={() => setDonationOpen(false)} />}
       {authModal && <AuthModal initialMode={authModal} onClose={() => setAuthModal(null)} />}
       <footer className="footer foodbank-footer">
-        <div className="seed-border" />
         <section className="footer-newsletter">
-          <h2>Stay Up To Date</h2>
-          <form>
+          <h2>{t("STAY UP TO DATE")}</h2>
+          <form onSubmit={submitNewsletter}>
             <div className="footer-name-row">
-              <input placeholder="First name" />
-              <input placeholder="Last name" />
+              <input name="firstName" placeholder={t("FIRST NAME")} value={newsletter.firstName} onChange={updateNewsletter} />
+              <input name="lastName" placeholder={t("LAST NAME")} value={newsletter.lastName} onChange={updateNewsletter} />
             </div>
-            <input placeholder="Phone Number" />
+            <input name="phone" placeholder={t("PHONE NUMBER")} value={newsletter.phone} onChange={updateNewsletter} />
             <div className="footer-email-row">
-              <input placeholder="Email" />
-              <button>Subscribe</button>
+              <input name="email" type="email" placeholder={t("EMAIL")} value={newsletter.email} onChange={updateNewsletter} required />
+              <button type="submit">{t("SUBSCRIBE")}</button>
             </div>
+            {newsletterMessage && <div className="footer-newsletter-message">{newsletterMessage}</div>}
           </form>
         </section>
         <section className="footer-contact">
@@ -120,7 +157,7 @@ export default function Layout({ children }) {
             <span className="brand-type"><small>FOODBRIDGE</small><strong>NETWORK</strong></span>
           </div>
           <div>
-            <strong>Call Us</strong>
+            <strong>{t("CALL US")}</strong>
             <p>+91 98765 43210</p>
             <strong>FoodBridge Network</strong>
             <p>Community Food Coordination Center, India</p>
@@ -128,10 +165,10 @@ export default function Layout({ children }) {
           <div>
             <strong>Registry:</strong>
             <p>Verified NGO and donor coordination platform</p>
-            <strong>Email Us</strong>
+            <strong>{t("EMAIL US")}</strong>
             <p>support@foodbridge.org</p>
           </div>
-          <Link className="footer-contact-btn" to="/about">Contact Us</Link>
+          <Link className="footer-contact-btn" to="/about">{t("CONTACT US")}</Link>
         </section>
       </footer>
     </>
@@ -241,7 +278,7 @@ function AuthModal({ initialMode, onClose }) {
           })
         : await login(form.email, form.password);
       onClose();
-      navigate(dashboardPath(user.role));
+      navigate('/');
     } catch (err) {
       setError(err.message);
     }
@@ -293,6 +330,7 @@ function AuthModal({ initialMode, onClose }) {
               </>
             )}
           </div>
+          {!isSignup && <Link className="forgot-password-link" to="/forgot-password" onClick={onClose}>Forgot password?</Link>}
           {error && <div className="error">{error}</div>}
           <div className="donation-assurance">
             <LockKeyhole size={17} />
