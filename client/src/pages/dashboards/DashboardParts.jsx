@@ -1,10 +1,13 @@
-import { BarChart3, Bell, ClipboardList, HeartHandshake, Home, LayoutDashboard, LogOut, MapPin, PackageCheck, RefreshCcw, Settings, Star, Truck, UserRoundCog, UsersRound } from 'lucide-react';
+import { BarChart3, Bell, ClipboardList, HeartHandshake, Home, LayoutDashboard, LogOut, MapPin, PackageCheck, RefreshCcw, Settings, ShieldCheck, Soup, Star, Truck, UserRoundCog, UsersRound } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
+import { useLanguage } from '../../context/LanguageContext.jsx';
 import { formatDate, titleCase } from '../../utils.js';
 
 export function DashboardShell({ eyebrow, title, children, actions }) {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
+  
   const menuByRole = {
     donor: [
       [LayoutDashboard, 'Dashboard', '#dashboard-home'],
@@ -44,16 +47,21 @@ export function DashboardShell({ eyebrow, title, children, actions }) {
       [UserRoundCog, 'Profile']
     ],
     admin: [
-      [LayoutDashboard, 'Dashboard'],
-      [UsersRound, 'Users'],
-      [PackageCheck, 'Donors'],
-      [HeartHandshake, 'NGOs'],
-      [Truck, 'Volunteers'],
-      [ClipboardList, 'Donations'],
-      [BarChart3, 'Reports'],
-      [Settings, 'Settings']
+      [LayoutDashboard, 'Dashboard', '#admin-home'],
+      [UsersRound, 'Users', '#users'],
+      [PackageCheck, 'Donors', '#donors'],
+      [HeartHandshake, 'NGOs', '#ngos'],
+      [Truck, 'Volunteers', '#volunteers'],
+      [ClipboardList, 'Donations', '#donations'],
+      [Soup, 'Food Requests', '#food-requests'],
+      [BarChart3, 'Reports', '#reports'],
+      [BarChart3, 'Analytics', '#analytics'],
+      [ShieldCheck, 'Verification', '#verification'],
+      [Bell, 'Notifications', '#notifications'],
+      [Settings, 'Settings', '#settings']
     ]
   };
+  
   const navItems = menuByRole[user?.role] || menuByRole.donor;
 
   return (
@@ -61,33 +69,33 @@ export function DashboardShell({ eyebrow, title, children, actions }) {
       <aside className="dashboard-sidebar">
         <Link className="dashboard-brand" to="/">
           <span>FB</span>
-          <div><strong>FoodBridge</strong><small>Management Platform</small></div>
+          <div><strong>FoodBridge</strong><small>{t("Management Platform") || "Management Platform"}</small></div>
         </Link>
         <div className="dashboard-user">
           <div className="avatar">{user?.name?.charAt(0) || 'U'}</div>
-          <div><strong>{user?.name}</strong><small>{titleCase(user?.role || '')}</small></div>
+          <div><strong>{user?.name}</strong><small>{t(titleCase(user?.role || ''))}</small></div>
         </div>
         <nav>
           {navItems.map(([Icon, label, href = '#'], index) => (
             <a className={index === 0 ? 'active' : ''} href={href} key={label}>
-              <Icon size={19} /> {label}
+              <Icon size={19} /> {t(label)}
             </a>
           ))}
         </nav>
-        <button className="dashboard-logout" onClick={logout}><LogOut size={18} /> Logout</button>
+        <button className="dashboard-logout" onClick={logout}><LogOut size={18} /> {t("Logout")}</button>
       </aside>
 
       <section className="dashboard-workspace">
         <header className="dashboard-topbar">
           <div>
-            <p className="dashboard-kicker">{eyebrow}</p>
-            <h1>{title}</h1>
+            <p className="dashboard-kicker">{t(eyebrow)}</p>
+            <h1>{t(title)}</h1>
           </div>
           <div className="dashboard-top-actions">
-            <span className="live-chip"><span /> Live Update</span>
+            <span className="live-chip"><span /> {t("Live Update")}</span>
             <button aria-label="Refresh dashboard"><RefreshCcw size={18} /></button>
             <button aria-label="Notifications"><Bell size={18} /></button>
-            <Link className="dashboard-home" to="/"><Home size={18} /> Public Site</Link>
+            <Link className="dashboard-home" to="/"><Home size={18} /> {t("Public Site")}</Link>
             {actions}
           </div>
         </header>
@@ -98,14 +106,15 @@ export function DashboardShell({ eyebrow, title, children, actions }) {
 }
 
 export function StatGrid({ stats = {} }) {
+  const { t } = useLanguage();
   const entries = Object.entries(stats);
   return (
     <section className="dashboard-stat-grid">
       {entries.map(([key, value], index) => (
         <article className={index === 0 ? 'dashboard-stat-card primary' : 'dashboard-stat-card'} key={key}>
-          <span>{titleCase(key)}</span>
+          <span>{t(titleCase(key))}</span>
           <strong>{value}</strong>
-          <small>{index === 0 ? 'Primary operating metric' : 'Updated from live platform data'}</small>
+          <small>{index === 0 ? t('Primary operating metric') : t('Updated from live platform data')}</small>
         </article>
       ))}
     </section>
@@ -113,25 +122,35 @@ export function StatGrid({ stats = {} }) {
 }
 
 export function DonationTable({ donations = [], onAccept, onDeliver }) {
+  const { t } = useLanguage();
   return (
     <div className="dashboard-table-wrap">
       <table className="dashboard-table">
-        <thead><tr><th>Food</th><th>Meals</th><th>City</th><th>Status</th><th>Safe Before</th><th>Action</th></tr></thead>
+        <thead>
+          <tr>
+            <th>{t("Food Name")}</th>
+            <th>{t("Estimated Meals")}</th>
+            <th>{t("City")}</th>
+            <th>{t("Status")}</th>
+            <th>{t("Expiry / Safe Before")}</th>
+            <th>{t("Action")}</th>
+          </tr>
+        </thead>
         <tbody>
           {donations.map((donation) => (
             <tr key={donation._id}>
               <td>{donation.title}</td>
               <td>{donation.estimatedMeals}</td>
               <td>{donation.city}</td>
-              <td><span className="status">{titleCase(donation.status)}</span></td>
+              <td><span className="status">{t(titleCase(donation.status))}</span></td>
               <td>{formatDate(donation.safeBefore)}</td>
               <td>
-                {onAccept && donation.status === 'posted' && <button onClick={() => onAccept(donation._id)}>Accept</button>}
-                {onDeliver && donation.status !== 'delivered' && donation.status !== 'posted' && <button onClick={() => onDeliver(donation._id)}>Delivered</button>}
+                {onAccept && donation.status === 'posted' && <button onClick={() => onAccept(donation._id)}>{t("Accept")}</button>}
+                {onDeliver && donation.status !== 'delivered' && donation.status !== 'posted' && <button onClick={() => onDeliver(donation._id)}>{t("Mark Delivered") || t("Delivered")}</button>}
               </td>
             </tr>
           ))}
-          {!donations.length && <tr><td colSpan="6">No records yet.</td></tr>}
+          {!donations.length && <tr><td colSpan="6">{t("No records yet.") || "No records yet."}</td></tr>}
         </tbody>
       </table>
     </div>
@@ -139,31 +158,33 @@ export function DonationTable({ donations = [], onAccept, onDeliver }) {
 }
 
 export function NotificationList({ items = [] }) {
+  const { t } = useLanguage();
   return (
     <section className="dashboard-panel">
-      <h2>Notifications</h2>
+      <h2>{t("Notifications")}</h2>
       {items.map((item) => (
         <article className="notification" key={item._id}>
           <strong>{item.title}</strong>
           <p>{item.message}</p>
         </article>
       ))}
-      {!items.length && <p>No notifications yet.</p>}
+      {!items.length && <p>{t("No notifications yet.")}</p>}
     </section>
   );
 }
 
 export function DashboardMapPanel() {
+  const { t } = useLanguage();
   return (
     <section className="dashboard-panel map-panel">
       <div>
-        <h2>Distribution Network</h2>
-        <p>Live view of donation points, pickup routes, and community delivery coverage.</p>
+        <h2>{t("Distribution Network")}</h2>
+        <p>{t("Live view of donation points, pickup routes, and community delivery coverage.")}</p>
       </div>
       <div className="map-visual">
-        <span className="pin warehouse">Warehouse Hub</span>
-        <span className="pin donor">Donation Point</span>
-        <span className="pin ngo">NGO Center</span>
+        <span className="pin warehouse">{t("Warehouse Hub") || "Warehouse Hub"}</span>
+        <span className="pin donor">{t("Donor") || "Donor"}</span>
+        <span className="pin ngo">{t("NGO Center") || "NGO Center"}</span>
       </div>
     </section>
   );

@@ -1,1 +1,11 @@
 node_modules
+<<<<<<< HEAD
+=======
+dist
+.env
+.DS_Store
+npm-debug.log*
+package-lock.json
+package.json
+gitignore
+>>>>>>> f4ad6682d866b0b30e3eb74ab9291dcbff905e60

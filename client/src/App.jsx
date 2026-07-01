@@ -1,4 +1,5 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import Layout from './components/Layout.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import About from './pages/About.jsx';
@@ -36,6 +37,23 @@ function PublicRoutes() {
 }
 
 export default function App() {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.hash) {
+      const id = decodeURIComponent(location.hash.replace('#', ''));
+      const timer = setTimeout(() => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 150);
+      return () => clearTimeout(timer);
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [location]);
+
   return (
     <Routes>
       <Route
