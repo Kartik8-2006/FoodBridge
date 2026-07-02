@@ -1,8 +1,14 @@
+import { useState } from 'react';
 import { DetailPage } from '../components/DetailPage.jsx';
+import { AuthModal } from '../components/Layout.jsx';
 
 export default function Volunteer() {
+  const [registrationOpen, setRegistrationOpen] = useState(false);
+
   return (
+    <>
     <DetailPage
+      onAction={(action) => action === 'register-volunteer' && setRegistrationOpen(true)}
       hero={{
         eyebrow: 'Become Volunteer',
         title: 'Move food quickly, safely, and locally',
@@ -25,7 +31,7 @@ export default function Volunteer() {
             'Volunteer profiles help FoodBridge understand when you are available, how far you can travel, and whether you can transport larger donations.',
             'After signup, your dashboard becomes the place to accept tasks and update pickup status.'
           ],
-          cta: { label: 'Join as volunteer', to: '/signup' }
+          cta: { label: 'Join as volunteer', action: 'register-volunteer' }
         },
         {
           id: 'nearby-pickups',
@@ -65,5 +71,7 @@ export default function Volunteer() {
         { title: 'Service', text: 'Each route supports real families and partners.' }
       ]}
     />
+    {registrationOpen && <AuthModal initialMode="signup" initialRole="volunteer" lockRole onClose={() => setRegistrationOpen(false)} />}
+    </>
   );
 }

@@ -33,6 +33,11 @@ export async function sendMail({ to, subject, text, html }) {
     return { sent: false };
   }
 
-  await activeTransporter.sendMail({ from, to, subject, text, html });
-  return { sent: true };
+  try {
+    const info = await activeTransporter.sendMail({ from, to, subject, text, html });
+    return { sent: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('MAIL_SEND_FAILED', { to, subject, message: error.message });
+    return { sent: false, error: 'Email delivery failed' };
+  }
 }

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api.js';
 import { DetailPage } from '../components/DetailPage.jsx';
+import { AuthModal } from '../components/Layout.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const sections = [
@@ -13,7 +14,7 @@ const sections = [
       'FoodBridge uses funding to keep verified pickup routes active, support emergency delivery coordination, and help NGOs move food safely when donors cannot provide transport.',
       'Financial gifts also help with cold storage, safety supplies, outreach, and technology that keeps donor, volunteer, NGO, and recipient workflows connected.'
     ],
-    cta: { label: 'Donate Funds', to: '/signup' }
+    cta: { label: 'Create Donor Account', action: 'register-donor' }
   },
   {
     id: 'food-safety',
@@ -47,6 +48,7 @@ const values = [
 export default function DonateFood() {
   const { user } = useAuth();
   const [message, setMessage] = useState('');
+  const [registrationOpen, setRegistrationOpen] = useState(false);
   const [form, setForm] = useState({
     title: '',
     foodType: 'cooked',
@@ -80,7 +82,9 @@ export default function DonateFood() {
   const canDonate = user && (user.role === 'donor' || user.role === 'admin');
 
   return (
+    <>
     <DetailPage
+      onAction={(action) => action === 'register-donor' && setRegistrationOpen(true)}
       hero={{
         eyebrow: 'Donate Food',
         title: 'Give surplus food a safe second life',
@@ -139,5 +143,7 @@ export default function DonateFood() {
         </form>
       </section>
     </DetailPage>
+    {registrationOpen && <AuthModal initialMode="signup" initialRole="donor" lockRole onClose={() => setRegistrationOpen(false)} />}
+    </>
   );
 }

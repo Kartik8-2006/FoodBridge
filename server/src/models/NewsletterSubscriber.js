@@ -14,7 +14,9 @@ const newsletterSubscriberSchema = new mongoose.Schema(
       trim: true,
       validate: [validator.isEmail, 'Please provide a valid email']
     },
-    subscribedAt: { type: Date, default: Date.now }
+    status: { type: String, enum: ['active', 'unsubscribed'], default: 'active' },
+    subscribedAt: { type: Date, default: Date.now },
+    lastConfirmationSentAt: Date
   },
   { timestamps: true }
 );

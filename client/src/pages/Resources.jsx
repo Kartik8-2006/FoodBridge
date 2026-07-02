@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { DetailPage } from '../components/DetailPage.jsx';
+import { AuthModal } from '../components/Layout.jsx';
 
 const resourceSections = [
   {
@@ -51,7 +53,7 @@ const ngoSections = [
       'NGOs provide organization details, contact person, service area, and registration information so FoodBridge can review operating readiness.',
       'Verification protects donors, volunteers, recipients, and the wider food rescue network.'
     ],
-    cta: { label: 'Register NGO', to: '/signup' }
+    cta: { label: 'Register NGO', action: 'register-ngo' }
   },
   {
     id: 'ngo-donations',
@@ -87,9 +89,12 @@ const ngoSections = [
 
 export default function Resources({ type }) {
   const ngoPage = type === 'ngos';
+  const [registrationOpen, setRegistrationOpen] = useState(false);
 
   return (
+    <>
     <DetailPage
+      onAction={(action) => action === 'register-ngo' && setRegistrationOpen(true)}
       hero={ngoPage ? {
         eyebrow: 'NGO Partners',
         title: 'Verified partners make distribution reliable',
@@ -122,5 +127,7 @@ export default function Resources({ type }) {
         { title: 'Shared', text: 'Everyone works from the same operating language.' }
       ]}
     />
+    {registrationOpen && <AuthModal initialMode="signup" initialRole="ngo" lockRole onClose={() => setRegistrationOpen(false)} />}
+    </>
   );
 }

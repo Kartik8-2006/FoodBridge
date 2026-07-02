@@ -1,6 +1,4 @@
-import { Link } from 'react-router-dom';
-
-export function DetailPage({ hero, navItems = [], sections = [], values = [], children }) {
+export function DetailPage({ hero, navItems = [], sections = [], values = [], children, onAction }) {
   const heroStyle = hero?.image ? { '--detail-hero-image': `url("${hero.image}")` } : undefined;
 
   return (
@@ -34,7 +32,9 @@ export function DetailPage({ hero, navItems = [], sections = [], values = [], ch
                 {section.bullets.map((bullet) => <li key={bullet}>{bullet}</li>)}
               </ul>
             )}
-            {section.cta && <Link className="detail-cta" to={section.cta.to}>{section.cta.label}</Link>}
+            {section.cta && (section.cta.action
+              ? <button className="detail-cta" type="button" onClick={() => onAction?.(section.cta.action)}>{section.cta.label}</button>
+              : <a className="detail-cta" href={section.cta.to}>{section.cta.label}</a>)}
           </div>
           {!section.image && <span className="detail-row-number">{String(index + 1).padStart(2, '0')}</span>}
         </section>

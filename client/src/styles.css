@@ -3246,6 +3246,51 @@ body {
   text-transform: uppercase;
 }
 
+.footer-email-row button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.newsletter-feedback {
+  margin: 2px 18px 0;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.newsletter-feedback-error {
+  color: #ffe2dc;
+}
+
+.auth-forgot-link {
+  justify-self: end;
+  margin-top: -6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #c02b0a;
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.auth-back-link {
+  justify-self: center;
+  padding: 4px 8px;
+  border: 0;
+  background: transparent;
+  color: #5e6167;
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: underline;
+}
+
+.auth-forgot-link:hover,
+.auth-forgot-link:focus-visible {
+  text-decoration: underline;
+}
+
 .footer-contact {
   position: relative;
   z-index: 1;
@@ -3823,6 +3868,14 @@ body {
 .auth-modal {
   grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
   width: min(980px, 96vw);
+  height: min(720px, calc(100vh - 56px));
+  max-height: none;
+  overflow: hidden;
+}
+
+.auth-story {
+  min-height: 0;
+  overflow: hidden;
 }
 
 .auth-photo {
@@ -3857,7 +3910,12 @@ body {
 }
 
 .auth-form {
-  min-height: 620px;
+  height: 100%;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
 }
 
 .auth-toggle {
@@ -3879,6 +3937,37 @@ body {
   color: #30333a;
   background: #ffffff;
   font-size: 14px;
+}
+
+.auth-role-label {
+  padding: 12px 14px;
+  border: 1px solid #dce5d4;
+  border-radius: 8px;
+  color: #3f4955;
+  background: #f4f9ee;
+  font-size: 14px;
+  text-transform: capitalize;
+}
+
+.auth-checkbox,
+.auth-number-label {
+  display: grid;
+  gap: 7px;
+  color: #4f5560;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.auth-checkbox {
+  grid-template-columns: 20px 1fr;
+  align-items: center;
+}
+
+.auth-field-grid .auth-checkbox input {
+  width: 18px;
+  min-height: 18px;
+  margin: 0;
+  accent-color: #78be21;
 }
 
 .app-dashboard {
@@ -4893,6 +4982,7 @@ body {
   min-width: 220px;
   min-height: 54px;
   padding: 14px 28px;
+  border: 0;
   border-radius: 999px;
   color: #ffffff;
   background: #df902c;
@@ -4900,6 +4990,7 @@ body {
   font-weight: 900;
   letter-spacing: 1px;
   text-transform: uppercase;
+  cursor: pointer;
 }
 
 .detail-feature-band {
@@ -5030,6 +5121,10 @@ body {
     grid-template-columns: 1fr;
   }
 
+  .auth-modal {
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 0.95fr);
+  }
+
   .admin-main-grid,
   .admin-directory-grid,
   .admin-verification-grid,
@@ -5142,6 +5237,16 @@ body {
   .donation-modal {
     border-width: 4px;
     border-radius: 18px;
+  }
+
+  .auth-modal {
+    grid-template-columns: 1fr;
+    width: min(560px, 100%);
+    height: calc(100dvh - 28px);
+  }
+
+  .auth-story {
+    display: none;
   }
 
   .donation-story,

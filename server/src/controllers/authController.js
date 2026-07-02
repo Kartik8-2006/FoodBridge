@@ -20,6 +20,12 @@ function clientUrl() {
   return urls.find((url) => url.includes('localhost:5175')) || urls[0] || 'http://localhost:5175';
 }
 
+function escapeHtml(value = '') {
+  return String(value).replace(/[&<>'"]/g, (character) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+  })[character]);
+}
+
 export const register = asyncHandler(async (req, res) => {
   const { name, email, password, role, profile = {} } = req.body;
 
@@ -72,28 +78,33 @@ export const login = asyncHandler(async (req, res) => {
 export const forgotPassword = asyncHandler(async (req, res) => {
   const { email } = req.body;
 
-  if (!email) {
+  if (typeof email !== 'string' || !email.trim()) {
     res.status(400);
     throw new Error('Email is required');
   }
 
-  const user = await User.findOne({ email: email.toLowerCase() });
+  const user = await User.findOne({ email: email.trim().toLowerCase() });
   if (user) {
     const token = crypto.randomBytes(32).toString('hex');
     user.passwordResetToken = crypto.createHash('sha256').update(token).digest('hex');
     user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000);
     await user.save();
 
-    const resetUrl = `${clientUrl()}/reset-password?token=${token}`;
+    const resetUrl = `${clientUrl()}/reset-password?token=${encodeURIComponent(token)}`;
+    const safeName = escapeHtml(user.name);
     const mail = await sendMail({
       to: user.email,
       subject: 'Reset your FoodBridge password',
-      text: `Hi ${user.name},\n\nUse this link to reset your FoodBridge password:\n${resetUrl}\n\nThis link expires in 1 hour.`,
-      html: `<p>Hi ${user.name},</p><p>Use this link to reset your FoodBridge password:</p><p><a href="${resetUrl}">Reset password</a></p><p>This link expires in 1 hour.</p>`
+      text: `Hi ${user.name},\n\nWe received a request to reset your FoodBridge Network password. Open this secure link within 60 minutes:\n${resetUrl}\n\nIf you did not request this, you can safely ignore this email. Your current password will continue to work.`,
+      html: `<div style="max-width:600px;margin:auto;font-family:Arial,sans-serif;color:#252525;line-height:1.6"><div style="padding:22px;background:#78be21;color:#fff"><strong style="font-size:22px">FoodBridge Network</strong></div><div style="padding:28px;border:1px solid #e5e7eb;border-top:0"><h1 style="font-size:24px;margin-top:0">Reset your password</h1><p>Hi ${safeName},</p><p>We received a request to reset your FoodBridge Network password.</p><p style="margin:28px 0"><a href="${resetUrl}" style="background:#c02b0a;color:#fff;padding:13px 22px;text-decoration:none;font-weight:bold">Reset password</a></p><p>This secure link expires in 60 minutes and can be used once.</p><p style="color:#75787b;font-size:14px">If you did not request this, ignore this email. Your current password will continue to work.</p></div></div>`
     });
 
     if (!mail.sent) {
-      return res.json({ message: 'Reset link was created, but email is not configured. Add SMTP settings in server/.env.' });
+      user.passwordResetToken = undefined;
+      user.passwordResetExpires = undefined;
+      await user.save();
+      res.status(503);
+      throw new Error('We could not send the reset email right now. Please try again shortly.');
     }
   }
 
@@ -103,7 +114,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
 export const resetPassword = asyncHandler(async (req, res) => {
   const { token, password } = req.body;
 
-  if (!token || !password) {
+  if (typeof token !== 'string' || !token || typeof password !== 'string' || !password) {
     res.status(400);
     throw new Error('Reset token and new password are required');
   }
@@ -133,7 +144,7 @@ export const resetPassword = asyncHandler(async (req, res) => {
     to: user.email,
     subject: 'Your FoodBridge password was changed',
     text: `Hi ${user.name},\n\nYour FoodBridge password was changed successfully.`,
-    html: `<p>Hi ${user.name},</p><p>Your FoodBridge password was changed successfully.</p>`
+    html: `<div style="max-width:600px;margin:auto;font-family:Arial,sans-serif;color:#252525;line-height:1.6"><h2>Password changed</h2><p>Hi ${escapeHtml(user.name)},</p><p>Your FoodBridge Network password was changed successfully.</p><p>If you did not make this change, contact FoodBridge support immediately.</p></div>`
   });
 
   res.json({ message: 'Password reset successful. You can now log in.' });

@@ -19,6 +19,7 @@ export default function AuthPage({ mode }) {
     name: '',
     email: '',
     password: '',
+    confirmPassword: '',
     role: 'donor',
     organizationName: '',
     city: '',
@@ -45,12 +46,15 @@ export default function AuthPage({ mode }) {
       }
 
       if (isReset) {
+        if (!searchParams.get('token')) throw new Error('This reset link is incomplete. Request a new one.');
+        if (form.password.length < 8) throw new Error('Password must be at least 8 characters.');
+        if (form.password !== form.confirmPassword) throw new Error('Passwords do not match.');
         const data = await api('/auth/reset-password', {
           method: 'POST',
           body: JSON.stringify({ token: searchParams.get('token'), password: form.password })
         });
         setMessage(data.message);
-        setForm((current) => ({ ...current, password: '' }));
+        setForm((current) => ({ ...current, password: '', confirmPassword: '' }));
         return;
       }
 
@@ -85,6 +89,7 @@ export default function AuthPage({ mode }) {
           {isSignup && <input name="name" placeholder="Full name or organization contact" value={form.name} onChange={update} required />}
           {!isReset && <input name="email" type="email" placeholder="Email address" value={form.email} onChange={update} required />}
           {!isForgot && <input name="password" type="password" placeholder={isReset ? 'New password' : 'Password'} value={form.password} onChange={update} required />}
+          {isReset && <input name="confirmPassword" type="password" placeholder="Confirm new password" value={form.confirmPassword} onChange={update} required />}
           {isSignup && (
             <>
               <select name="role" value={form.role} onChange={update}>{roles.map((role) => <option key={role} value={role}>{role}</option>)}</select>

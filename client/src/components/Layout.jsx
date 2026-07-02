@@ -18,7 +18,28 @@ export default function Layout({ children }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [toastNotification, setToastNotification] = useState(null);
+  const [newsletter, setNewsletter] = useState({ firstName: '', lastName: '', phone: '', email: '' });
+  const [newsletterStatus, setNewsletterStatus] = useState({ loading: false, message: '', error: '' });
   const seenNotificationIds = useRef(new Set());
+
+  function updateNewsletter(event) {
+    setNewsletter((current) => ({ ...current, [event.target.name]: event.target.value }));
+  }
+
+  async function subscribe(event) {
+    event.preventDefault();
+    setNewsletterStatus({ loading: true, message: '', error: '' });
+    try {
+      const data = await api('/newsletter/subscribe', {
+        method: 'POST',
+        body: JSON.stringify(newsletter)
+      });
+      setNewsletterStatus({ loading: false, message: data.message, error: '' });
+      setNewsletter({ firstName: '', lastName: '', phone: '', email: '' });
+    } catch (error) {
+      setNewsletterStatus({ loading: false, message: '', error: error.message });
+    }
+  }
 
   const links = [
     { label: t('HOME'), path: '/', items: [[t('Our story'), '/#our-story'], [t('Impact facts'), '/#impact-facts'], [t('Latest updates'), '/#latest-updates']] },
@@ -202,16 +223,18 @@ export default function Layout({ children }) {
       <footer className="footer foodbank-footer">
         <section className="footer-newsletter">
           <h2>{t("STAY UP TO DATE")}</h2>
-          <form>
+          <form onSubmit={subscribe}>
             <div className="footer-name-row">
-              <input placeholder={t("FIRST NAME")} />
-              <input placeholder={t("LAST NAME")} />
+              <input name="firstName" autoComplete="given-name" placeholder={t("FIRST NAME")} value={newsletter.firstName} onChange={updateNewsletter} />
+              <input name="lastName" autoComplete="family-name" placeholder={t("LAST NAME")} value={newsletter.lastName} onChange={updateNewsletter} />
             </div>
-            <input placeholder={t("PHONE NUMBER")} />
+            <input name="phone" type="tel" autoComplete="tel" placeholder={t("PHONE NUMBER")} value={newsletter.phone} onChange={updateNewsletter} />
             <div className="footer-email-row">
-              <input placeholder={t("EMAIL")} />
-              <button type="button">{t("SUBSCRIBE")}</button>
+              <input name="email" type="email" autoComplete="email" placeholder={t("EMAIL")} value={newsletter.email} onChange={updateNewsletter} required />
+              <button type="submit" disabled={newsletterStatus.loading}>{newsletterStatus.loading ? 'SENDING...' : t("SUBSCRIBE")}</button>
             </div>
+            {newsletterStatus.message && <p className="newsletter-feedback" role="status">{newsletterStatus.message}</p>}
+            {newsletterStatus.error && <p className="newsletter-feedback newsletter-feedback-error" role="alert">{newsletterStatus.error}</p>}
           </form>
         </section>
         <section className="footer-contact">
@@ -299,31 +322,59 @@ function DonationModal({ onClose }) {
   );
 }
 
-function AuthModal({ initialMode, onClose }) {
+export function AuthModal({ initialMode, initialRole = 'donor', lockRole = false, onClose }) {
   const navigate = useNavigate();
   const { login, register } = useAuth();
   const [mode, setMode] = useState(initialMode);
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     name: '',
     email: '',
     password: '',
-    role: 'donor',
+    role: initialRole,
     organizationName: '',
+    organizationType: '',
+    registrationNumber: '',
+    contactPerson: '',
+    serviceArea: '',
+    availability: '',
+    hasTransport: false,
+    serviceRadiusKm: 10,
     city: '',
     phone: '',
     address: ''
   });
   const isSignup = mode === 'signup';
+  const isForgot = mode === 'forgot';
+
+  function changeMode(nextMode) {
+    setMode(nextMode);
+    setError('');
+    setMessage('');
+  }
 
   function update(event) {
-    setForm({ ...form, [event.target.name]: event.target.value });
+    const value = event.target.type === 'checkbox' ? event.target.checked : event.target.value;
+    setForm({ ...form, [event.target.name]: value });
   }
 
   async function submit(event) {
     event.preventDefault();
     setError('');
+    setMessage('');
+    setSubmitting(true);
     try {
+      if (isForgot) {
+        const data = await api('/auth/forgot-password', {
+          method: 'POST',
+          body: JSON.stringify({ email: form.email })
+        });
+        setMessage(data.message);
+        return;
+      }
+
       const user = isSignup
         ? await register({
             name: form.name,
@@ -332,6 +383,13 @@ function AuthModal({ initialMode, onClose }) {
             role: form.role,
             profile: {
               organizationName: form.organizationName,
+              organizationType: form.organizationType,
+              registrationNumber: form.registrationNumber,
+              contactPerson: form.contactPerson || form.name,
+              serviceArea: form.serviceArea || form.city,
+              availability: form.availability,
+              hasTransport: form.hasTransport,
+              serviceRadiusKm: Number(form.serviceRadiusKm) || 10,
               city: form.city,
               phone: form.phone,
               address: form.address,
@@ -341,9 +399,11 @@ function AuthModal({ initialMode, onClose }) {
           })
         : await login(form.email, form.password);
       onClose();
-      navigate('/');
+      navigate(dashboardPath(user.role));
     } catch (err) {
       setError(err.message);
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -357,8 +417,8 @@ function AuthModal({ initialMode, onClose }) {
             <span className="brand-symbol"><HeartHandshake size={28} /></span>
             <span className="brand-type"><small>FOODBRIDGE</small><strong>NETWORK</strong></span>
           </div>
-          <h2>{isSignup ? 'Join the food rescue network' : 'Welcome back to your workspace'}</h2>
-          <p>One account connects donors, NGOs, volunteers, recipients, and admins through a dedicated dashboard for donation posting, pickup scheduling, tracking, and notifications.</p>
+          <h2>{isSignup ? 'Join the food rescue network' : isForgot ? 'Recover your account securely' : 'Welcome back to your workspace'}</h2>
+          <p>{isForgot ? 'Enter your registered email address and we will send you a secure password reset link valid for 60 minutes.' : 'One account connects donors, NGOs, volunteers, and admins through a dedicated dashboard for donation posting, pickup scheduling, tracking, and notifications.'}</p>
           <div className="auth-benefits">
             <span><CheckCircle2 size={16} /> Post surplus food</span>
             <span><CheckCircle2 size={16} /> Coordinate pickups</span>
@@ -368,25 +428,54 @@ function AuthModal({ initialMode, onClose }) {
         <form className="donation-form auth-form" onSubmit={submit}>
           <div className="secure-title">
             {isSignup ? <UserPlus size={28} /> : <ShieldCheck size={28} />}
-            <h2 id="auth-title">{isSignup ? 'Create account' : 'Login securely'}</h2>
+            <h2 id="auth-title">{isSignup ? 'Create account' : isForgot ? 'Forgot password' : 'Login securely'}</h2>
           </div>
-          <div className="frequency-toggle auth-toggle">
-            <button className={!isSignup ? 'selected' : ''} type="button" onClick={() => setMode('login')}>Login</button>
-            <button className={isSignup ? 'selected' : ''} type="button" onClick={() => setMode('signup')}>Sign Up</button>
-          </div>
+          {!isForgot && (
+            <div className="frequency-toggle auth-toggle">
+              <button className={!isSignup ? 'selected' : ''} type="button" onClick={() => changeMode('login')}>Login</button>
+              <button className={isSignup ? 'selected' : ''} type="button" onClick={() => changeMode('signup')}>Sign Up</button>
+            </div>
+          )}
           <div className="auth-field-grid">
             {isSignup && <input name="name" placeholder="Full name or contact person" value={form.name} onChange={update} required />}
             <input name="email" type="email" placeholder="Email address" value={form.email} onChange={update} required />
-            <input name="password" type="password" placeholder="Password" value={form.password} onChange={update} required />
+            {!isForgot && <input name="password" type="password" placeholder="Password" value={form.password} onChange={update} required />}
+            {!isSignup && !isForgot && (
+              <button className="auth-forgot-link" type="button" onClick={() => changeMode('forgot')}>
+                Forgot password?
+              </button>
+            )}
             {isSignup && (
               <>
-                <select name="role" value={form.role} onChange={update}>
-                  <option value="donor">Donor</option>
-                  <option value="ngo">NGO</option>
-                  <option value="volunteer">Volunteer</option>
-                  
-                </select>
-                <input name="organizationName" placeholder="Organization or household name" value={form.organizationName} onChange={update} />
+                {lockRole
+                  ? <div className="auth-role-label">Registering as <strong>{form.role === 'ngo' ? 'NGO partner' : form.role}</strong></div>
+                  : <select name="role" value={form.role} onChange={update}>
+                      <option value="donor">Donor</option>
+                      <option value="ngo">NGO</option>
+                      <option value="volunteer">Volunteer</option>
+                    </select>}
+                {form.role !== 'volunteer' && <input name="organizationName" placeholder={form.role === 'ngo' ? 'Registered organization name' : 'Organization or household name'} value={form.organizationName} onChange={update} required={form.role === 'ngo'} />}
+                {form.role === 'ngo' && (
+                  <>
+                    <select name="organizationType" value={form.organizationType} onChange={update} required>
+                      <option value="">Organization type</option>
+                      <option value="ngo">Registered NGO</option>
+                      <option value="trust">Charitable trust</option>
+                      <option value="community-kitchen">Community kitchen</option>
+                      <option value="shelter">Shelter or relief center</option>
+                    </select>
+                    <input name="registrationNumber" placeholder="Registration number" value={form.registrationNumber} onChange={update} required />
+                    <input name="contactPerson" placeholder="Authorized contact person" value={form.contactPerson} onChange={update} required />
+                    <input name="serviceArea" placeholder="Service area" value={form.serviceArea} onChange={update} required />
+                  </>
+                )}
+                {form.role === 'volunteer' && (
+                  <>
+                    <input name="availability" placeholder="Availability, e.g. weekdays after 5 PM" value={form.availability} onChange={update} required />
+                    <label className="auth-checkbox"><input name="hasTransport" type="checkbox" checked={form.hasTransport} onChange={update} /> I have transport for pickups</label>
+                    <label className="auth-number-label">Travel radius (km)<input name="serviceRadiusKm" type="number" min="1" max="100" value={form.serviceRadiusKm} onChange={update} required /></label>
+                  </>
+                )}
                 <input name="city" placeholder="City" value={form.city} onChange={update} required />
                 <input name="phone" placeholder="Phone number" value={form.phone} onChange={update} required />
                 <input name="address" placeholder="Address or service area" value={form.address} onChange={update} />
@@ -394,14 +483,16 @@ function AuthModal({ initialMode, onClose }) {
             )}
           </div>
           {error && <div className="error">{error}</div>}
-          <div className="donation-assurance">
+          {message && <div className="notice" role="status">{message}</div>}
+          {!isForgot && <div className="donation-assurance">
             <LockKeyhole size={17} />
             <span>After login, your separate dashboard page opens automatically.</span>
-          </div>
-          <button className="donation-submit" type="submit">
-            {isSignup ? <UserPlus size={18} /> : <LogIn size={18} />}
-            {isSignup ? 'Create account' : 'Login to dashboard'}
+          </div>}
+          <button className="donation-submit" type="submit" disabled={submitting}>
+            {isSignup ? <UserPlus size={18} /> : isForgot ? <LockKeyhole size={18} /> : <LogIn size={18} />}
+            {submitting ? 'Please wait...' : isSignup ? 'Create account' : isForgot ? 'Send reset link' : 'Login to dashboard'}
           </button>
+          {isForgot && <button className="auth-back-link" type="button" onClick={() => changeMode('login')}>Back to login</button>}
         </form>
       </section>
     </div>
