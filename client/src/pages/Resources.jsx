@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { BadgeCheck, Building2, MapPin, Search, UsersRound } from 'lucide-react';
+import { api } from '../api.js';
 import { DetailPage } from '../components/DetailPage.jsx';
 import { AuthModal } from '../components/Layout.jsx';
 
@@ -90,6 +92,40 @@ const ngoSections = [
 export default function Resources({ type }) {
   const ngoPage = type === 'ngos';
   const [registrationOpen, setRegistrationOpen] = useState(false);
+  const [partners, setPartners] = useState([]);
+  const [partnerError, setPartnerError] = useState('');
+  const [partnerLoading, setPartnerLoading] = useState(ngoPage);
+  const [cityFilter, setCityFilter] = useState('all');
+  const [partnerSearch, setPartnerSearch] = useState('');
+
+  useEffect(() => {
+    if (!ngoPage) return;
+    setPartnerLoading(true);
+    api('/partners')
+      .then((data) => setPartners(data.partners || []))
+      .catch((error) => setPartnerError(error.message))
+      .finally(() => setPartnerLoading(false));
+  }, [ngoPage]);
+
+  const cities = useMemo(
+    () => [...new Set(partners.map((partner) => partner.city))].sort(),
+    [partners]
+  );
+
+  const visiblePartners = useMemo(() => {
+    const query = partnerSearch.trim().toLowerCase();
+    return partners.filter((partner) => {
+      const matchesCity = cityFilter === 'all' || partner.city === cityFilter;
+      const matchesSearch = !query || [
+        partner.name,
+        partner.city,
+        partner.state,
+        partner.serviceArea,
+        ...(partner.focusAreas || [])
+      ].join(' ').toLowerCase().includes(query);
+      return matchesCity && matchesSearch;
+    });
+  }, [partners, cityFilter, partnerSearch]);
 
   return (
     <>
@@ -109,6 +145,7 @@ export default function Resources({ type }) {
         image: 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1400&q=85'
       }}
       navItems={ngoPage ? [
+        { id: 'partner-directory', label: 'Partner directory' },
         { id: 'ngo-registration', label: 'Registration' },
         { id: 'ngo-donations', label: 'Donations' },
         { id: 'beneficiaries', label: 'Beneficiaries' },
@@ -126,7 +163,73 @@ export default function Resources({ type }) {
         { title: 'Safe', text: 'Every rule supports safer food movement.' },
         { title: 'Shared', text: 'Everyone works from the same operating language.' }
       ]}
-    />
+    >
+      {ngoPage && (
+        <section className="partner-directory" id="partner-directory">
+          <header className="partner-directory-head">
+            <div>
+              <p className="eyebrow">FoodBridge city network</p>
+              <h2>Partner NGOs across 20 major cities</h2>
+              <p>Explore distribution partners by service area and operating focus. These demo profiles show how verified partner information appears before confirmed organizations are published.</p>
+            </div>
+            <div className="partner-directory-stat">
+              <strong>{partners.length || 20}</strong>
+              <span>city partners</span>
+            </div>
+          </header>
+
+          <div className="partner-filters">
+            <label>
+              <Search size={18} />
+              <input value={partnerSearch} onChange={(event) => setPartnerSearch(event.target.value)} placeholder="Search NGO, city or service" />
+            </label>
+            <select value={cityFilter} onChange={(event) => setCityFilter(event.target.value)} aria-label="Filter partners by city">
+              <option value="all">All 20 cities</option>
+              {cities.map((city) => <option value={city} key={city}>{city}</option>)}
+            </select>
+          </div>
+
+          {partnerLoading && <div className="partner-directory-message">Loading partner network...</div>}
+          {partnerError && <div className="partner-directory-message error">Partner directory could not load: {partnerError}</div>}
+
+          {!partnerLoading && !partnerError && (
+            <>
+              <div className="partner-results-row"><span>{visiblePartners.length} partners shown</span><small>Verified directory format</small></div>
+              <div className="partner-grid">
+                {visiblePartners.map((partner) => (
+                  <article className="partner-card" key={partner._id || partner.slug}>
+                    <div className="partner-card-top">
+                      <div
+                        className="partner-logo"
+                        style={{ '--partner-color': partner.logo.primaryColor, '--partner-soft': partner.logo.accentColor }}
+                        aria-label={`${partner.name} logo`}
+                      >
+                        <span>{partner.logo.initials}</span>
+                      </div>
+                      <div className="partner-verified"><BadgeCheck size={17} /> Verified</div>
+                    </div>
+                    <div className="partner-card-title">
+                      <span><MapPin size={15} /> {partner.city}, {partner.state}</span>
+                      <h3>{partner.name}</h3>
+                    </div>
+                    <p>{partner.summary}</p>
+                    <dl>
+                      <div><dt><Building2 size={15} /> Service area</dt><dd>{partner.serviceArea}</dd></div>
+                      <div><dt><UsersRound size={15} /> Weekly capacity</dt><dd>{partner.weeklyCapacity.toLocaleString('en-IN')} meals</dd></div>
+                    </dl>
+                    <div className="partner-focus">
+                      {partner.focusAreas.map((focus) => <span key={focus}>{focus}</span>)}
+                    </div>
+                    <footer><span>Partner since {partner.partnerSince}</span><span>{partner.city}</span></footer>
+                  </article>
+                ))}
+              </div>
+              {!visiblePartners.length && <div className="partner-directory-message">No partner matches this search.</div>}
+            </>
+          )}
+        </section>
+      )}
+    </DetailPage>
     {registrationOpen && <AuthModal initialMode="signup" initialRole="ngo" lockRole onClose={() => setRegistrationOpen(false)} />}
     </>
   );

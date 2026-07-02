@@ -12,6 +12,7 @@ import { dashboardRoutes } from './routes/dashboardRoutes.js';
 import { donationRoutes } from './routes/donationRoutes.js';
 import { notificationRoutes } from './routes/notificationRoutes.js';
 import { newsletterRoutes } from './routes/newsletterRoutes.js';
+import { partnerRoutes } from './routes/partnerRoutes.js';
 import { supportRoutes } from './routes/supportRoutes.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 
@@ -38,6 +39,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/newsletter', newsletterRoutes);
+app.use('/api/partners', partnerRoutes);
 app.use('/api/support-requests', supportRoutes);
 
 app.use(notFound);
