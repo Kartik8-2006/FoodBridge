@@ -53,9 +53,71 @@ export const createDonation = asyncHandler(async (req, res) => {
     throw new Error('Only donors can post food donations');
   }
 
+  const {
+    title,
+    foodType,
+    dietType,
+    quantity,
+    estimatedMeals,
+    pickupAddress,
+    pickupLocation,
+    city,
+    pickupWindowStart,
+    pickupWindowEnd,
+    safeBefore,
+    storageInstructions,
+    allergenNotes,
+    contactNumber,
+    imageUrl,
+    distributionTarget
+  } = req.body;
+
+  if (!title || !foodType || !dietType || !quantity || !pickupAddress || !city || !contactNumber || !pickupWindowStart || !pickupWindowEnd || !safeBefore) {
+    res.status(400);
+    throw new Error('Complete all required food, pickup, and safety details');
+  }
+
+  const meals = Number(estimatedMeals);
+  if (!Number.isFinite(meals) || meals < 1) {
+    res.status(400);
+    throw new Error('Estimated meals must be at least 1');
+  }
+
+  const pickupStart = new Date(pickupWindowStart);
+  const pickupEnd = new Date(pickupWindowEnd);
+  const safeUntil = new Date(safeBefore);
+  if ([pickupStart, pickupEnd, safeUntil].some((date) => Number.isNaN(date.getTime()))) {
+    res.status(400);
+    throw new Error('Pickup and safe-before dates must be valid');
+  }
+  if (pickupEnd <= pickupStart) {
+    res.status(400);
+    throw new Error('Pickup end time must be after pickup start time');
+  }
+  if (safeUntil < pickupStart) {
+    res.status(400);
+    throw new Error('Food must remain safe through the pickup start time');
+  }
+
+  const normalizedPickupLocation = normalizeLocation(pickupLocation, pickupAddress);
   const donation = await Donation.create({
-    ...req.body,
-    donor: req.user._id
+    donor: req.user._id,
+    title,
+    foodType,
+    dietType,
+    quantity,
+    estimatedMeals: meals,
+    pickupAddress,
+    ...(normalizedPickupLocation ? { pickupLocation: normalizedPickupLocation } : {}),
+    city,
+    pickupWindowStart: pickupStart,
+    pickupWindowEnd: pickupEnd,
+    safeBefore: safeUntil,
+    storageInstructions,
+    allergenNotes,
+    contactNumber,
+    imageUrl,
+    distributionTarget
   });
 
   const donorCity = donation.city || req.user.profile?.city;

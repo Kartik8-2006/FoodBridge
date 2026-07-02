@@ -133,8 +133,8 @@ export default function Layout({ children }) {
           </div>
 
           <div className="utility-actions">
-            <Link className="utility-find" to="/find-food"><ShoppingCart size={24} /> {t("FIND FOOD")}</Link>
-            <button className="utility-donate" type="button" onClick={() => setAuthModal('signup')}><CircleDollarSign size={23} /> {t("DONATE FOOD")}</button>
+            <button className="utility-find" type="button" onClick={() => setAuthModal({ initialMode: 'signup', initialRole: 'ngo', allowedRoles: ['ngo', 'volunteer'], roleSelectorPlacement: 'story' })}><ShoppingCart size={24} /> {t("FIND FOOD")}</button>
+            <button className="utility-donate" type="button" onClick={() => setAuthModal({ initialMode: 'signup', initialRole: 'donor', lockRole: true })}><CircleDollarSign size={23} /> {t("DONATE FOOD")}</button>
             {user ? (
               <>
                 <Link className="utility-dashboard" to={dashboardPath(user.role)}><UserCircle size={20} /> {t("DASHBOARD")}</Link>
@@ -219,7 +219,7 @@ export default function Layout({ children }) {
       </Link>
       {children}
       {donationOpen && <DonationModal onClose={() => setDonationOpen(false)} />}
-      {authModal && <AuthModal initialMode={authModal} onClose={() => setAuthModal(null)} />}
+      {authModal && <AuthModal {...authModal} onClose={() => setAuthModal(null)} />}
       <footer className="footer foodbank-footer">
         <section className="footer-newsletter">
           <h2>{t("STAY UP TO DATE")}</h2>
@@ -322,7 +322,7 @@ function DonationModal({ onClose }) {
   );
 }
 
-export function AuthModal({ initialMode, initialRole = 'donor', lockRole = false, onClose }) {
+export function AuthModal({ initialMode, initialRole = 'donor', lockRole = false, allowedRoles = ['donor', 'ngo', 'volunteer'], roleSelectorPlacement = 'form', onClose }) {
   const navigate = useNavigate();
   const { login, register } = useAuth();
   const [mode, setMode] = useState(initialMode);
@@ -348,6 +348,7 @@ export function AuthModal({ initialMode, initialRole = 'donor', lockRole = false
   });
   const isSignup = mode === 'signup';
   const isForgot = mode === 'forgot';
+  const storyRoleSelector = isSignup && !lockRole && roleSelectorPlacement === 'story';
 
   function changeMode(nextMode) {
     setMode(nextMode);
@@ -417,8 +418,20 @@ export function AuthModal({ initialMode, initialRole = 'donor', lockRole = false
             <span className="brand-symbol"><HeartHandshake size={28} /></span>
             <span className="brand-type"><small>FOODBRIDGE</small><strong>NETWORK</strong></span>
           </div>
-          <h2>{isSignup ? 'Join the food rescue network' : isForgot ? 'Recover your account securely' : 'Welcome back to your workspace'}</h2>
-          <p>{isForgot ? 'Enter your registered email address and we will send you a secure password reset link valid for 60 minutes.' : 'One account connects donors, NGOs, volunteers, and admins through a dedicated dashboard for donation posting, pickup scheduling, tracking, and notifications.'}</p>
+          <h2>{isSignup ? form.role === 'ngo' ? 'Join as a verified NGO partner' : form.role === 'volunteer' ? 'Join the local pickup network' : 'Join the food rescue network' : isForgot ? 'Recover your account securely' : 'Welcome back to your workspace'}</h2>
+          <p>{isForgot ? 'Enter your registered email address and we will send you a secure password reset link valid for 60 minutes.' : form.role === 'ngo' ? 'Register your organization to review nearby donations, coordinate pickups, and serve communities through a verified account.' : form.role === 'volunteer' ? 'Create a volunteer profile based on your availability, travel radius, and transport access.' : 'Create a donor account to post safe surplus food and coordinate verified local pickups.'}</p>
+          {storyRoleSelector && (
+            <div className="auth-story-role" aria-label="Select registration role">
+              <span>Register as</span>
+              <div>
+                {allowedRoles.map((role) => (
+                  <button className={form.role === role ? 'selected' : ''} type="button" key={role} onClick={() => setForm((current) => ({ ...current, role }))}>
+                    {role === 'ngo' ? 'NGO' : 'Volunteer'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="auth-benefits">
             <span><CheckCircle2 size={16} /> Post surplus food</span>
             <span><CheckCircle2 size={16} /> Coordinate pickups</span>
@@ -430,6 +443,18 @@ export function AuthModal({ initialMode, initialRole = 'donor', lockRole = false
             {isSignup ? <UserPlus size={28} /> : <ShieldCheck size={28} />}
             <h2 id="auth-title">{isSignup ? 'Create account' : isForgot ? 'Forgot password' : 'Login securely'}</h2>
           </div>
+          {storyRoleSelector && (
+            <div className="auth-mobile-role" aria-label="Select registration role">
+              <span>Register as</span>
+              <div>
+                {allowedRoles.map((role) => (
+                  <button className={form.role === role ? 'selected' : ''} type="button" key={role} onClick={() => setForm((current) => ({ ...current, role }))}>
+                    {role === 'ngo' ? 'NGO' : 'Volunteer'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           {!isForgot && (
             <div className="frequency-toggle auth-toggle">
               <button className={!isSignup ? 'selected' : ''} type="button" onClick={() => changeMode('login')}>Login</button>
@@ -449,10 +474,8 @@ export function AuthModal({ initialMode, initialRole = 'donor', lockRole = false
               <>
                 {lockRole
                   ? <div className="auth-role-label">Registering as <strong>{form.role === 'ngo' ? 'NGO partner' : form.role}</strong></div>
-                  : <select name="role" value={form.role} onChange={update}>
-                      <option value="donor">Donor</option>
-                      <option value="ngo">NGO</option>
-                      <option value="volunteer">Volunteer</option>
+                  : !storyRoleSelector && <select name="role" value={form.role} onChange={update}>
+                      {allowedRoles.map((role) => <option value={role} key={role}>{role === 'ngo' ? 'NGO' : role.charAt(0).toUpperCase() + role.slice(1)}</option>)}
                     </select>}
                 {form.role !== 'volunteer' && <input name="organizationName" placeholder={form.role === 'ngo' ? 'Registered organization name' : 'Organization or household name'} value={form.organizationName} onChange={update} required={form.role === 'ngo'} />}
                 {form.role === 'ngo' && (
