@@ -47,7 +47,7 @@ export const dashboard = asyncHandler(async (req, res) => {
     const acceptedDonationRows = await Donation.find({ acceptedBy: userId }).populate('donor', 'name email profile').populate('assignedVolunteer', 'name role profile').sort({ updatedAt: -1 }).limit(12);
     data.availableDonations = availableDonations.map((donation) => addDistanceToDonation(donation, req.user));
     data.acceptedDonations = acceptedDonationRows.map((donation) => addDistanceToDonation(donation, req.user));
-    data.foodRequests = await SupportRequest.find({ status: 'open' }).populate('recipient', 'name email profile').sort({ createdAt: -1 }).limit(8);
+    data.foodRequests = await SupportRequest.find({ status: 'open' }).populate('requester', 'name email profile').sort({ createdAt: -1 }).limit(8);
     data.volunteers = await User.find({ role: 'volunteer', isActive: true }).select('-passwordHash').sort({ name: 1 }).limit(25);
     data.reports = {
       mealsDistributed: totalMealsDistributed,
@@ -91,17 +91,6 @@ export const dashboard = asyncHandler(async (req, res) => {
       hoursWorked: completedDeliveries.length * 2,
       impact: completedDeliveries.reduce((sum, item) => sum + Number(item.estimatedMeals || 0), 0)
     };
-  }
-
-  if (role === 'recipient') {
-    data.stats = {
-      openRequests: await SupportRequest.countDocuments({ recipient: userId, status: 'open' }),
-      matchedRequests: await SupportRequest.countDocuments({ recipient: userId, status: 'matched' }),
-      nearbyFood: await Donation.countDocuments({ status: { $in: ['posted', 'pickup_scheduled'] } }),
-      deliveredSupport: await SupportRequest.countDocuments({ recipient: userId, status: 'closed' })
-    };
-    data.availableSupport = await Donation.find({ status: { $in: ['posted', 'pickup_scheduled'] } }).sort({ safeBefore: 1 }).limit(8);
-    data.requests = await SupportRequest.find({ recipient: userId }).sort({ createdAt: -1 }).limit(8);
   }
 
   if (role === 'admin') {

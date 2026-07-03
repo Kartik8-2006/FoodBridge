@@ -46,13 +46,6 @@ export function DashboardShell({ eyebrow, title, children, actions }) {
       [Bell, 'Notifications', '#notifications'],
       [UserRoundCog, 'Profile', '#profile']
     ],
-    recipient: [
-      [LayoutDashboard, 'Dashboard'],
-      [ClipboardList, 'Request Food'],
-      [MapPin, 'Nearby Support'],
-      [Bell, 'Notifications'],
-      [UserRoundCog, 'Profile']
-    ],
     admin: [
       [LayoutDashboard, 'Dashboard', '#admin-home'],
       [UsersRound, 'Users', '#users'],

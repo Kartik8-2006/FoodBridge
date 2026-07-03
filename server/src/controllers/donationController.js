@@ -29,7 +29,7 @@ export const listDonations = asyncHandler(async (req, res) => {
   if (status) filter.status = status;
   if (city) filter.city = new RegExp(city, 'i');
   if (mine === 'true' && req.user.role === 'donor') filter.donor = req.user._id;
-  if (!status && ['ngo', 'volunteer', 'recipient'].includes(req.user.role)) {
+  if (!status && ['ngo', 'volunteer'].includes(req.user.role)) {
     filter.status = { $in: ['posted', 'accepted', 'pickup_scheduled'] };
   }
   if (!city && ['ngo', 'volunteer'].includes(req.user.role)) {

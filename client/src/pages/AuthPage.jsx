@@ -4,7 +4,7 @@ import { api } from '../api.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { dashboardPath } from '../utils.js';
 
-const roles = ['donor', 'ngo', 'volunteer', 'recipient'];
+const roles = ['donor', 'ngo', 'volunteer'];
 
 export default function AuthPage({ mode }) {
   const isSignup = mode === 'signup';

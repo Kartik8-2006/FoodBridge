@@ -3,14 +3,12 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import AdminDashboard from './AdminDashboard.jsx';
 import DonorDashboard from './DonorDashboard.jsx';
 import NgoDashboard from './NgoDashboard.jsx';
-import RecipientDashboard from './RecipientDashboard.jsx';
 import VolunteerDashboard from './VolunteerDashboard.jsx';
 
 const dashboards = {
   donor: DonorDashboard,
   ngo: NgoDashboard,
   volunteer: VolunteerDashboard,
-  recipient: RecipientDashboard,
   admin: AdminDashboard
 };
 

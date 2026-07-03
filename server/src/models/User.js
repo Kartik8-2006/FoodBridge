@@ -40,7 +40,7 @@ const userSchema = new mongoose.Schema(
     passwordHash: { type: String, required: true },
     role: {
       type: String,
-      enum: ['donor', 'ngo', 'volunteer', 'recipient', 'admin'],
+      enum: ['donor', 'ngo', 'volunteer', 'admin'],
       required: true
     },
     profile: { type: profileSchema, default: {} },

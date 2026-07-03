@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const supportRequestSchema = new mongoose.Schema(
   {
-    recipient: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    requester: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     householdSize: { type: Number, required: true, min: 1 },
     location: { type: String, required: true },
     need: { type: String, required: true },
