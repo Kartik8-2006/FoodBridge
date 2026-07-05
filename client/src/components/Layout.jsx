@@ -1,4 +1,4 @@
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, CheckCircle2, ChevronDown, CircleDollarSign, Heart, HeartHandshake, LockKeyhole, LogIn, LogOut, Menu, ShieldCheck, ShoppingCart, UserCircle, UserPlus, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../api.js';
@@ -11,6 +11,7 @@ export default function Layout({ children }) {
   const { user, logout } = useAuth();
   const { language, setLanguage, t } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const [donationOpen, setDonationOpen] = useState(false);
   const [authModal, setAuthModal] = useState(null);
@@ -98,6 +99,27 @@ export default function Layout({ children }) {
     const timer = window.setInterval(() => loadNotifications({ showToast: true }), 15000);
     return () => window.clearInterval(timer);
   }, [user?.id]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const authMode = params.get('auth');
+    if (!authMode) return;
+
+    if (user) {
+      navigate(dashboardPath(user.role), { replace: true });
+      return;
+    }
+
+    const mode = authMode === 'signup' ? 'signup' : authMode === 'forgot' ? 'forgot' : 'login';
+    setAuthModal({
+      initialMode: mode,
+      initialRole: params.get('role') || 'donor',
+      ...(mode === 'signup' ? {
+        allowedRoles: ['donor', 'ngo', 'volunteer'],
+        roleSelectorPlacement: 'story'
+      } : {})
+    });
+  }, [location.search, user?.id]);
 
   return (
     <>
@@ -422,14 +444,12 @@ export function AuthModal({ initialMode, initialRole = 'donor', lockRole = false
           <p>{isForgot ? 'Enter your registered email address and we will send you a secure password reset link valid for 60 minutes.' : form.role === 'ngo' ? 'Register your organization to review nearby donations, coordinate pickups, and serve communities through a verified account.' : form.role === 'volunteer' ? 'Create a volunteer profile based on your availability, travel radius, and transport access.' : 'Create a donor account to post safe surplus food and coordinate verified local pickups.'}</p>
           {storyRoleSelector && (
             <div className="auth-story-role" aria-label="Select registration role">
-              <span>Register as</span>
-              <div>
+              <label htmlFor="story-register-role">Register as</label>
+              <select id="story-register-role" value={form.role} onChange={(event) => setForm((current) => ({ ...current, role: event.target.value }))}>
                 {allowedRoles.map((role) => (
-                  <button className={form.role === role ? 'selected' : ''} type="button" key={role} onClick={() => setForm((current) => ({ ...current, role }))}>
-                    {role === 'ngo' ? 'NGO' : 'Volunteer'}
-                  </button>
+                  <option value={role} key={role}>{role === 'ngo' ? 'NGO' : role === 'donor' ? 'Donor' : 'Volunteer'}</option>
                 ))}
-              </div>
+              </select>
             </div>
           )}
           <div className="auth-benefits">
@@ -445,14 +465,12 @@ export function AuthModal({ initialMode, initialRole = 'donor', lockRole = false
           </div>
           {storyRoleSelector && (
             <div className="auth-mobile-role" aria-label="Select registration role">
-              <span>Register as</span>
-              <div>
+              <label htmlFor="mobile-register-role">Register as</label>
+              <select id="mobile-register-role" value={form.role} onChange={(event) => setForm((current) => ({ ...current, role: event.target.value }))}>
                 {allowedRoles.map((role) => (
-                  <button className={form.role === role ? 'selected' : ''} type="button" key={role} onClick={() => setForm((current) => ({ ...current, role }))}>
-                    {role === 'ngo' ? 'NGO' : 'Volunteer'}
-                  </button>
+                  <option value={role} key={role}>{role === 'ngo' ? 'NGO' : role === 'donor' ? 'Donor' : 'Volunteer'}</option>
                 ))}
-              </div>
+              </select>
             </div>
           )}
           {!isForgot && (

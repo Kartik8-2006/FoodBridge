@@ -128,6 +128,34 @@ export default function VolunteerDashboard() {
       </section>
 
       <StatGrid stats={data.stats} />
+      <section className="dashboard-overview-grid">
+        <article className="overview-card overview-chart">
+          <div className="overview-heading">
+            <div><span>Route Load</span><h3>Pickup demand this week</h3></div>
+            <strong>{availablePickups.length + assignedDeliveries.length}</strong>
+          </div>
+          <div className="overview-bars volunteer-bars">
+            {[44, 66, 52, 78, 60, 84, 46].map((height, index) => <i key={index} style={{ '--height': `${height}%` }} />)}
+          </div>
+          <div className="overview-labels"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+        </article>
+        <article className="overview-card">
+          <div className="overview-heading"><div><span>Field Status</span><h3>Today readiness</h3></div><Navigation /></div>
+          <div className="readiness-list">
+            <p><CheckCircle2 /> {availablePickups.length} nearby pickups available</p>
+            <p><Truck /> {assignedDeliveries.length} deliveries assigned</p>
+            <p><Timer /> {data.stats.estimatedDistanceKm || 0} km estimated route</p>
+          </div>
+        </article>
+        <article className="overview-card">
+          <div className="overview-heading"><div><span>Performance</span><h3>Reliability score</h3></div><Star /></div>
+          <div className="donor-level">
+            <strong>{data.performance?.rating || 'New'} rating</strong>
+            <span><b style={{ width: data.performance?.rating ? '84%' : '28%' }} /></span>
+            <small>{data.performance?.totalDeliveries || 0} completed deliveries logged</small>
+          </div>
+        </article>
+      </section>
       {message && <div className="notice">{message}</div>}
 
       <section className="volunteer-dashboard-grid">
@@ -255,9 +283,25 @@ export default function VolunteerDashboard() {
 
       <section id="notifications"><NotificationList items={data.notifications} /></section>
 
-      <section className="volunteer-panel" id="profile">
-        <h2>Profile</h2>
-        <p>{user?.name} · {user?.profile?.city || 'City not set'} · {user?.profile?.availability || 'Availability not set'}</p>
+      <section className="volunteer-dashboard-grid">
+        <article className="volunteer-panel" id="profile">
+          <div className="panel-heading"><div><p className="dashboard-kicker">Profile</p><h2>Volunteer details</h2></div></div>
+          <div className="profile-detail-grid">
+            <div><Navigation size={18} /><span>Base city</span><strong>{user?.profile?.city || 'City not set'}</strong></div>
+            <div><Clock size={18} /><span>Availability</span><strong>{user?.profile?.availability || 'Availability not set'}</strong></div>
+            <div><Truck size={18} /><span>Transport</span><strong>{user?.profile?.hasTransport ? 'Available' : 'Not added'}</strong></div>
+            <div><Star size={18} /><span>Rating</span><strong>{data.performance?.rating || 'New'}</strong></div>
+          </div>
+        </article>
+        <article className="volunteer-panel" id="settings">
+          <div className="panel-heading"><div><p className="dashboard-kicker">Settings</p><h2>Route preferences</h2></div></div>
+          <div className="settings-grid">
+            <label><span>Auto share live location after pickup</span><input type="checkbox" defaultChecked /></label>
+            <label><span>Urgent pickup alerts</span><input type="checkbox" defaultChecked /></label>
+            <label><span>Weekend availability</span><input type="checkbox" /></label>
+            <label><span>Show long distance tasks</span><input type="checkbox" /></label>
+          </div>
+        </article>
       </section>
     </DashboardShell>
   );

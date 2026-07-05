@@ -6,7 +6,7 @@ export default function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
 
   if (loading) return <main className="section"><p>Loading your FoodBridge workspace...</p></main>;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/?auth=login" replace />;
 
   return children || <Navigate to={dashboardPath(user.role)} replace />;
 }

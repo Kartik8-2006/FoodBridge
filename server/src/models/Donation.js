@@ -10,6 +10,7 @@ const donationSchema = new mongoose.Schema(
       required: true
     },
     dietType: { type: String, enum: ['veg', 'non-veg', 'vegan', 'mixed'], required: true },
+    dietaryLabels: [{ type: String }],
     quantity: { type: String, required: true },
     estimatedMeals: { type: Number, required: true, min: 1 },
     pickupAddress: { type: String, required: true },

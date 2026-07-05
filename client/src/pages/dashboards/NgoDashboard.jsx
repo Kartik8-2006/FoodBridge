@@ -114,6 +114,32 @@ export default function NgoDashboard() {
 
       <StatGrid stats={data.stats} />
 
+      <section className="dashboard-overview-grid">
+        <article className="overview-card overview-chart">
+          <div className="overview-heading">
+            <div><span>Distribution Trend</span><h3>Meals routed this week</h3></div>
+            <strong>{data.stats.todaysDistribution || 0}</strong>
+          </div>
+          <div className="overview-bars ngo-bars">
+            {[64, 42, 58, 82, 74, 46, 68].map((height, index) => <i key={index} style={{ '--height': `${height}%` }} />)}
+          </div>
+          <div className="overview-labels"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+        </article>
+        <article className="overview-card">
+          <div className="overview-heading"><div><span>Priority Queue</span><h3>Needs to act on</h3></div><PackageCheck /></div>
+          <div className="readiness-list">
+            <p><CheckCircle2 /> {availableDonations.length} nearby donations ready to claim</p>
+            <p><Clock /> {claimedDonations.length} accepted donations under coordination</p>
+            <p><Truck /> Volunteer assignment status visible after claim</p>
+          </div>
+        </article>
+        <article className="overview-card">
+          <div className="overview-heading"><div><span>Service Coverage</span><h3>Beneficiary mix</h3></div><UsersRound /></div>
+          <div className="mini-donut"><strong>{beneficiaryCount}</strong><span>planned servings</span></div>
+          <small className="overview-foot">Current target: {titleCase(deliveryTarget)}</small>
+        </article>
+      </section>
+
       {message && <div className="notice">{t(message)}</div>}
 
       <section className="ngo-dashboard-grid">
@@ -277,9 +303,25 @@ export default function NgoDashboard() {
 
       <section id="notifications"><NotificationList items={data.notifications} /></section>
 
-      <section className="ngo-panel" id="profile">
-        <h2>{t("Profile")}</h2>
-        <p>{user?.name} · {user?.profile?.serviceArea || user?.profile?.city || t('Service area not set')}</p>
+      <section className="ngo-dashboard-grid">
+        <article className="ngo-panel" id="profile">
+          <div className="panel-heading"><div><p className="dashboard-kicker">{t("Profile")}</p><h2>{t("NGO partner details")}</h2></div></div>
+          <div className="profile-detail-grid">
+            <div><UsersRound size={18} /><span>{t("Organization")}</span><strong>{user?.name}</strong></div>
+            <div><MapPin size={18} /><span>{t("Service Area")}</span><strong>{user?.profile?.serviceArea || user?.profile?.city || t('Service area not set')}</strong></div>
+            <div><CheckCircle2 size={18} /><span>{t("Verification")}</span><strong>{titleCase(user?.profile?.verificationStatus || 'pending')}</strong></div>
+            <div><Soup size={18} /><span>{t("Distribution Focus")}</span><strong>{titleCase(deliveryTarget)}</strong></div>
+          </div>
+        </article>
+        <article className="ngo-panel" id="settings">
+          <div className="panel-heading"><div><p className="dashboard-kicker">{t("Settings")}</p><h2>{t("Receiving preferences")}</h2></div></div>
+          <div className="settings-grid">
+            <label><span>Auto notify on nearby donations</span><input type="checkbox" defaultChecked /></label>
+            <label><span>Require photo proof before claim</span><input type="checkbox" defaultChecked /></label>
+            <label><span>Enable volunteer auto-match</span><input type="checkbox" defaultChecked /></label>
+            <label><span>Daily distribution summary</span><input type="checkbox" /></label>
+          </div>
+        </article>
       </section>
     </DashboardShell>
   );

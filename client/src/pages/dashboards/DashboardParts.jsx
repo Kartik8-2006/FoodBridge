@@ -1,4 +1,4 @@
-import { BarChart3, Bell, ClipboardList, HeartHandshake, Home, LayoutDashboard, LogOut, MapPin, PackageCheck, RefreshCcw, Settings, ShieldCheck, Soup, Star, Truck, UserRoundCog, UsersRound } from 'lucide-react';
+import { BarChart3, Bell, CircleHelp, ClipboardList, Grid2X2, Heart, HeartHandshake, HelpCircle, LayoutDashboard, LogOut, MapPin, Package, PackageCheck, Plus, Search, Settings, ShieldCheck, Soup, Star, Truck, UserRoundCog, UsersRound } from 'lucide-react';
 import { Children, cloneElement, isValidElement, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../../api.js';
@@ -17,9 +17,9 @@ export function DashboardShell({ eyebrow, title, children, actions }) {
   
   const menuByRole = {
     donor: [
-      [LayoutDashboard, 'Dashboard', '#dashboard-home'],
-      [PackageCheck, 'Donate Food', '#donate-food'],
-      [ClipboardList, 'My Active Donations', '#active-donations'],
+      [Grid2X2, 'Dashboard', '#dashboard-home'],
+      [Heart, 'Donate Food', '#donate-food'],
+      [Package, 'My Active Donations', '#active-donations'],
       [ClipboardList, 'Donation History', '#donation-history'],
       [MapPin, 'Track Donations', '#track-donations'],
       [Bell, 'Notifications', '#notifications'],
@@ -35,7 +35,8 @@ export function DashboardShell({ eyebrow, title, children, actions }) {
       [Truck, 'Volunteers', '#volunteers'],
       [BarChart3, 'Reports', '#reports'],
       [Bell, 'Notifications', '#notifications'],
-      [UserRoundCog, 'Profile', '#profile']
+      [UserRoundCog, 'Profile', '#profile'],
+      [Settings, 'Settings', '#settings']
     ],
     volunteer: [
       [LayoutDashboard, 'Dashboard', '#volunteer-home'],
@@ -44,7 +45,8 @@ export function DashboardShell({ eyebrow, title, children, actions }) {
       [PackageCheck, 'Delivery History', '#delivery-history'],
       [MapPin, 'Navigation', '#navigation'],
       [Bell, 'Notifications', '#notifications'],
-      [UserRoundCog, 'Profile', '#profile']
+      [UserRoundCog, 'Profile', '#profile'],
+      [Settings, 'Settings', '#settings']
     ],
     admin: [
       [LayoutDashboard, 'Dashboard', '#admin-home'],
@@ -67,6 +69,14 @@ export function DashboardShell({ eyebrow, title, children, actions }) {
   const [activeHref, setActiveHref] = useState(location.hash || defaultHref);
   const activeTarget = activeHref.replace('#', '');
   const visibleChildren = useMemo(() => filterDashboardChildren(children, activeTarget), [children, activeTarget]);
+  const roleLabel = titleCase(user?.role || 'user');
+  const impactLabel = user?.role === 'donor'
+    ? 'Impact: 420 Meals'
+    : user?.role === 'ngo'
+      ? 'Verified partner workspace'
+      : user?.role === 'volunteer'
+        ? 'Field operations workspace'
+        : 'Platform command center';
 
   async function loadNotifications() {
     try {
@@ -104,15 +114,35 @@ export function DashboardShell({ eyebrow, title, children, actions }) {
   }, [location.hash, defaultHref]);
 
   return (
-    <div className="app-dashboard">
+    <div className={`app-dashboard app-dashboard-${user?.role || 'user'}`}>
       <aside className="dashboard-sidebar">
         <Link className="dashboard-brand" to="/">
-          <span>FB</span>
-          <div><strong>FoodBridge</strong><small>{t("Management Platform") || "Management Platform"}</small></div>
+          <svg className="dashboard-brand-svg" viewBox="0 0 52 52" width="44" height="44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            {/* Outer circle ring */}
+            <circle cx="26" cy="26" r="24" stroke="#c5c0bb" strokeWidth="2.2" fill="none" />
+            {/* Green segment (top-left) */}
+            <path d="M26 2 A24 24 0 0 0 5.5 15 L16 20 Z" fill="#6db33f" />
+            {/* Red segment (top-right) */}
+            <path d="M26 2 A24 24 0 0 1 46.5 15 L36 20 Z" fill="#c0392b" />
+            {/* Orange segment (bottom-right) */}
+            <path d="M46.5 15 A24 24 0 0 1 46.5 38 L36 30 Z" fill="#e2973c" />
+            {/* Brown/dark segment (bottom-left) */}
+            <path d="M5.5 15 A24 24 0 0 0 5.5 38 L16 30 Z" fill="#6b4c2a" />
+            {/* Inner white circle */}
+            <circle cx="26" cy="26" r="14" fill="#fff" />
+            {/* Heart icon in center */}
+            <path d="M26 36 C20 30 15 26 15 22 C15 18.5 17.5 16 20.5 16 C22.5 16 24.5 17.5 26 19.5 C27.5 17.5 29.5 16 31.5 16 C34.5 16 37 18.5 37 22 C37 26 32 30 26 36Z" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span className="dashboard-brand-text">
+            <span className="dashboard-brand-top">F O O D B R I D G E</span>
+            <span className="dashboard-brand-bottom">NETWORK</span>
+          </span>
         </Link>
         <div className="dashboard-user">
-          <div className="avatar">{user?.name?.charAt(0) || 'U'}</div>
-          <div><strong>{user?.name}</strong><small>{t(titleCase(user?.role || ''))}</small></div>
+          <div className="dashboard-avatar">
+            {user?.profile?.avatarUrl ? <img src={user.profile.avatarUrl} alt="" /> : <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=160&q=80" alt="" />}
+          </div>
+          <div><strong>{user?.name || 'Alexander Bennett'}</strong><small>{impactLabel}</small></div>
         </div>
         <nav>
           {navItems.map(([Icon, label, href = '#']) => (
@@ -130,18 +160,23 @@ export function DashboardShell({ eyebrow, title, children, actions }) {
             </a>
           ))}
         </nav>
-        <button className="dashboard-logout" onClick={logout}><LogOut size={18} /> {t("Logout")}</button>
+        <div className="dashboard-side-footer">
+          {user?.role === 'donor' && <a className="dashboard-donate-now" href="#donate-food"><Heart size={20} fill="currentColor" /> {t("Donate Now")}</a>}
+          <a className="dashboard-support" href="#support"><HelpCircle size={18} /> {t("Support")}</a>
+          <button className="dashboard-logout" onClick={logout}><LogOut size={18} /> {t("Logout")}</button>
+        </div>
       </aside>
 
       <section className="dashboard-workspace">
         <header className="dashboard-topbar">
-          <div>
-            <p className="dashboard-kicker">{t(eyebrow)}</p>
-            <h1>{t(title)}</h1>
+          <div className="dashboard-top-title">
+            <h1>{user?.role === 'donor' ? t("Dashboard Overview") : t(title)}</h1>
           </div>
+          <label className="dashboard-search" aria-label="Search dashboard">
+            <Search size={22} />
+            <input type="search" placeholder={t("Search activities...")} />
+          </label>
           <div className="dashboard-top-actions">
-            <span className="live-chip"><span /> {t("Live Update")}</span>
-            <button aria-label="Refresh dashboard"><RefreshCcw size={18} /></button>
             <div className="dashboard-notification-menu">
               <button className="dashboard-bell" type="button" aria-label="Notifications" onClick={() => setNotificationOpen((value) => !value)}>
                 <Bell size={18} />
@@ -171,8 +206,12 @@ export function DashboardShell({ eyebrow, title, children, actions }) {
                 </div>
               )}
             </div>
-            <Link className="dashboard-home" to="/"><Home size={18} /> {t("Public Site")}</Link>
-            {actions}
+            <button className="dashboard-help-button" type="button" aria-label="Help"><CircleHelp size={20} /></button>
+            <span className="dashboard-action-divider" />
+            {actions || (user?.role === 'donor' && <a className="button button-primary" href="#donate-food"><Plus size={18} /> {t("Donate Food")}</a>)}
+            <div className="topbar-avatar">
+              {user?.profile?.avatarUrl ? <img src={user.profile.avatarUrl} alt="" /> : <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80" alt="" />}
+            </div>
           </div>
         </header>
         <main className="dashboard-content">{visibleChildren}</main>
@@ -203,12 +242,15 @@ function filterDashboardChildren(children, targetId) {
   const homeTargets = ['dashboard-home', 'ngo-home', 'volunteer-home', 'admin-home'];
 
   if (homeTargets.includes(targetId)) {
-    return childArray.slice(0, 2);
+    const exactHome = childArray.find((child) => elementMatchesTarget(child, targetId));
+    return exactHome ? [exactHome] : childArray.slice(0, 1);
   }
 
   const filtered = childArray.map((child) => pruneToTarget(child, targetId)).filter(Boolean);
-  return filtered.length ? filtered : childArray.slice(0, 2);
+  return filtered.length ? filtered : childArray.slice(0, 1);
 }
+
+// Logo is now inline in the sidebar — DashboardBrandLogo removed intentionally
 
 export function StatGrid({ stats = {} }) {
   const { t } = useLanguage();

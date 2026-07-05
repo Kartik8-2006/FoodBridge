@@ -102,6 +102,34 @@ export default function AdminDashboard() {
       </section>
 
       <StatGrid stats={overviewStats} />
+      <section className="dashboard-overview-grid">
+        <article className="overview-card overview-chart">
+          <div className="overview-heading">
+            <div><span>Network Throughput</span><h3>Donation flow this week</h3></div>
+            <strong>{analytics.weeklyDonations || 0}</strong>
+          </div>
+          <div className="overview-bars admin-bars">
+            {[72, 64, 88, 54, 70, 92, 60].map((height, index) => <i key={index} style={{ '--height': `${height}%` }} />)}
+          </div>
+          <div className="overview-labels"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+        </article>
+        <article className="overview-card">
+          <div className="overview-heading"><div><span>Trust Queue</span><h3>Verification workload</h3></div><ShieldCheck /></div>
+          <div className="readiness-list">
+            <p><UserCheck /> {(queues.ngos || []).length} NGO profiles awaiting review</p>
+            <p><Truck /> {(queues.volunteers || []).length} volunteer documents pending</p>
+            <p><PackageCheck /> {(queues.restaurants || []).length} donor sources in queue</p>
+          </div>
+        </article>
+        <article className="overview-card">
+          <div className="overview-heading"><div><span>System Health</span><h3>Operational guardrails</h3></div><BarChart3 /></div>
+          <div className="readiness-list">
+            <p><CheckCircle2 /> Role based access active</p>
+            <p><CheckCircle2 /> JWT protected API routes</p>
+            <p><AlertTriangle /> {overviewStats.pendingPickups || 0} pickups need attention</p>
+          </div>
+        </article>
+      </section>
       {message && <div className="notice">{message}</div>}
 
       <section className="admin-main-grid">
