@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { CheckCircle2, Clock, Home, MapPin, PackageCheck, School, Soup, Truck, UsersRound } from 'lucide-react';
+import { AlertTriangle, Award, CalendarDays, CheckCircle2, Clock, Home, MapPin, PackageCheck, School, Soup, TrendingUp, Truck, UserPlus, UsersRound } from 'lucide-react';
 import { api } from '../../api';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useLanguage } from '../../context/LanguageContext.jsx';

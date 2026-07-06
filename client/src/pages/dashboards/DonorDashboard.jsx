@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, ArrowRight, Award, BadgeCheck, Camera, CheckCircle2, Clock, Heart, HeartPulse, ImagePlus, Leaf, MapPin, Navigation, Package, PackageCheck, Phone, Plus, ShieldCheck, ShoppingCart, Trash2, Truck, UploadCloud, UserCheck, Users, Utensils, X } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Award, CheckCircle2, Clock, Heart, HeartPulse, ImagePlus, Leaf, MapPin, Navigation, Package, Phone, Plus, ShieldCheck, ShoppingCart, Trash2, UploadCloud, UserCheck, Users, Utensils, X } from 'lucide-react';
 import { api } from '../../api.js';
 import TrackingMap from '../../components/TrackingMap.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -126,6 +126,10 @@ export default function DonorDashboard() {
 
   function updateImage(event) {
     const file = event.target.files?.[0];
+    readImageFile(file);
+  }
+
+  function readImageFile(file) {
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
@@ -136,6 +140,32 @@ export default function DonorDashboard() {
     const reader = new FileReader();
     reader.onload = () => setForm((current) => ({ ...current, imageUrl: reader.result }));
     reader.readAsDataURL(file);
+  }
+
+  function handleUploadDrop(event) {
+    event.preventDefault();
+    readImageFile(event.dataTransfer.files?.[0]);
+  }
+
+  function resetDonationForm() {
+    setForm({
+      title: '',
+      quantity: '',
+      pickupAddress: user?.profile?.address || '',
+      city: user?.profile?.city || 'Bengaluru',
+      contactNumber: user?.profile?.phone || user?.phone || 'Not provided',
+      storageInstructions: '',
+      allergenNotes: '',
+      imageUrl: ''
+    });
+    setSelectedCategory('cooked');
+    setSelectedLabels([]);
+    setExpiresInHours(4);
+    setFormMessage('');
+
+    const defaultPickupTime = new Date(Date.now() + 60 * 60 * 1000);
+    defaultPickupTime.setMinutes(0, 0, 0);
+    setPickupTime(formatDateTimeLocal(defaultPickupTime));
   }
 
   function toggleLabel(label) {
@@ -619,25 +649,38 @@ export default function DonorDashboard() {
 
           {/* Row 7: Image Upload */}
           <div className="form-row">
-            <span className="field-label">{t("Food Image")}</span>
-            <label className="upload-dropzone">
+            <label
+              className={`upload-dropzone ${form.imageUrl ? 'has-image' : ''}`}
+              onDragOver={(event) => event.preventDefault()}
+              onDrop={handleUploadDrop}
+            >
               {form.imageUrl ? (
                 <>
                   <img src={form.imageUrl} alt="Uploaded food" />
                   <span className="title">{t("Image uploaded")}</span>
-                  <span className="subtitle">{t("Click to change")}</span>
+                  <span className="subtitle">{t("Click to browse another file")}</span>
+                  <button
+                    className="remove-upload"
+                    type="button"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      setForm((current) => ({ ...current, imageUrl: '' }));
+                    }}
+                  >
+                    {t("Remove image")}
+                  </button>
                 </>
               ) : (
                 <>
                   <div className="upload-icon-container">
-                    <Camera size={22} />
+                    <UploadCloud size={32} />
                   </div>
                   <span className="title">{t("Upload Image (Optional)")}</span>
-                  <span className="subtitle">{t("Drag & drop or click · PNG, JPEG (Max 5 MB)")}</span>
+                  <span className="subtitle">{t("Drag and drop files here, or click to browse. Supported types: PNG, JPEG (Max 5MB)")}</span>
                 </>
               )}
-              <div className="smart-badge" style={{ marginTop: '10px' }}>
-                ✨ {t("Smart Auto-Image enabled for selected category")}
+              <div className="smart-badge">
+                <ImagePlus size={18} /> {t("Smart Auto-Image enabled based on your Selected Category!")}
               </div>
               <input type="file" accept="image/*" onChange={updateImage} style={{ display: 'none' }} />
             </label>
@@ -655,26 +698,12 @@ export default function DonorDashboard() {
             <button 
               type="button" 
               className="btn-cancel" 
-              onClick={() => {
-                setForm({
-                  title: '',
-                  quantity: '',
-                  pickupAddress: user.profile?.address || '',
-                  city: user.profile?.city || 'Bengaluru',
-                  contactNumber: user.profile?.phone || '',
-                  storageInstructions: '',
-                  allergenNotes: '',
-                  imageUrl: ''
-                });
-                setSelectedCategory('cooked');
-                setSelectedLabels([]);
-                setExpiresInHours(4);
-              }}
+              onClick={resetDonationForm}
             >
-              {t("Reset")}
+              {t("Cancel")}
             </button>
             <button type="submit" className="btn-submit">
-              <Heart size={15} fill="currentColor" /> {t("List Surplus Food")}
+              <Heart size={28} fill="currentColor" /> {t("List surplus food")}
             </button>
           </div>
         </form>
@@ -876,3 +905,4 @@ function buildDonationTrend(donations, mode) {
   const highlightIndex = items.reduce((best, item, index) => item.kg > items[best].kg ? index : best, 0);
   return { items, max, highlightIndex };
 }
+

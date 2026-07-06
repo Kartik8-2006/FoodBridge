@@ -234,12 +234,14 @@ function pruneToTarget(node, targetId) {
 
 function filterDashboardChildren(children, targetId) {
   const childArray = Children.toArray(children);
-  const homeTargets = ['dashboard-home', 'ngo-home', 'volunteer-home', 'admin-home'];
+  const homeTargets = {
+    'dashboard-home': 1,
+    'ngo-home': 1,
+    'volunteer-home': 4,
+    'admin-home': 3
+  };
 
-  if (homeTargets.includes(targetId)) {
-    const exactHome = childArray.find((child) => elementMatchesTarget(child, targetId));
-    return exactHome ? [exactHome] : childArray.slice(0, 1);
-  }
+  if (targetId in homeTargets) return childArray.slice(0, homeTargets[targetId]);
 
   const filtered = childArray.map((child) => pruneToTarget(child, targetId)).filter(Boolean);
   return filtered.length ? filtered : childArray.slice(0, 1);

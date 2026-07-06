@@ -8602,3 +8602,908 @@ body {
     height: 38px;
   }
 }
+
+/* Unified donor-style dashboard theme for every role */
+.app-dashboard {
+  grid-template-columns: 328px minmax(0, 1fr) !important;
+  min-height: 100vh !important;
+  height: 100vh !important;
+  overflow: hidden !important;
+  background: #fbf7f6 !important;
+  border-top: 3px solid #222 !important;
+}
+
+.app-dashboard .dashboard-sidebar {
+  position: sticky !important;
+  top: 0 !important;
+  height: 100vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 30px 20px !important;
+  background: #f0eeee !important;
+  border-right: 1px solid #e5e0de !important;
+  box-shadow: none !important;
+}
+
+.app-dashboard .dashboard-brand {
+  width: 100% !important;
+  margin: 0 0 24px !important;
+  padding: 0 !important;
+  color: #8f5d1b !important;
+}
+
+.app-dashboard .dashboard-brand-svg {
+  flex: 0 0 auto !important;
+  width: 58px !important;
+  height: 58px !important;
+}
+
+.app-dashboard .dashboard-brand-text {
+  display: grid !important;
+  line-height: 1.02 !important;
+}
+
+.app-dashboard .dashboard-brand-top {
+  color: #606168 !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+.app-dashboard .dashboard-brand-bottom {
+  color: #5e6066 !important;
+  font-size: 34px !important;
+  font-weight: 400 !important;
+}
+
+.app-dashboard .dashboard-sidebar nav {
+  display: grid !important;
+  gap: 13px !important;
+  margin: 0 !important;
+}
+
+.app-dashboard .dashboard-sidebar nav a {
+  min-height: 58px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 22px !important;
+  padding: 0 24px !important;
+  color: #2c2f35 !important;
+  border-radius: 16px !important;
+  background: transparent !important;
+  font-size: 19px !important;
+  font-weight: 800 !important;
+  box-shadow: none !important;
+}
+
+.app-dashboard .dashboard-sidebar nav a svg {
+  width: 27px !important;
+  height: 27px !important;
+  color: #555960 !important;
+}
+
+.app-dashboard .dashboard-sidebar nav a.active,
+.app-dashboard .dashboard-sidebar nav a:hover {
+  color: #fff !important;
+  background: #efa23a !important;
+  box-shadow: 0 12px 22px rgba(199, 124, 29, .22) !important;
+}
+
+.app-dashboard .dashboard-sidebar nav a.active svg,
+.app-dashboard .dashboard-sidebar nav a:hover svg {
+  color: #fff !important;
+}
+
+.app-dashboard .dashboard-side-footer {
+  margin-top: auto !important;
+  padding-top: 28px !important;
+  border-top: 1px solid #ded9d6 !important;
+  display: grid !important;
+  gap: 17px !important;
+}
+
+.app-dashboard .dashboard-support,
+.app-dashboard .dashboard-logout {
+  min-height: 42px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 24px !important;
+  padding: 0 28px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #1f242b !important;
+  font-size: 20px !important;
+  font-weight: 800 !important;
+}
+
+.app-dashboard .dashboard-logout {
+  color: #b43b22 !important;
+}
+
+.app-dashboard .dashboard-workspace {
+  height: 100vh !important;
+  overflow: hidden !important;
+  background: #fbf7f6 !important;
+}
+
+.app-dashboard .dashboard-topbar {
+  min-height: 86px !important;
+  display: grid !important;
+  grid-template-columns: minmax(220px, 350px) minmax(300px, 704px) max-content !important;
+  align-items: center !important;
+  gap: 24px !important;
+  padding: 0 40px !important;
+  background: #fbf7f6 !important;
+  border-bottom: 1px solid #ebe5e1 !important;
+  box-shadow: none !important;
+}
+
+.app-dashboard .dashboard-top-title h1 {
+  margin: 0 !important;
+  color: #8f5d1b !important;
+  font-size: 28px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+}
+
+.app-dashboard .dashboard-search {
+  height: 58px !important;
+  max-width: 704px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 18px !important;
+  padding: 0 20px !important;
+  color: #71777f !important;
+  background: #f8f6f5 !important;
+  border: 1px solid #ded8d4 !important;
+  border-radius: 16px !important;
+}
+
+.app-dashboard .dashboard-search input {
+  width: 100% !important;
+  height: 100% !important;
+  padding: 0 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  color: #2b3037 !important;
+  font-size: 20px !important;
+}
+
+.app-dashboard .dashboard-top-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 22px !important;
+}
+
+.app-dashboard .dashboard-bell,
+.app-dashboard .dashboard-help-button {
+  position: relative !important;
+  width: 42px !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  padding: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  color: #393e45 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  box-shadow: none !important;
+}
+
+.app-dashboard .dashboard-action-divider {
+  width: 1px !important;
+  height: 48px !important;
+  background: #ded8d4 !important;
+}
+
+.app-dashboard .topbar-avatar {
+  width: 58px !important;
+  height: 58px !important;
+  overflow: hidden !important;
+  border-radius: 50% !important;
+  box-shadow: 0 8px 18px rgba(43, 33, 24, .12) !important;
+}
+
+.app-dashboard .topbar-avatar img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+.app-dashboard .dashboard-content {
+  width: min(1510px, calc(100% - 80px)) !important;
+  height: calc(100vh - 86px) !important;
+  padding: 46px 0 56px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+.ngo-hero,
+.volunteer-hero,
+.admin-hero {
+  min-height: 220px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 28px !important;
+  margin-bottom: 26px !important;
+  padding: 34px !important;
+  border: 1px solid #dedbd9 !important;
+  border-radius: 26px !important;
+  background: #ffffff !important;
+  color: #07090d !important;
+  box-shadow: 0 12px 34px rgba(42, 34, 28, .06) !important;
+}
+
+.ngo-hero p,
+.volunteer-hero p,
+.admin-hero span,
+.admin-hero p {
+  margin: 0 0 10px !important;
+  color: #6f767f !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+}
+
+.ngo-hero h2,
+.volunteer-hero h2,
+.admin-hero h2 {
+  max-width: 820px !important;
+  margin: 0 !important;
+  color: #07090d !important;
+  font-size: clamp(38px, 4vw, 58px) !important;
+  line-height: 1.03 !important;
+  font-weight: 950 !important;
+}
+
+.ngo-hero a,
+.volunteer-hero a,
+.admin-hero a {
+  min-height: 58px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  padding: 0 28px !important;
+  border-radius: 16px !important;
+  color: #fff !important;
+  background: #936016 !important;
+  font-size: 18px !important;
+  font-weight: 900 !important;
+  box-shadow: 0 11px 20px rgba(116, 71, 12, .18) !important;
+}
+
+.ngo-summary-grid,
+.volunteer-summary-grid,
+.dashboard-stat-grid,
+.dashboard-overview-grid,
+.admin-directory-grid,
+.admin-main-grid,
+.admin-verification-grid,
+.ngo-dashboard-grid,
+.volunteer-dashboard-grid {
+  gap: 26px !important;
+}
+
+.ngo-summary-grid article,
+.volunteer-summary-grid article,
+.dashboard-stat-card,
+.overview-card,
+.ngo-panel,
+.volunteer-panel,
+.admin-panel,
+.donor-panel {
+  border: 1px solid #dedbd9 !important;
+  border-radius: 22px !important;
+  background: #ffffff !important;
+  color: #07090d !important;
+  box-shadow: 0 12px 34px rgba(42, 34, 28, .06) !important;
+}
+
+.ngo-summary-grid article,
+.volunteer-summary-grid article,
+.dashboard-stat-card {
+  min-height: 158px !important;
+  padding: 28px !important;
+}
+
+.ngo-summary-grid article span,
+.volunteer-summary-grid article span,
+.dashboard-stat-card span,
+.overview-heading span,
+.dashboard-kicker,
+.admin-panel-heading span {
+  color: #7b828b !important;
+  font-size: 13px !important;
+  font-weight: 950 !important;
+  letter-spacing: 0 !important;
+  text-transform: uppercase !important;
+}
+
+.ngo-summary-grid article strong,
+.volunteer-summary-grid article strong,
+.dashboard-stat-card strong {
+  display: block !important;
+  margin-top: 12px !important;
+  color: #07090d !important;
+  font-size: 42px !important;
+  line-height: 1 !important;
+  font-weight: 950 !important;
+}
+
+.panel-heading h2,
+.overview-heading h3,
+.admin-panel-heading h3 {
+  margin: 4px 0 0 !important;
+  color: #07090d !important;
+  font-size: 24px !important;
+  line-height: 1.2 !important;
+  font-weight: 950 !important;
+}
+
+.ngo-donation-card,
+.pickup-card,
+.claimed-row,
+.assigned-row,
+.admin-verification-card,
+.admin-donation-grid article,
+.admin-analytics-grid article,
+.ngo-report-grid article,
+.performance-grid div,
+.profile-detail-grid div {
+  border: 1px solid #ebe5e1 !important;
+  border-radius: 18px !important;
+  background: #fffafa !important;
+  box-shadow: none !important;
+}
+
+.ngo-donation-card button,
+.accept-pickup,
+.claim-actions button,
+.volunteer-actions button,
+.admin-action-row button {
+  border: 0 !important;
+  border-radius: 13px !important;
+  color: #fff !important;
+  background: #efa23a !important;
+  font-weight: 950 !important;
+  box-shadow: 0 10px 18px rgba(199, 124, 29, .18) !important;
+}
+
+.claimed-row.selected,
+.assigned-row.selected,
+.pickup-card.selected,
+.beneficiary-grid button.selected {
+  border-color: #efa23a !important;
+  background: #fff7ec !important;
+}
+
+.notice,
+.empty-state {
+  border-radius: 16px !important;
+}
+
+@media (max-width: 1200px) {
+  .app-dashboard {
+    grid-template-columns: 286px minmax(0, 1fr) !important;
+  }
+
+  .app-dashboard .dashboard-topbar {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+    padding: 18px 24px !important;
+  }
+
+  .app-dashboard .dashboard-top-actions {
+    justify-content: space-between !important;
+    flex-wrap: wrap !important;
+  }
+
+  .app-dashboard .dashboard-content {
+    height: calc(100vh - 190px) !important;
+    width: min(100% - 36px, 980px) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .app-dashboard {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .app-dashboard .dashboard-sidebar,
+  .app-dashboard .dashboard-workspace {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .app-dashboard .dashboard-sidebar {
+    position: relative !important;
+  }
+
+  .app-dashboard .dashboard-content {
+    width: min(100% - 28px, 720px) !important;
+    height: auto !important;
+  }
+
+  .ngo-hero,
+  .volunteer-hero,
+  .admin-hero {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+  }
+}
+
+/* Professional dashboard section system */
+.dashboard-content > section {
+  margin-bottom: 26px !important;
+}
+
+.dashboard-content > section:last-child {
+  margin-bottom: 0 !important;
+}
+
+.dashboard-filtered-group {
+  display: grid !important;
+  gap: 26px !important;
+}
+
+.dashboard-filtered-single {
+  display: block !important;
+}
+
+.donor-dashboard-grid,
+.ngo-dashboard-grid,
+.volunteer-dashboard-grid,
+.admin-main-grid {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.45fr) minmax(360px, .8fr) !important;
+  align-items: start !important;
+  gap: 26px !important;
+  margin-bottom: 26px !important;
+}
+
+.donor-dashboard-grid > .large,
+.ngo-dashboard-grid > .large,
+.volunteer-dashboard-grid > .large,
+.admin-main-grid > .large {
+  min-width: 0 !important;
+}
+
+.dashboard-overview-grid {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.25fr) minmax(300px, .85fr) minmax(280px, .75fr) !important;
+  align-items: stretch !important;
+  margin-bottom: 26px !important;
+}
+
+.ngo-summary-grid,
+.volunteer-summary-grid,
+.dashboard-stat-grid,
+.admin-directory-grid,
+.admin-analytics-grid,
+.admin-reports-grid,
+.ngo-report-grid,
+.performance-grid,
+.profile-detail-grid,
+.beneficiary-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)) !important;
+  align-items: stretch !important;
+  gap: 18px !important;
+  margin-bottom: 26px !important;
+}
+
+.ngo-panel,
+.volunteer-panel,
+.admin-panel,
+.donor-panel,
+.overview-card {
+  min-width: 0 !important;
+  padding: 28px !important;
+}
+
+.ngo-panel.large,
+.volunteer-panel.large,
+.donor-panel.large {
+  min-height: 420px !important;
+}
+
+.panel-heading,
+.admin-panel-heading,
+.overview-heading,
+.section-header-row {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 18px !important;
+  margin-bottom: 22px !important;
+}
+
+.panel-heading > span,
+.admin-panel-heading > strong,
+.section-header-row > a,
+.btn-add-surplus {
+  flex: 0 0 auto !important;
+}
+
+.ngo-card-grid,
+.pickup-card-list,
+.claimed-list,
+.assigned-list,
+.history-list,
+.food-request-list,
+.admin-compact-list,
+.admin-feed-stack,
+.admin-verification-stack {
+  display: grid !important;
+  gap: 14px !important;
+}
+
+.ngo-donation-card {
+  display: grid !important;
+  grid-template-columns: 112px minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 18px !important;
+  padding: 16px !important;
+}
+
+.ngo-donation-card img,
+.ngo-food-placeholder,
+.pickup-select img,
+.pickup-placeholder {
+  width: 100% !important;
+  aspect-ratio: 1.25 / 1 !important;
+  border-radius: 14px !important;
+  object-fit: cover !important;
+  background: #f0eeee !important;
+}
+
+.ngo-donation-card h3,
+.pickup-card strong,
+.claimed-row strong,
+.assigned-row strong,
+.history-list strong,
+.admin-compact-list strong,
+.admin-donation-grid strong {
+  margin: 0 !important;
+  color: #101318 !important;
+  font-size: 18px !important;
+  line-height: 1.25 !important;
+  font-weight: 950 !important;
+}
+
+.ngo-donation-card p,
+.ngo-donation-card small,
+.pickup-card small,
+.claimed-row small,
+.assigned-row small,
+.history-list span,
+.food-request-list span,
+.admin-compact-list span,
+.admin-donation-grid p,
+.admin-donation-grid small {
+  color: #68707a !important;
+  font-size: 14px !important;
+  line-height: 1.45 !important;
+}
+
+.ngo-donation-card dl {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  margin: 12px 0 0 !important;
+}
+
+.ngo-donation-card dt {
+  color: #9098a2 !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+}
+
+.ngo-donation-card dd {
+  margin: 2px 0 0 !important;
+  color: #20242a !important;
+  font-size: 13px !important;
+  font-weight: 850 !important;
+}
+
+.pickup-card {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 14px !important;
+  padding: 16px !important;
+}
+
+.pickup-select {
+  display: grid !important;
+  grid-template-columns: 96px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 14px !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  text-align: left !important;
+}
+
+.pickup-meta,
+.admin-verification-meta,
+.card-action-buttons-right,
+.claim-actions,
+.volunteer-actions,
+.admin-action-row,
+.admin-settings-row {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+}
+
+.claimed-row,
+.assigned-row,
+.history-list > div,
+.food-request-list > div,
+.admin-compact-list > p,
+.admin-feed-item,
+.admin-verification-card,
+.admin-donation-grid article {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  width: 100% !important;
+  padding: 16px !important;
+  text-align: left !important;
+}
+
+.claimed-row span,
+.assigned-row span,
+.history-list > div > span,
+.admin-compact-list p span,
+.admin-feed-item div {
+  min-width: 0 !important;
+}
+
+.claimed-row em,
+.assigned-row em,
+.accepted-chip,
+.status,
+.admin-donation-grid article > span,
+.card-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  min-height: 30px !important;
+  padding: 5px 12px !important;
+  border-radius: 999px !important;
+  color: #8a560f !important;
+  background: #fff0d8 !important;
+  font-size: 12px !important;
+  font-style: normal !important;
+  font-weight: 950 !important;
+  white-space: nowrap !important;
+}
+
+.claim-timeline,
+.volunteer-timeline,
+.donation-timeline.beautiful,
+.activity-timeline {
+  display: grid !important;
+  gap: 12px !important;
+  margin: 18px 0 !important;
+}
+
+.claim-timeline > div,
+.volunteer-timeline > div,
+.donation-timeline.beautiful > div,
+.activity-timeline > div {
+  display: grid !important;
+  grid-template-columns: 38px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 12px !important;
+  border: 1px solid #ebe5e1 !important;
+  border-radius: 14px !important;
+  background: #fffafa !important;
+}
+
+.claim-timeline > div.complete,
+.volunteer-timeline > div.complete,
+.donation-timeline.beautiful > div.complete,
+.activity-timeline > div.done {
+  border-color: #f2c37f !important;
+  background: #fff7ec !important;
+}
+
+.volunteer-map-wrap,
+.ngo-map,
+.admin-map,
+.tracking-stack {
+  overflow: hidden !important;
+  border: 1px solid #ebe5e1 !important;
+  border-radius: 18px !important;
+  background: #fffafa !important;
+}
+
+.ngo-map,
+.admin-map {
+  min-height: 320px !important;
+}
+
+.ngo-map iframe {
+  width: 100% !important;
+  height: 360px !important;
+  display: block !important;
+  border: 0 !important;
+}
+
+.volunteer-route-footer {
+  display: flex !important;
+  justify-content: space-between !important;
+  gap: 14px !important;
+  padding: 14px 16px !important;
+  border-top: 1px solid #ebe5e1 !important;
+}
+
+.beneficiary-grid button,
+.settings-grid label {
+  min-height: 74px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 14px !important;
+  padding: 16px !important;
+  border: 1px solid #ebe5e1 !important;
+  border-radius: 16px !important;
+  background: #fffafa !important;
+  color: #20242a !important;
+  font-weight: 850 !important;
+}
+
+.beneficiary-input,
+.surplus-food-section label {
+  display: grid !important;
+  gap: 10px !important;
+}
+
+.beneficiary-input input,
+.surplus-food-section input,
+.surplus-food-section textarea {
+  min-height: 58px !important;
+}
+
+.admin-analytics-grid article,
+.ngo-report-grid article,
+.performance-grid div,
+.profile-detail-grid div {
+  display: grid !important;
+  align-content: start !important;
+  gap: 10px !important;
+  min-height: 126px !important;
+  padding: 20px !important;
+}
+
+.admin-analytics-grid strong,
+.ngo-report-grid strong,
+.performance-grid strong,
+.profile-detail-grid strong {
+  color: #101318 !important;
+  font-size: 24px !important;
+  line-height: 1.15 !important;
+  font-weight: 950 !important;
+  overflow-wrap: anywhere !important;
+}
+
+.admin-category-chart {
+  display: grid !important;
+  gap: 14px !important;
+  margin-top: 22px !important;
+}
+
+.admin-mini-bar {
+  display: grid !important;
+  gap: 8px !important;
+}
+
+.admin-mini-bar > div {
+  display: flex !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+}
+
+.admin-mini-bar i {
+  display: block !important;
+  height: 12px !important;
+  overflow: hidden !important;
+  border-radius: 999px !important;
+  background: #f0eeee !important;
+}
+
+.admin-mini-bar b {
+  display: block !important;
+  height: 100% !important;
+  border-radius: inherit !important;
+  background: #efa23a !important;
+}
+
+.donation-cards-grid,
+.admin-donation-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)) !important;
+  gap: 22px !important;
+}
+
+.donation-card-premium {
+  min-height: 100% !important;
+  border-radius: 20px !important;
+}
+
+.card-action-buttons-right {
+  justify-content: flex-end !important;
+}
+
+.btn-details-outline,
+.btn-track-logistics,
+.btn-complete-green,
+.btn-delete-trash,
+.history-list button,
+.ngo-donation-card button,
+.accept-pickup,
+.claim-actions button,
+.volunteer-actions button,
+.admin-action-row button {
+  min-height: 40px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 8px 14px !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 1100px) {
+  .donor-dashboard-grid,
+  .ngo-dashboard-grid,
+  .volunteer-dashboard-grid,
+  .admin-main-grid,
+  .dashboard-overview-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 680px) {
+  .ngo-donation-card,
+  .pickup-card,
+  .claimed-row,
+  .assigned-row,
+  .history-list > div,
+  .food-request-list > div,
+  .admin-compact-list > p,
+  .admin-feed-item,
+  .admin-verification-card {
+    align-items: stretch !important;
+    grid-template-columns: 1fr !important;
+    flex-direction: column !important;
+  }
+
+  .pickup-select,
+  .ngo-donation-card {
+    grid-template-columns: 1fr !important;
+  }
+
+  .ngo-donation-card dl {
+    grid-template-columns: 1fr !important;
+  }
+
+  .panel-heading,
+  .admin-panel-heading,
+  .overview-heading,
+  .section-header-row,
+  .volunteer-route-footer {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+  }
+}
