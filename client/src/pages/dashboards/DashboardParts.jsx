@@ -138,12 +138,7 @@ export function DashboardShell({ eyebrow, title, children, actions }) {
             <span className="dashboard-brand-bottom">NETWORK</span>
           </span>
         </Link>
-        <div className="dashboard-user">
-          <div className="dashboard-avatar">
-            {user?.profile?.avatarUrl ? <img src={user.profile.avatarUrl} alt="" /> : <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=160&q=80" alt="" />}
-          </div>
-          <div><strong>{user?.name || 'Alexander Bennett'}</strong><small>{impactLabel}</small></div>
-        </div>
+
         <nav>
           {navItems.map(([Icon, label, href = '#']) => (
             <a

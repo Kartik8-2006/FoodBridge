@@ -3944,6 +3944,7 @@ body {
   --dash-brand: #8f5d1b;
   --dash-brand-2: #ed8b00;
   --dash-green: #78be21;
+  font-size: 0.85rem;
   height: 100vh;
   display: grid;
   grid-template-columns: 306px minmax(0, 1fr);
@@ -4007,19 +4008,21 @@ body {
 }
 
 .dashboard-brand-top {
-  font-size: 0.58rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.08em;
   color: #7a7a7a;
   text-transform: uppercase;
+
 }
 
 .dashboard-brand-bottom {
-  font-size: 1.55rem;
+  font-size: 1.7rem;
   font-weight: 700;
   color: #6b6b6b;
   letter-spacing: 0.02em;
   margin-top: 1px;
+  margin-bottom: 18px;
 }
 
 .dashboard-user {
@@ -4493,10 +4496,146 @@ body {
   .dashboard-content {
     width: min(100% - 24px, 720px);
     overflow: visible;
+    padding: 20px 0 !important;
   }
 
   .dashboard-stat-grid {
     grid-template-columns: 1fr;
+  }
+
+  /* Mobile sidebar brand fix */
+  .dashboard-brand {
+    padding: 0 0 14px !important;
+    gap: 10px !important;
+  }
+
+  .dashboard-brand-svg {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  .dashboard-brand-top {
+    font-size: 0.38rem !important;
+    margin-bottom: 1px !important;
+  }
+
+  .dashboard-brand-bottom {
+    font-size: 1rem !important;
+    margin-bottom: 4px !important;
+  }
+
+  .dashboard-sidebar nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .dashboard-sidebar nav a {
+    min-height: 38px !important;
+    padding: 8px 10px !important;
+    font-size: 0.8rem !important;
+    gap: 6px !important;
+    border-radius: 10px !important;
+  }
+
+  .dashboard-sidebar nav a svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .dashboard-user {
+    padding: 10px !important;
+    gap: 10px !important;
+    margin: 4px 0 12px !important;
+  }
+
+  .dashboard-user strong {
+    font-size: 0.85rem !important;
+  }
+
+  .dashboard-user small {
+    font-size: 0.7rem !important;
+  }
+
+  .avatar {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  .dashboard-topbar h1 {
+    font-size: 1.2rem !important;
+  }
+
+  .dashboard-top-actions {
+    gap: 6px !important;
+  }
+
+  .dashboard-top-actions button,
+  .dashboard-home {
+    min-height: 34px !important;
+    padding: 6px 10px !important;
+    font-size: 0.75rem !important;
+  }
+
+  .dashboard-side-footer {
+    padding-top: 12px !important;
+    gap: 6px !important;
+  }
+
+  .dashboard-support,
+  .dashboard-logout {
+    min-height: 36px !important;
+    padding: 8px 12px !important;
+    font-size: 0.8rem !important;
+  }
+
+  .dashboard-role-card {
+    padding: 12px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .dashboard-role-card strong {
+    font-size: 0.85rem !important;
+  }
+
+  .dashboard-role-card small {
+    font-size: 0.7rem !important;
+  }
+
+  .donor-home-head {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  .donor-home-head h2 {
+    font-size: 1.5rem !important;
+  }
+
+  .saved-chip {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .donation-cards-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .surplus-food-section {
+    padding: 20px !important;
+  }
+
+  .surplus-food-section > h2 {
+    font-size: 22px !important;
+  }
+
+  .section-header-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  .section-header-row h2 {
+    font-size: 24px !important;
   }
 }
 
@@ -4606,14 +4745,8 @@ body {
 
 .dashboard-brand > span {
   display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
-  color: #ffffff;
-  background: linear-gradient(135deg, #ed8b00, #c02b0a);
-  font-weight: 900;
-  box-shadow: 0 12px 24px rgba(192, 43, 10, 0.24);
+  gap: 0;
+  line-height: 1;
 }
 
 .dashboard-brand strong,
@@ -6607,6 +6740,64 @@ body {
   .admin-settings-row {
     grid-template-columns: 1fr;
   }
+
+  /* Mobile: fix donation workspace card positioning */
+  .donation-workspace {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+  }
+
+  .donation-workspace-story {
+    width: 100% !important;
+    padding: 16px !important;
+  }
+
+  .donation-live-form {
+    width: 100% !important;
+    padding: 20px 16px !important;
+  }
+
+  .donation-story-image-main {
+    min-height: 200px !important;
+    width: 100% !important;
+  }
+
+  .donation-story-image-small {
+    display: none !important;
+  }
+
+  .donation-live-submit {
+    width: 100% !important;
+    font-size: 14px !important;
+    min-height: 50px !important;
+  }
+
+  .donation-form-head {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  .donation-form-head h2 {
+    font-size: 22px !important;
+  }
+
+  .donation-field-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .donation-auth-actions {
+    grid-template-columns: 1fr !important;
+  }
+
+  .donation-auth-actions button {
+    width: 100% !important;
+  }
 }
 
 /* Final dashboard polish override: keep this after legacy dashboard CSS */
@@ -6632,9 +6823,17 @@ body {
 }
 
 .dashboard-brand > span {
-  color: #fff !important;
-  background: linear-gradient(135deg, #8f5d1b, #ed8b00) !important;
-  border-radius: 16px !important;
+  display: grid !important;
+  gap: 0 !important;
+  line-height: 1 !important;
+  background: none !important;
+  border-radius: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  box-shadow: none !important;
+  color: inherit !important;
+  font-weight: inherit !important;
+  place-items: initial !important;
 }
 
 .dashboard-brand small,
@@ -7866,283 +8065,6 @@ body {
   .impact-carbon-card {
     grid-template-columns: 1fr !important;
   }
-}
-
-/* ==========================================
-   REDESIGNED DONOR DASHBOARD STYLES
-   ========================================== */
-
-.surplus-food-section {
-  background: var(--white);
-  padding: 32px;
-  border-radius: 16px;
-  border: 1px solid #e4e7ec;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-  margin-top: 24px;
-}
-
-.surplus-food-section h2 {
-  font-size: 28px;
-  font-weight: 800;
-  color: #1d2939;
-  margin: 0 0 6px 0;
-}
-
-.surplus-food-section p.sub {
-  color: #667085;
-  font-size: 15px;
-  margin: 0 0 24px 0;
-}
-
-.category-buttons {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 8px;
-}
-
-.category-btn {
-  padding: 12px 24px;
-  border-radius: 8px;
-  border: 1px solid #d0d5dd;
-  background: #ffffff;
-  color: #344054;
-  font-weight: 700;
-  font-size: 15px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.category-btn:hover {
-  background: #f9fafb;
-  border-color: #98a2b3;
-}
-
-.category-btn.active {
-  background: #e2973c;
-  color: #ffffff;
-  border-color: #e2973c;
-}
-
-/* Expiry Slider Styles */
-.expiry-slider-container {
-  margin-top: 10px;
-}
-
-.slider-label-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.hours-badge {
-  background: #fef3c7;
-  color: #d97706;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-weight: 800;
-  font-size: 14px;
-}
-
-.expiry-slider {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 8px;
-  border-radius: 4px;
-  background: #e4e7ec;
-  outline: none;
-  margin-bottom: 12px;
-}
-
-.expiry-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: #e2973c;
-  cursor: pointer;
-  border: 2px solid #ffffff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  transition: transform 0.1s ease;
-}
-
-.expiry-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.15);
-}
-
-.slider-warning {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #b54708;
-  font-size: 13px;
-  background: #fffaeb;
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: 1px solid #fec84b;
-  margin-top: 8px;
-}
-
-/* Dietary Labels Pills */
-.dietary-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.dietary-pill {
-  padding: 10px 18px;
-  border-radius: 999px;
-  border: 1px solid #d0d5dd;
-  background: #ffffff;
-  color: #344054;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.dietary-pill:hover {
-  background: #f9fafb;
-}
-
-.dietary-pill.active {
-  background: #ffffff;
-  color: #1d2939;
-  border-color: #1d2939;
-  box-shadow: 0 0 0 1px #1d2939;
-}
-
-/* Image Upload Widget */
-.upload-dropzone {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border: 2px dashed #d0d5dd;
-  border-radius: 12px;
-  padding: 32px 24px;
-  background: #f9fafb;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-  text-align: center;
-  min-height: 180px;
-}
-
-.upload-dropzone:hover {
-  border-color: #98a2b3;
-  background: #f2f4f7;
-}
-
-.upload-icon-container {
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 999px;
-  background: #f2f4f7;
-  color: #475467;
-  margin-bottom: 12px;
-}
-
-.upload-dropzone img {
-  width: 100%;
-  max-width: 240px;
-  height: 140px;
-  object-fit: cover;
-  border-radius: 8px;
-  margin-bottom: 12px;
-}
-
-.upload-dropzone span.title {
-  font-size: 16px;
-  font-weight: 700;
-  color: #1d2939;
-  margin-bottom: 4px;
-}
-
-.upload-dropzone span.subtitle {
-  font-size: 13px;
-  color: #667085;
-  margin-bottom: 12px;
-}
-
-.smart-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: #fdf2fa;
-  color: #c11574;
-  border: 1px solid #fbcfe8;
-  border-radius: 16px;
-  font-size: 12px;
-  font-weight: 850;
-}
-
-.input-with-icon {
-  position: relative;
-}
-
-.input-with-icon input {
-  padding-left: 40px !important;
-}
-
-.input-with-icon svg {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #667085;
-  pointer-events: none;
-}
-
-/* Form Buttons */
-.form-actions-row {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 24px;
-}
-
-.btn-cancel {
-  padding: 10px 24px;
-  border-radius: 8px;
-  border: 1px solid #d0d5dd;
-  background: #ffffff;
-  color: #344054;
-  font-weight: 700;
-  font-size: 15px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-cancel:hover {
-  background: #f9fafb;
-}
-
-.btn-submit {
-  padding: 10px 24px;
-  border-radius: 8px;
-  border: none;
-  background: #e2973c;
-  color: #ffffff;
-  font-weight: 700;
-  font-size: 15px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.2s ease;
-}
-
-.btn-submit:hover {
-  background: #d6872b;
 }
 
 /* Active Donations Redesign */
