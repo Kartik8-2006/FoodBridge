@@ -1,4 +1,4 @@
-import { BarChart3, Bell, CircleHelp, ClipboardList, Grid2X2, Heart, HeartHandshake, HelpCircle, LayoutDashboard, LogOut, MapPin, Package, PackageCheck, Plus, Search, Settings, ShieldCheck, Soup, Star, Truck, UserRoundCog, UsersRound } from 'lucide-react';
+import { BarChart3, Bell, CalendarDays, CheckCircle2, CircleHelp, ClipboardList, Grid2X2, Heart, HeartHandshake, HelpCircle, LayoutDashboard, LogOut, MapPin, MessageSquare, Package, PackageCheck, Plus, Search, Settings, ShieldCheck, Soup, Star, Truck, UserRoundCog, UsersRound } from 'lucide-react';
 import { Children, cloneElement, isValidElement, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../../api.js';
@@ -29,13 +29,11 @@ export function DashboardShell({ eyebrow, title, children, actions }) {
     ngo: [
       [LayoutDashboard, 'Dashboard', '#ngo-home'],
       [PackageCheck, 'Available Donations', '#available-donations'],
-      [Truck, 'Claimed Donations', '#claimed-donations'],
-      [ClipboardList, 'Food Requests', '#food-requests'],
-      [UsersRound, 'Beneficiaries', '#beneficiaries'],
-      [Truck, 'Volunteers', '#volunteers'],
-      [BarChart3, 'Reports', '#reports'],
-      [Bell, 'Notifications', '#notifications'],
-      [UserRoundCog, 'Profile', '#profile'],
+      [CalendarDays, 'Scheduled Pickups', '#claimed-donations'],
+      [CheckCircle2, 'Completed Deliveries', '#completed-deliveries'],
+      [BarChart3, 'Impact Reports', '#reports'],
+      [UsersRound, 'Volunteer Management', '#volunteers'],
+      [MessageSquare, 'Messages', '#notifications'],
       [Settings, 'Settings', '#settings']
     ],
     volunteer: [
@@ -151,13 +149,25 @@ export function DashboardShell({ eyebrow, title, children, actions }) {
                 window.history.replaceState(null, '', `${location.pathname}${href}`);
               }}
             >
-              <Icon size={19} /> {t(label)}
+              <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><Icon size={19} /> {t(label)}</span>
+              {label === 'Scheduled Pickups' && <span className="sidebar-badge">1</span>}
+              {label === 'Messages' && <span className="sidebar-badge">1</span>}
             </a>
           ))}
         </nav>
         <div className="dashboard-side-footer">
           {user?.role === 'donor' && <a className="dashboard-donate-now" href="#donate-food"><Heart size={20} fill="currentColor" /> {t("Donate Now")}</a>}
-          <a className="dashboard-support" href="#support"><HelpCircle size={18} /> {t("Support")}</a>
+          <a
+            className={`dashboard-support${activeHref === '#support' ? ' active' : ''}`}
+            href="#support"
+            onClick={(e) => {
+              e.preventDefault();
+              setActiveHref('#support');
+              window.history.replaceState(null, '', `${location.pathname}#support`);
+            }}
+          >
+            <HelpCircle size={18} /> {t("Support")}
+          </a>
           <button className="dashboard-logout" onClick={logout}><LogOut size={18} /> {t("Logout")}</button>
         </div>
       </aside>
