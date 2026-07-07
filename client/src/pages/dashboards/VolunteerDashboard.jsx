@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { AlertCircle, Award, CheckCircle2, Clock, Lightbulb, MapPin, Navigation, Package, PackageCheck, ShieldCheck, Store, Star, Timer, Truck, Utensils } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { AlertCircle, Award, CheckCircle2, ChevronDown, Clock, Lightbulb, MapPin, Maximize2, Navigation, Package, PackageCheck, RefreshCw, ShieldCheck, Star, Store, Timer, Truck, Users, Utensils, X } from 'lucide-react';
 import { api } from '../../api.js';
 import TrackingMap from '../../components/TrackingMap.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -21,11 +21,112 @@ export default function VolunteerDashboard() {
   const [selectedId, setSelectedId] = useState('');
   const [message, setMessage] = useState('');
   const [isSharingLocation, setIsSharingLocation] = useState(false);
+  const [taskFilter, setTaskFilter] = useState('All Tasks');
+  const [sortBy, setSortBy] = useState('Closest First');
+  const [activeChips, setActiveChips] = useState(['Distance: <2km', 'Urgency: High']);
 
   const tasks = data?.tasks || [];
   const assignedDeliveries = data?.assignedDeliveries || [];
   const history = data?.deliveryHistory || [];
   const availablePickups = tasks.filter((task) => task.status === 'posted');
+
+  const displayTasks = useMemo(() => {
+    const items = availablePickups.map((task, index) => ({
+      _id: task._id,
+      type: 'pickup',
+      title: task.title,
+      isNew: index === 0,
+      isUrgent: task.estimatedMeals > 30,
+      distance: task.distanceLabel || `~ ${(index + 1) * 0.6 + 0.2} km away`,
+      pickupLocation: task.donor?.profile?.organizationName || task.donor?.name || 'Local Donor',
+      pickupAddress: task.pickupAddress || 'Address not specified',
+      dropoffLocation: task.acceptedBy?.name || 'City Community Kitchen',
+      dropoffAddress: task.deliveryAddress || '456 Hope Blvd, East Side',
+      description: task.storageInstructions || 'Safe, fresh surplus food ready for immediate distribution.',
+      duration: '25 mins est.',
+      loadSize: task.estimatedMeals > 20 ? 'Medium Load' : 'Small Load',
+      quantity: task.quantity,
+      estimatedMeals: task.estimatedMeals,
+      foodType: task.foodType,
+      dietType: task.dietType,
+      dietaryLabels: task.dietaryLabels || [],
+      allergenNotes: task.allergenNotes || ''
+    }));
+
+    const mockTasks = [
+      {
+        _id: 'mock-sorting-1',
+        type: 'sorting',
+        title: 'Central Sorting Hub Help',
+        isNew: true,
+        isUrgent: false,
+        distance: '~ 0.8 km away',
+        pickupLocation: 'Central Logistics Depot',
+        pickupAddress: 'Central Logistics Depot, Bay 4',
+        description: 'Assist in organizing dry goods for morning deliveries.',
+        duration: '2 hours',
+        loadSize: 'Indoor Task',
+        quantity: '50+ Crates',
+        foodType: 'mixed',
+        dietType: 'mixed',
+        dietaryLabels: ['Dry Goods', 'Canned'],
+        allergenNotes: ''
+      },
+      {
+        _id: 'mock-pickup-2',
+        type: 'pickup',
+        title: 'Artisan Bakery Surplus',
+        isNew: false,
+        isUrgent: true,
+        distance: '~ 1.2 km away',
+        pickupLocation: 'Artisan Bakery',
+        pickupAddress: '124 Main Street, Downtown',
+        dropoffLocation: 'City Community Kitchen',
+        dropoffAddress: '456 Hope Blvd, East Side',
+        description: 'Baguettes, sourdough loaves, and miscellaneous sweet pastries.',
+        duration: '25 mins est.',
+        loadSize: 'Small Load',
+        quantity: '15 KG',
+        estimatedMeals: 35,
+        foodType: 'bakery',
+        dietType: 'vegan',
+        dietaryLabels: ['Vegetarian', 'Vegan', 'Dairy Free'],
+        allergenNotes: 'Contains Wheat/Gluten'
+      }
+    ];
+
+    const merged = [...mockTasks, ...items];
+
+    let filtered = merged;
+    if (taskFilter === 'Pickup') {
+      filtered = filtered.filter(t => t.type === 'pickup');
+    } else if (taskFilter === 'Sorting') {
+      filtered = filtered.filter(t => t.type === 'sorting');
+    } else if (taskFilter === 'Delivery') {
+      filtered = filtered.filter(t => t.type === 'delivery');
+    }
+
+    if (activeChips.includes('Distance: <2km')) {
+      filtered = filtered.filter(t => {
+        const num = parseFloat(String(t.distance || '').replace(/[^\d.]/g, ''));
+        return isNaN(num) || num <= 2.0;
+      });
+    }
+    if (activeChips.includes('Urgency: High')) {
+      filtered = filtered.filter(t => t.isUrgent || t.type === 'sorting');
+    }
+
+    if (sortBy === 'Closest First') {
+      filtered.sort((a, b) => {
+        const distA = parseFloat(String(a.distance || '').replace(/[^\d.]/g, '')) || 0;
+        const distB = parseFloat(String(b.distance || '').replace(/[^\d.]/g, '')) || 0;
+        return distA - distB;
+      });
+    }
+
+    return filtered;
+  }, [availablePickups, taskFilter, sortBy, activeChips]);
+
   const selectedDelivery =
     assignedDeliveries.find((item) => item._id === selectedId) ||
     tasks.find((item) => item._id === selectedId) ||
@@ -228,31 +329,149 @@ export default function VolunteerDashboard() {
       </section>
       {message && <div className="notice">{message}</div>}
 
-      <section className="volunteer-dashboard-grid">
-        <article className="volunteer-panel large" id="available-pickups">
-          <div className="panel-heading">
-            <div>
-              <p className="dashboard-kicker">Nearby Pickups</p>
-              <h2>Accept food pickup tasks</h2>
+      {/* ── Available Tasks Redesigned Section ── */}
+      <section className="vt-workspace-page" id="available-pickups" data-dashboard-section="available-pickups">
+        <div className="vt-header-row">
+          <div className="vt-title-area">
+            <h2>Available Tasks</h2>
+            <p>Help reduce food waste in your local area today.</p>
+          </div>
+          <div className="vt-sort-area">
+            <span>SORT BY:</span>
+            <div className="vt-sort-select-wrapper">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="vt-sort-select"
+              >
+                <option value="Closest First">Closest First</option>
+                <option value="Urgent First">Urgent First</option>
+              </select>
+              <ChevronDown size={16} />
             </div>
-            <span>{availablePickups.length} available</span>
           </div>
-          <div className="pickup-card-list">
-            {availablePickups.map((task, index) => (
-              <PickupCard
-                distance={task.distanceLabel || `${(index + 1) * 2} km`}
-                key={task._id}
-                onAccept={() => accept(task._id)}
-                onSelect={() => setSelectedId(task._id)}
-                selected={selectedDelivery?._id === task._id}
-                task={task}
-              />
-            ))}
-            {!availablePickups.length && <p>No nearby pickups right now.</p>}
-          </div>
-        </article>
+        </div>
 
-        <article className="volunteer-panel" id="navigation">
+        <div className="vt-filters-row">
+          <div className="vt-pill-group">
+            {['All Tasks', 'Pickup', 'Delivery', 'Sorting'].map((filter) => (
+              <button
+                key={filter}
+                type="button"
+                className={`vt-pill-btn ${taskFilter === filter ? 'active' : ''}`}
+                onClick={() => setTaskFilter(filter)}
+              >
+                {filter}
+              </button>
+            ))}
+          </div>
+
+          <span className="vt-filter-divider">|</span>
+
+          <div className="vt-chips-group">
+            {activeChips.map((chip) => (
+              <span key={chip} className="vt-chip-tag">
+                {chip}
+                <button
+                  type="button"
+                  onClick={() => setActiveChips(activeChips.filter(c => c !== chip))}
+                  aria-label={`Remove filter ${chip}`}
+                >
+                  <X size={13} />
+                </button>
+              </span>
+            ))}
+            {activeChips.length < 2 && (
+              <button
+                type="button"
+                className="vt-add-filters-btn"
+                onClick={() => setActiveChips(['Distance: <2km', 'Urgency: High'])}
+              >
+                Reset Filters
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="vt-workspace-grid">
+          {/* Left Column: Tasks & Filters */}
+          <div className="vt-tasks-column">
+            <div className="vt-cards-list">
+              {displayTasks.map((task) => (
+                <AvailableTaskCard
+                  key={task._id}
+                  task={task}
+                  onClaim={async () => {
+                    if (String(task._id || '').startsWith('mock-')) {
+                      setMessage(`Successfully claimed task: ${task.title} (Simulated)`);
+                    } else {
+                      await accept(task._id);
+                    }
+                  }}
+                />
+              ))}
+              {displayTasks.length === 0 && (
+                <div className="vt-empty-state">
+                  <p>No tasks match the active filters.</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column: Map Preview */}
+          <div className="vt-map-sidebar">
+            <div className="vt-map-header">
+              <h3>Map Preview</h3>
+              <button type="button" aria-label="Maximize Map">
+                <Maximize2 size={18} />
+              </button>
+            </div>
+
+            <div className="vt-map-container">
+              <iframe
+                title="Available Pickups Map Preview"
+                src="https://maps.google.com/maps?q=Central%20Logistics%20Depot,%20Bengaluru&z=13&output=embed"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+
+            <div className="vt-map-footer-box">
+              <div className="vt-nearby-header">
+                <h4>Nearby Center</h4>
+                <p>Showing {displayTasks.length} tasks within a 5km radius of your current location.</p>
+              </div>
+              <div className="vt-map-actions">
+                <button
+                  type="button"
+                  className="vt-btn-refresh"
+                  onClick={async () => {
+                    await refresh();
+                    setMessage('Available tasks updated.');
+                  }}
+                >
+                  Refresh Results
+                </button>
+                <button
+                  type="button"
+                  className="vt-btn-sync"
+                  aria-label="Sync Location"
+                  onClick={async () => {
+                    await refresh();
+                    setMessage('Location synchronized.');
+                  }}
+                >
+                  <RefreshCw size={18} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Navigation Section ── */}
+      <section className="volunteer-dashboard-grid" id="navigation" data-dashboard-section="navigation">
+        <article className="volunteer-panel" style={{ width: '100%', gridColumn: 'span 2' }}>
           <div className="panel-heading">
             <div>
               <p className="dashboard-kicker">Navigation</p>
@@ -441,3 +660,114 @@ function DeliveryTimeline({ delivery }) {
   );
 }
 
+
+function AvailableTaskCard({ task, onClaim }) {
+  return (
+    <article className="vt-task-card">
+      <div className="vt-card-top-row">
+        <div className="vt-card-badges">
+          {task.isUrgent && <span className="vt-badge urgent">URGENT</span>}
+          {task.isNew && <span className="vt-badge new">NEW</span>}
+          <span className={`vt-badge ${task.type}`}>{task.type.toUpperCase()}</span>
+        </div>
+        <span className="vt-card-distance">{task.distance}</span>
+      </div>
+
+      <h3 className="vt-card-title">{task.title}</h3>
+
+      <div className="vt-route-details">
+        {task.type === 'sorting' ? (
+          <div className="vt-route-point single">
+            <span className="vt-bullet brown" />
+            <div>
+              <small>LOCATION</small>
+              <strong>{task.pickupLocation}</strong>
+              <p>{task.pickupAddress}</p>
+            </div>
+          </div>
+        ) : (
+          <div className="vt-route-timeline">
+            <div className="vt-route-point">
+              <span className="vt-bullet brown" />
+              <div>
+                <small>PICKUP</small>
+                <strong>{task.pickupLocation}</strong>
+                <p>{task.pickupAddress}</p>
+              </div>
+            </div>
+            <div className="vt-timeline-line" />
+            <div className="vt-route-point">
+              <span className="vt-bullet dark" />
+              <div>
+                <small>DROP-OFF</small>
+                <strong>{task.dropoffLocation}</strong>
+                <p>{task.dropoffAddress}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Food Details Row */}
+      <div className="vt-food-details">
+        <div className="vt-food-meta-grid">
+          {task.quantity && (
+            <div className="vt-food-meta-col">
+              <span className="vt-food-label">QUANTITY</span>
+              <span className="vt-food-value">{task.quantity}</span>
+            </div>
+          )}
+          {task.estimatedMeals && (
+            <div className="vt-food-meta-col">
+              <span className="vt-food-label">EST. MEALS</span>
+              <span className="vt-food-value">{task.estimatedMeals} meals</span>
+            </div>
+          )}
+          {(task.foodType || task.dietType) && (
+            <div className="vt-food-meta-col">
+              <span className="vt-food-label">FOOD TYPE</span>
+              <span className="vt-food-value">{titleCase(task.foodType || '')} ({titleCase(task.dietType || '')})</span>
+            </div>
+          )}
+        </div>
+
+        {task.dietaryLabels && task.dietaryLabels.length > 0 && (
+          <div className="vt-dietary-pills">
+            {task.dietaryLabels.map(lbl => (
+              <span key={lbl} className="vt-dietary-pill">{lbl}</span>
+            ))}
+          </div>
+        )}
+
+        {task.allergenNotes && (
+          <div className="vt-allergen-alert">
+            <AlertCircle size={13} />
+            <span>{task.allergenNotes}</span>
+          </div>
+        )}
+      </div>
+
+      {task.description && (
+        <div className="vt-quote-box">
+          <p>&ldquo;{task.description}&rdquo;</p>
+        </div>
+      )}
+
+      <div className="vt-card-footer">
+        <div className="vt-footer-meta">
+          <span className="vt-meta-item">
+            <Clock size={16} />
+            {task.duration}
+          </span>
+          <span className="vt-meta-item">
+            {task.type === 'sorting' ? <Users size={16} /> : <Package size={16} />}
+            {task.loadSize}
+          </span>
+        </div>
+        <button type="button" className="vt-claim-btn" onClick={onClaim}>
+          Claim Task
+        </button>
+      </div>
+    </article>
+  );
+}
