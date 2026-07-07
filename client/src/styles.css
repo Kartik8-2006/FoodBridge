@@ -13300,7 +13300,7 @@ body {
   flex-direction: column !important;
   align-items: center !important;
   text-align: center !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
 }
 
 .prof-avatar-container {
@@ -13339,7 +13339,7 @@ body {
   align-items: center !important;
   justify-content: center !important;
   cursor: pointer !important;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
   padding: 0 !important;
 }
 
@@ -13401,7 +13401,7 @@ body {
   display: flex !important;
   flex-direction: column !important;
   gap: 24px !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
 }
 
 .prof-form-grid {
@@ -13510,7 +13510,7 @@ body {
   font-weight: 600 !important;
   cursor: pointer !important;
   transition: all 0.2s ease !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
 }
 
 .btn-prof-save:hover {
@@ -13556,7 +13556,7 @@ body {
   align-items: center !important;
   justify-content: center !important;
   color: #1a1206 !important;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
 }
 
 .prof-option-icon-circle.icon-danger {
@@ -13648,7 +13648,7 @@ body {
   font-weight: 600 !important;
   cursor: pointer !important;
   transition: all 0.2s ease !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
 }
 
 .btn-sett-save-top:hover {
@@ -13684,7 +13684,7 @@ body {
   border: 1px solid #ebdcd0 !important;
   border-radius: 24px !important;
   padding: 32px !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
   display: flex !important;
   flex-direction: column !important;
   gap: 24px !important;
@@ -13809,14 +13809,14 @@ body {
   background-color: white !important;
   transition: .2s !important;
   border-radius: 50% !important;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
 }
 
-.sett-switch input:checked + .sett-slider {
+.sett-switch input:checked+.sett-slider {
   background-color: #784f23 !important;
 }
 
-.sett-switch input:checked + .sett-slider:before {
+.sett-switch input:checked+.sett-slider:before {
   transform: translateX(22px) !important;
 }
 
@@ -14088,9 +14088,11 @@ body {
   .sett-grid-two-col {
     grid-template-columns: 1fr !important;
   }
+
   .sett-security-inputs {
     grid-template-columns: 1fr !important;
   }
+
   .sett-security-actions {
     flex-direction: column !important;
     align-items: flex-start !important;
@@ -14368,7 +14370,1490 @@ body {
   .support-main-card {
     padding: 28px 20px !important;
   }
+
   .support-quick-contacts {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Compact volunteer overview sizing override */
+.volunteer-overview-reference .volunteer-overview-head {
+  margin-bottom: 28px !important;
+}
+
+.volunteer-overview-reference .volunteer-overview-head h2 {
+  font-size: 28px !important;
+}
+
+.volunteer-overview-reference .volunteer-overview-head p {
+  font-size: 15px !important;
+}
+
+.volunteer-overview-reference .volunteer-overview-head>span {
+  min-width: 280px !important;
+  min-height: 42px !important;
+  padding: 0 18px !important;
+  font-size: 13px !important;
+}
+
+.volunteer-overview-reference .volunteer-overview-head>span svg {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.volunteer-overview-reference .volunteer-overview-stats {
+  gap: 18px !important;
+  margin-bottom: 28px !important;
+}
+
+.volunteer-overview-reference .volunteer-overview-stats article {
+  min-height: 98px !important;
+  grid-template-columns: 58px minmax(0, 1fr) !important;
+  gap: 16px !important;
+  padding: 20px 24px !important;
+  border-radius: 22px !important;
+}
+
+.volunteer-overview-reference .volunteer-overview-stats article>span {
+  width: 56px !important;
+  height: 56px !important;
+  border-radius: 16px !important;
+}
+
+.volunteer-overview-reference .volunteer-overview-stats article>span svg {
+  width: 26px !important;
+  height: 26px !important;
+}
+
+.volunteer-overview-reference .volunteer-overview-stats small {
+  margin-bottom: 6px !important;
+  font-size: 12px !important;
+}
+
+.volunteer-overview-reference .volunteer-overview-stats strong {
+  font-size: 23px !important;
+}
+
+.volunteer-overview-reference .volunteer-overview-grid {
+  gap: 24px !important;
+}
+
+.volunteer-overview-reference .volunteer-main-column,
+.volunteer-overview-reference .volunteer-side-column {
+  gap: 18px !important;
+}
+
+.volunteer-overview-reference .volunteer-pickup-card,
+.volunteer-overview-reference .volunteer-goal-card,
+.volunteer-overview-reference .volunteer-impact-card,
+.volunteer-overview-reference .volunteer-tips-card,
+.volunteer-overview-reference .volunteer-task-list article {
+  border-radius: 22px !important;
+}
+
+.volunteer-overview-reference .volunteer-pickup-card header {
+  min-height: 64px !important;
+  padding: 0 24px !important;
+}
+
+.volunteer-overview-reference .volunteer-pickup-card header h3,
+.volunteer-overview-reference .volunteer-section-heading h3,
+.volunteer-overview-reference .volunteer-goal-card h3,
+.volunteer-overview-reference .volunteer-tips-card h3,
+.volunteer-overview-reference .volunteer-impact-card h3 {
+  gap: 10px !important;
+  font-size: 17px !important;
+}
+
+.volunteer-overview-reference .volunteer-pickup-card header h3 svg,
+.volunteer-overview-reference .volunteer-section-heading h3 svg,
+.volunteer-overview-reference .volunteer-goal-card h3 svg,
+.volunteer-overview-reference .volunteer-tips-card h3 svg {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.volunteer-overview-reference .volunteer-pickup-card header>span {
+  min-height: 28px !important;
+  padding: 0 14px !important;
+  font-size: 12px !important;
+}
+
+.volunteer-overview-reference .volunteer-pickup-body {
+  min-height: 330px !important;
+}
+
+.volunteer-overview-reference .volunteer-route-details {
+  padding: 22px !important;
+}
+
+.volunteer-overview-reference .volunteer-route-point {
+  grid-template-columns: 42px minmax(0, 1fr) !important;
+  gap: 12px !important;
+  margin-bottom: 16px !important;
+}
+
+.volunteer-overview-reference .volunteer-route-point>span,
+.volunteer-overview-reference .volunteer-estimate-row>span {
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 13px !important;
+}
+
+.volunteer-overview-reference .volunteer-route-point>span svg,
+.volunteer-overview-reference .volunteer-estimate-row>span svg {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.volunteer-overview-reference .volunteer-route-point small {
+  margin-bottom: 5px !important;
+  font-size: 12px !important;
+}
+
+.volunteer-overview-reference .volunteer-route-point strong {
+  font-size: 16px !important;
+}
+
+.volunteer-overview-reference .volunteer-route-point p {
+  margin-top: 5px !important;
+  font-size: 13px !important;
+}
+
+.volunteer-overview-reference .volunteer-estimate-row {
+  grid-template-columns: 42px minmax(0, 1fr) !important;
+  gap: 12px !important;
+  margin: 16px 0 20px !important;
+  padding-top: 18px !important;
+}
+
+.volunteer-overview-reference .volunteer-estimate-row p {
+  font-size: 13px !important;
+}
+
+.volunteer-overview-reference .volunteer-route-details>button {
+  min-height: 44px !important;
+  border-radius: 12px !important;
+  font-size: 15px !important;
+}
+
+.volunteer-overview-reference .volunteer-map-image {
+  min-height: 330px !important;
+}
+
+.volunteer-overview-reference .volunteer-section-heading {
+  margin: 18px 0 !important;
+}
+
+.volunteer-overview-reference .volunteer-section-heading a {
+  font-size: 14px !important;
+}
+
+.volunteer-overview-reference .volunteer-task-list {
+  gap: 12px !important;
+}
+
+.volunteer-overview-reference .volunteer-task-list article {
+  min-height: 76px !important;
+  grid-template-columns: 44px minmax(0, 1fr) 84px !important;
+  gap: 14px !important;
+  padding: 14px 18px !important;
+}
+
+.volunteer-overview-reference .volunteer-task-list article>span {
+  width: 42px !important;
+  height: 42px !important;
+}
+
+.volunteer-overview-reference .volunteer-task-list article>span svg {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.volunteer-overview-reference .volunteer-task-list strong {
+  font-size: 16px !important;
+}
+
+.volunteer-overview-reference .volunteer-task-list small {
+  margin-top: 4px !important;
+  font-size: 12px !important;
+}
+
+.volunteer-overview-reference .volunteer-task-list button {
+  min-height: 34px !important;
+  border-radius: 11px !important;
+  font-size: 13px !important;
+}
+
+.volunteer-overview-reference .volunteer-goal-card,
+.volunteer-overview-reference .volunteer-tips-card {
+  min-height: 190px !important;
+  padding: 24px !important;
+}
+
+.volunteer-overview-reference .volunteer-goal-card>div {
+  margin: 18px 0 12px !important;
+  font-size: 13px !important;
+}
+
+.volunteer-overview-reference .volunteer-goal-card i {
+  height: 12px !important;
+}
+
+.volunteer-overview-reference .volunteer-goal-card p,
+.volunteer-overview-reference .volunteer-tips-card p {
+  font-size: 13px !important;
+  line-height: 1.45 !important;
+}
+
+.volunteer-overview-reference .volunteer-impact-card {
+  min-height: 250px !important;
+  padding: 24px !important;
+}
+
+.volunteer-overview-reference .volunteer-impact-card h3 {
+  margin-bottom: 26px !important;
+}
+
+.volunteer-overview-reference .volunteer-impact-card>strong {
+  font-size: 34px !important;
+}
+
+.volunteer-overview-reference .volunteer-impact-card p {
+  margin: 8px 0 26px !important;
+  font-size: 13px !important;
+}
+
+.volunteer-overview-reference .volunteer-impact-card span {
+  min-height: 26px !important;
+  padding: 0 12px !important;
+  font-size: 11px !important;
+}
+
+.volunteer-overview-reference .volunteer-tips-card p {
+  grid-template-columns: 22px minmax(0, 1fr) !important;
+  gap: 12px !important;
+  margin-top: 16px !important;
+}
+
+.volunteer-overview-reference .volunteer-tips-card p svg {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+/* Donor donate food reference layout */
+.surplus-food-section#donate-food {
+  width: min(1560px, 100%) !important;
+  margin: 0 auto 30px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #364152 !important;
+}
+
+.donate-food-reference-head {
+  margin: 0 0 36px !important;
+}
+
+.donate-food-reference-head h2 {
+  margin: 0 0 10px !important;
+  color: #354052 !important;
+  font-size: 30px !important;
+  line-height: 1.12 !important;
+  font-weight: 850 !important;
+  letter-spacing: 0 !important;
+}
+
+.donate-food-reference-head p {
+  margin: 0 !important;
+  color: #667085 !important;
+  font-size: 17px !important;
+  line-height: 1.45 !important;
+  font-weight: 500 !important;
+}
+
+.donate-food-reference-grid {
+  display: grid !important;
+  grid-template-columns: minmax(1020px, 760px) 360px !important;
+  align-items: start !important;
+  gap: 32px !important;
+}
+
+.donate-food-reference-form,
+.donate-photo-card {
+  border: 1px solid #d0d5dd !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+}
+
+.donate-food-reference-form {
+  display: grid !important;
+  gap: 22px !important;
+  padding: 36px 40px 42px !important;
+}
+
+.donate-form-two {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 28px !important;
+}
+
+.donate-food-reference-form label {
+  display: grid !important;
+  gap: 8px !important;
+}
+
+.donate-food-reference-form label>span {
+  color: #2f3744 !important;
+  font-size: 14px !important;
+  line-height: 1.2 !important;
+  font-weight: 800 !important;
+}
+
+.donate-food-reference-form input,
+.donate-notes-box {
+  width: 100% !important;
+  border: 1px solid #cfd4dc !important;
+  border-radius: 9px !important;
+  background: #ffffff !important;
+  color: #182230 !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.donate-food-reference-form input {
+  min-height: 56px !important;
+  padding: 0 18px !important;
+}
+
+.donate-food-reference-form input::placeholder,
+.donate-notes-box::placeholder {
+  color: #667085 !important;
+}
+
+.donate-location-field>div {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.donate-location-field svg {
+  position: absolute !important;
+  left: 18px !important;
+  z-index: 1 !important;
+  color: #667085 !important;
+}
+
+.donate-location-field input {
+  padding-left: 43px !important;
+}
+
+.donate-notes-box {
+  min-height: 250px !important;
+  padding: 18px !important;
+  resize: vertical !important;
+  background: #f1eeee !important;
+}
+
+.donate-hidden-options {
+  display: none !important;
+}
+
+.donate-reference-submit {
+  min-height: 56px !important;
+  width: 100% !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  color: #5a340a !important;
+  background: #efa23a !important;
+  font-size: 19px !important;
+  font-weight: 900 !important;
+  box-shadow: none !important;
+}
+
+.donate-food-reference-side {
+  display: grid !important;
+  gap: 32px !important;
+}
+
+.donate-photo-card {
+  padding: 36px 40px 40px !important;
+}
+
+.donate-photo-card h3 {
+  margin: 0 0 24px !important;
+  color: #293241 !important;
+  font-size: 19px !important;
+  font-weight: 600 !important;
+}
+
+.donate-photo-card p {
+  margin: 0 0 32px !important;
+  color: #667085 !important;
+  font-size: 15px !important;
+  line-height: 1.25 !important;
+  font-weight: 500 !important;
+}
+
+.donate-photo-upload {
+  min-height: 158px !important;
+  display: grid !important;
+  place-items: center !important;
+  align-content: center !important;
+  gap: 6px !important;
+  padding: 22px !important;
+  border: 2px dashed #c6c9ce !important;
+  border-radius: 12px !important;
+  color: #667085 !important;
+  background: #ffffff !important;
+  text-align: center !important;
+  cursor: pointer !important;
+}
+
+.donate-photo-upload svg {
+  color: #667085 !important;
+}
+
+.donate-photo-upload strong {
+  color: #2f3744 !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+}
+
+.donate-photo-upload span {
+  max-width: 150px !important;
+  color: #667085 !important;
+  font-size: 13px !important;
+  line-height: 1.25 !important;
+}
+
+.donate-photo-upload input {
+  display: none !important;
+}
+
+.donate-photo-upload.has-image {
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.donate-photo-upload.has-image img {
+  width: 100% !important;
+  height: 178px !important;
+  object-fit: cover !important;
+}
+
+.donate-photo-thumbs {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px !important;
+  margin-top: 28px !important;
+}
+
+.donate-photo-thumbs img,
+.donate-photo-thumbs button {
+  width: 100% !important;
+  aspect-ratio: 1 / 1 !important;
+  border: 1px solid #d0d5dd !important;
+  border-radius: 8px !important;
+  background: #f1eeee !important;
+}
+
+.donate-photo-thumbs img {
+  object-fit: cover !important;
+}
+
+.donate-photo-thumbs button {
+  display: grid !important;
+  place-items: center !important;
+  color: #667085 !important;
+}
+
+.donate-safety-card {
+  padding: 36px 40px !important;
+  border-radius: 12px !important;
+  color: #e7e9ee !important;
+  background: #62666c !important;
+}
+
+.donate-safety-card h3 {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  margin: 0 0 24px !important;
+  color: #eef0f3 !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+}
+
+.donate-safety-card p {
+  display: grid !important;
+  grid-template-columns: 18px minmax(0, 1fr) !important;
+  gap: 10px !important;
+  margin: 0 0 14px !important;
+  color: #d8dbe0 !important;
+  font-size: 14px !important;
+  line-height: 1.35 !important;
+  font-weight: 500 !important;
+}
+
+.donate-safety-card p:last-child {
+  margin-bottom: 0 !important;
+}
+
+.donate-safety-card svg {
+  color: #e7e9ee !important;
+}
+
+/* Donor track donations reference layout */
+.donor-track-reference {
+  width: min(1400px, 100%) !important;
+  margin: 0 auto 32px !important;
+  color: #344054 !important;
+}
+
+.donor-track-head {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 22px !important;
+  margin-bottom: 32px !important;
+}
+
+.donor-track-head h2 {
+  margin: 0 0 8px !important;
+  color: #101828 !important;
+  font-size: 24px !important;
+  line-height: 1.12 !important;
+  font-weight: 900 !important;
+}
+
+.donor-track-head p {
+  margin: 0 !important;
+  color: #667085 !important;
+  font-size: 16px !important;
+  line-height: 1.4 !important;
+}
+
+.donor-track-head a {
+  min-height: 62px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  padding: 0 28px !important;
+  border-radius: 9px !important;
+  color: #5a340a !important;
+  background: #efa23a !important;
+  font-size: 19px !important;
+  font-weight: 900 !important;
+}
+
+.donor-track-layout {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 330px !important;
+  gap: 32px !important;
+  align-items: start !important;
+}
+
+.donor-track-main {
+  display: grid !important;
+  gap: 32px !important;
+}
+
+.donor-track-map-card,
+.donor-progress-card,
+.donor-pickup-details-card {
+  border: 1px solid #d0d5dd !important;
+  border-radius: 28px !important;
+  background: #ffffff !important;
+  overflow: hidden !important;
+}
+
+.donor-track-map-card {
+  position: relative !important;
+}
+
+.donor-track-map-card iframe,
+.track-google-map-frame {
+  display: block !important;
+  width: 100% !important;
+  height: 700px !important;
+  border: 0 !important;
+  filter: saturate(.85) contrast(.96) brightness(1.04) !important;
+}
+
+.track-eta-chip {
+  position: absolute !important;
+  top: 18px !important;
+  left: 18px !important;
+  z-index: 2 !important;
+  display: grid !important;
+  grid-template-columns: 28px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-width: 220px !important;
+  padding: 14px 16px !important;
+  border: 1px solid #d0d5dd !important;
+  border-radius: 14px !important;
+  background: rgba(255,255,255,.95) !important;
+  box-shadow: 0 8px 20px rgba(32, 32, 32, .12) !important;
+}
+
+.track-eta-chip svg {
+  color: #936016 !important;
+}
+
+.track-eta-chip strong {
+  display: block !important;
+  color: #936016 !important;
+  font-size: 15px !important;
+  font-weight: 950 !important;
+}
+
+.track-eta-chip span {
+  color: #8a8f99 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+.track-driver-pin,
+.track-home-pin {
+  position: absolute !important;
+  z-index: 2 !important;
+  display: grid !important;
+  place-items: center !important;
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 50% !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,.18) !important;
+}
+
+.track-driver-pin {
+  left: 38% !important;
+  top: 42% !important;
+  background: #936016 !important;
+}
+
+.track-home-pin {
+  right: 23% !important;
+  top: 58% !important;
+  background: #4b4f57 !important;
+}
+
+.donor-track-map-card footer {
+  min-height: 86px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 18px !important;
+  padding: 18px 22px !important;
+  border-top: 1px solid #e4e7ec !important;
+}
+
+.track-driver-profile {
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+}
+
+.track-driver-profile img {
+  width: 52px !important;
+  height: 52px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+}
+
+.track-driver-profile strong {
+  display: block !important;
+  color: #101828 !important;
+  font-size: 18px !important;
+  line-height: 1.2 !important;
+  font-weight: 900 !important;
+}
+
+.track-driver-profile span {
+  color: #667085 !important;
+  font-size: 14px !important;
+}
+
+.track-map-actions {
+  display: flex !important;
+  gap: 10px !important;
+}
+
+.track-map-actions button,
+.track-map-actions a {
+  width: 42px !important;
+  height: 42px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 1px solid #d0d5dd !important;
+  border-radius: 50% !important;
+  color: #101828 !important;
+  background: #ffffff !important;
+}
+
+.donor-progress-card {
+  padding: 34px 38px !important;
+}
+
+.donor-progress-card h3 {
+  margin: 0 0 24px !important;
+  color: #101828 !important;
+  font-size: 19px !important;
+  font-weight: 900 !important;
+}
+
+.track-progress-list {
+  display: grid !important;
+  gap: 0 !important;
+}
+
+.track-progress-list > div {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: 42px minmax(0, 1fr) !important;
+  gap: 16px !important;
+  padding: 0 0 30px !important;
+}
+
+.track-progress-list > div::after {
+  content: "" !important;
+  position: absolute !important;
+  left: 20px !important;
+  top: 34px !important;
+  bottom: 4px !important;
+  width: 2px !important;
+  background: #d0d5dd !important;
+}
+
+.track-progress-list > div.done::after {
+  background: #8cc63f !important;
+}
+
+.track-progress-list > div:last-child {
+  padding-bottom: 0 !important;
+}
+
+.track-progress-list > div:last-child::after {
+  display: none !important;
+}
+
+.track-progress-list > div > span {
+  position: relative !important;
+  z-index: 1 !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 50% !important;
+  color: #ffffff !important;
+  background: #d0d5dd !important;
+  margin-left: 4px !important;
+}
+
+.track-progress-list > div.done > span {
+  background: #8cc63f !important;
+}
+
+.track-progress-list > div.active > span {
+  background: #efa23a !important;
+}
+
+.track-progress-list strong {
+  display: block !important;
+  margin-bottom: 4px !important;
+  color: #101828 !important;
+  font-size: 17px !important;
+  font-weight: 900 !important;
+}
+
+.track-progress-list p {
+  margin: 0 !important;
+  color: #667085 !important;
+  font-size: 15px !important;
+  line-height: 1.35 !important;
+}
+
+.donor-track-side {
+  display: grid !important;
+  gap: 32px !important;
+}
+
+.donor-pickup-details-card {
+  padding: 36px 38px !important;
+}
+
+.donor-pickup-details-card h3 {
+  margin: 0 0 14px !important;
+  padding-bottom: 14px !important;
+  border-bottom: 1px solid #d0d5dd !important;
+  color: #101828 !important;
+  font-size: 20px !important;
+  font-weight: 900 !important;
+}
+
+.track-detail-block {
+  margin-top: 26px !important;
+}
+
+.track-detail-block small,
+.track-instructions-box small {
+  display: block !important;
+  margin-bottom: 8px !important;
+  color: #8a8f99 !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  letter-spacing: 2px !important;
+  text-transform: uppercase !important;
+}
+
+.track-detail-block strong {
+  display: block !important;
+  color: #101828 !important;
+  font-size: 17px !important;
+  line-height: 1.2 !important;
+  font-weight: 900 !important;
+}
+
+.track-detail-block > p {
+  margin: 4px 0 0 !important;
+  color: #667085 !important;
+  font-size: 15px !important;
+}
+
+.track-items-list {
+  display: grid !important;
+  gap: 10px !important;
+}
+
+.track-items-list p {
+  display: flex !important;
+  justify-content: space-between !important;
+  gap: 14px !important;
+  margin: 0 !important;
+  color: #101828 !important;
+  font-size: 16px !important;
+}
+
+.track-items-list strong {
+  font-size: 16px !important;
+}
+
+.track-instructions-box {
+  margin-top: 30px !important;
+  padding: 22px !important;
+  border: 1px solid #d0d5dd !important;
+  border-radius: 12px !important;
+}
+
+.track-instructions-box p {
+  margin: 0 !important;
+  color: #344054 !important;
+  font-size: 16px !important;
+  line-height: 1.45 !important;
+  font-style: italic !important;
+}
+
+.donor-social-impact-card {
+  position: relative !important;
+  min-height: 285px !important;
+  overflow: hidden !important;
+  padding: 38px !important;
+  border-radius: 28px !important;
+  color: #ffffff !important;
+  background: #936016 !important;
+}
+
+.donor-social-impact-card h3 {
+  margin: 0 0 18px !important;
+  color: #ffffff !important;
+  font-size: 22px !important;
+  font-weight: 900 !important;
+}
+
+.donor-social-impact-card p {
+  max-width: 230px !important;
+  margin: 0 0 34px !important;
+  color: #ffffff !important;
+  font-size: 16px !important;
+  line-height: 1.45 !important;
+}
+
+.donor-social-impact-card strong {
+  display: block !important;
+  color: #ffffff !important;
+  font-size: 54px !important;
+  line-height: .95 !important;
+  font-weight: 950 !important;
+}
+
+.donor-social-impact-card span {
+  display: block !important;
+  margin-top: 12px !important;
+  color: #ffffff !important;
+  font-size: 18px !important;
+  font-weight: 900 !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+}
+
+.donor-social-impact-card svg {
+  position: absolute !important;
+  right: -18px !important;
+  bottom: -20px !important;
+  color: rgba(255,255,255,.18) !important;
+}
+
+@media (max-width: 100px) {
+  .donor-track-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .donor-track-side {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .donor-track-head,
+  .donor-track-map-card footer {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+  }
+
+  .donor-track-side {
+    grid-template-columns: 1fr !important;
+  }
+
+  .donor-track-map-card iframe {
+    height: 320px !important;
+  }
+}
+
+@media (max-width: 1100px) {
+  .donate-food-reference-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .donate-food-reference-side {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+@media (max-width: 720px) {
+
+  .donate-food-reference-form,
+  .donate-photo-card,
+  .donate-safety-card {
+    padding: 24px !important;
+  }
+
+  .donate-form-two,
+  .donate-food-reference-side {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Volunteer dashboard overview reference page */
+
+.volunteer-overview-reference {
+  --vol-text: #46484f;
+  --vol-muted: #8b8c91;
+  --vol-brown: #936016;
+  --vol-orange: #efa23a;
+  --vol-green: #86bf3f;
+  color: var(--vol-text) !important;
+  font-family: Montserrat, Arial, sans-serif !important;
+}
+
+.volunteer-overview-reference * {
+  letter-spacing: 0 !important;
+}
+
+.volunteer-overview-head {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 28px !important;
+  margin: 0 0 54px !important;
+}
+
+.volunteer-overview-head h2 {
+  margin: 0 0 13px !important;
+  color: #4b4d55 !important;
+  font-size: 30px !important;
+  line-height: 1.05 !important;
+  font-weight: 950 !important;
+}
+
+.volunteer-overview-head p {
+  margin: 0 !important;
+  color: #85868b !important;
+  font-size: 18px !important;
+  line-height: 1.35 !important;
+  font-weight: 600 !important;
+}
+
+.volunteer-overview-head>span {
+
+  min-height: 40px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 2px !important;
+  padding: 0 26px !important;
+  border: 1px solid #dfe8d5 !important;
+  border-radius: 20px !important;
+  color: var(--vol-green) !important;
+  background: #f0f7e9 !important;
+  font-size: 14px !important;
+  font-weight: 950 !important;
+  text-transform: uppercase !important;
+}
+
+.volunteer-overview-stats {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 30px !important;
+  margin-bottom: 50px !important;
+}
+
+.volunteer-overview-stats article {
+  min-height: 70px !important;
+  display: grid !important;
+  grid-template-columns: 104px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 30px !important;
+  padding: 36px 38px !important;
+  border: 1px solid #d7d5d4 !important;
+  border-radius: 39px !important;
+  background: #ffffff !important;
+  box-shadow: 0 4px 7px rgba(28, 28, 28, .11) !important;
+}
+
+.volunteer-overview-stats article>span {
+  width: 70px !important;
+  height: 70px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 25px !important;
+  color: var(--vol-brown) !important;
+  background: #f8ddb9 !important;
+}
+
+.volunteer-overview-stats small {
+  display: block !important;
+  margin-bottom: 10px !important;
+  color: #85868b !important;
+  font-size: 14px !important;
+  font-weight: 950 !important;
+  text-transform: uppercase !important;
+}
+
+.volunteer-overview-stats strong {
+  color: #15171c !important;
+  font-size: 28px !important;
+  line-height: 1 !important;
+  font-weight: 950 !important;
+}
+
+.volunteer-overview-grid {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.35fr) minmax(410px, .65fr) !important;
+  align-items: start !important;
+  gap: 50px !important;
+}
+
+.volunteer-main-column,
+.volunteer-side-column {
+  display: grid !important;
+  gap: 32px !important;
+  min-width: 0 !important;
+}
+
+.volunteer-pickup-card,
+.volunteer-goal-card,
+.volunteer-impact-card,
+.volunteer-tips-card,
+.volunteer-task-list article {
+  overflow: hidden !important;
+  border: 1px solid #d7d5d4 !important;
+  border-radius: 38px !important;
+  background: #ffffff !important;
+  box-shadow: 0 4px 7px rgba(28, 28, 28, .11) !important;
+}
+
+.volunteer-pickup-card header {
+  min-height: 90px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 18px !important;
+  padding: 0 32px !important;
+  border-bottom: 1px solid #dedbd9 !important;
+}
+
+.volunteer-pickup-card header h3,
+.volunteer-section-heading h3,
+.volunteer-goal-card h3,
+.volunteer-tips-card h3,
+.volunteer-impact-card h3 {
+  margin: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 16px !important;
+  color: #4a4c53 !important;
+  font-size: 20px !important;
+  line-height: 1.1 !important;
+  font-weight: 950 !important;
+}
+
+.volunteer-pickup-card header h3 svg,
+.volunteer-goal-card h3 svg,
+.volunteer-tips-card h3 svg {
+  color: var(--vol-brown) !important;
+}
+
+.volunteer-pickup-card header>span {
+  min-height: 39px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 0 20px !important;
+  border-radius: 999px !important;
+  color: #ffffff !important;
+  background: var(--vol-brown) !important;
+  font-size: 14px !important;
+  font-weight: 950 !important;
+  white-space: nowrap !important;
+}
+
+.volunteer-pickup-body {
+  display: grid !important;
+  grid-template-columns: minmax(360px, 1fr) minmax(520px, 1.15fr) !important;
+  min-height: 510px !important;
+}
+
+.volunteer-route-details {
+  display: grid !important;
+  align-content: start !important;
+  gap: 0 !important;
+  padding: 38px !important;
+}
+
+.volunteer-route-point {
+  display: grid !important;
+  grid-template-columns: 64px minmax(0, 1fr) !important;
+  gap: 22px !important;
+  margin-bottom: 31px !important;
+}
+
+.volunteer-route-point>span,
+.volunteer-estimate-row>span {
+  width: 64px !important;
+  height: 64px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 18px !important;
+  color: var(--vol-brown) !important;
+  background: #f0eeee !important;
+}
+
+.volunteer-route-point small {
+  display: block !important;
+  margin: 3px 0 8px !important;
+  color: #7b7c82 !important;
+  font-size: 20px !important;
+  font-weight: 950 !important;
+  text-transform: uppercase !important;
+}
+
+.volunteer-route-point strong {
+  display: block !important;
+  color: #181a20 !important;
+  font-size: 24px !important;
+  line-height: 1.2 !important;
+  font-weight: 950 !important;
+}
+
+.volunteer-route-point p {
+  margin: 8px 0 0 !important;
+  color: #8e8f94 !important;
+  font-size: 19px !important;
+  line-height: 1.35 !important;
+  font-weight: 600 !important;
+}
+
+.volunteer-estimate-row {
+  display: grid !important;
+  grid-template-columns: 64px minmax(0, 1fr) !important;
+  gap: 22px !important;
+  align-items: center !important;
+  margin: 28px 0 43px !important;
+  padding-top: 36px !important;
+  border-top: 1px solid #ebe8e5 !important;
+}
+
+.volunteer-estimate-row p {
+  margin: 0 !important;
+  color: #8e8f94 !important;
+  font-size: 19px !important;
+  font-weight: 700 !important;
+}
+
+.volunteer-estimate-row strong {
+  color: #25262b !important;
+  font-weight: 950 !important;
+}
+
+.volunteer-route-details>button {
+  width: 100% !important;
+  min-height: 70px !important;
+  border: 0 !important;
+  border-radius: 17px !important;
+  color: #ffffff !important;
+  background: #4b4d53 !important;
+  font-size: 23px !important;
+  font-weight: 950 !important;
+}
+
+.volunteer-map-image {
+  min-height: 510px !important;
+  position: relative !important;
+  overflow: hidden !important;
+  background: #dfeaf0 !important;
+}
+
+.volunteer-map-image iframe {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  border: 0 !important;
+  filter: saturate(.92) contrast(.96) !important;
+}
+
+.volunteer-section-heading {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 18px !important;
+  margin: 24px 0 !important;
+}
+
+.volunteer-section-heading h3 svg {
+  color: #c0392b !important;
+}
+
+.volunteer-section-heading a {
+  color: var(--vol-brown) !important;
+  font-size: 20px !important;
+  font-weight: 950 !important;
+}
+
+.volunteer-task-list {
+  display: grid !important;
+  gap: 22px !important;
+}
+
+.volunteer-task-list article {
+  min-height: 130px !important;
+  display: grid !important;
+  grid-template-columns: 72px minmax(0, 1fr) 126px !important;
+  align-items: center !important;
+  gap: 24px !important;
+  padding: 24px 28px !important;
+  border-radius: 22px !important;
+}
+
+.volunteer-task-list article>span {
+  width: 70px !important;
+  height: 70px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 50% !important;
+  color: var(--vol-brown) !important;
+  background: #fde2bd !important;
+}
+
+.volunteer-task-list article>span.green {
+  color: var(--vol-green) !important;
+  background: #f0f7e9 !important;
+}
+
+.volunteer-task-list strong {
+  display: block !important;
+  color: #181a20 !important;
+  font-size: 25px !important;
+  line-height: 1.2 !important;
+  font-weight: 950 !important;
+}
+
+.volunteer-task-list small {
+  display: block !important;
+  margin-top: 8px !important;
+  color: #828388 !important;
+  font-size: 19px !important;
+  font-weight: 650 !important;
+}
+
+.volunteer-task-list button {
+  min-height: 54px !important;
+  border: 1px solid var(--vol-brown) !important;
+  border-radius: 16px !important;
+  color: var(--vol-brown) !important;
+  background: #ffffff !important;
+  font-size: 19px !important;
+  font-weight: 950 !important;
+}
+
+.volunteer-goal-card,
+.volunteer-tips-card {
+  min-height: 294px !important;
+  padding: 40px !important;
+}
+
+.volunteer-goal-card>div {
+  display: flex !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  margin: 36px 0 20px !important;
+  color: #6f7076 !important;
+  font-size: 20px !important;
+  font-weight: 850 !important;
+}
+
+.volunteer-goal-card>div strong {
+  color: #22242a !important;
+  font-weight: 950 !important;
+}
+
+.volunteer-goal-card i {
+  display: block !important;
+  height: 22px !important;
+  overflow: hidden !important;
+  border-radius: 999px !important;
+  background: #eeeaea !important;
+}
+
+.volunteer-goal-card i b {
+  display: block !important;
+  width: 75% !important;
+  height: 100% !important;
+  border-radius: inherit !important;
+  background: var(--vol-orange) !important;
+}
+
+.volunteer-goal-card p,
+.volunteer-tips-card p {
+  color: #8b8c91 !important;
+  font-size: 20px !important;
+  line-height: 1.55 !important;
+  font-weight: 600 !important;
+}
+
+.volunteer-goal-card p strong {
+  color: #22242a !important;
+  font-weight: 950 !important;
+}
+
+.volunteer-impact-card {
+  min-height: 408px !important;
+  display: grid !important;
+  align-content: center !important;
+  padding: 40px !important;
+  color: #ffffff !important;
+  background: #4c4f55 !important;
+  border: 0 !important;
+}
+
+.volunteer-impact-card h3 {
+  color: #ffffff !important;
+  margin-bottom: 66px !important;
+}
+
+.volunteer-impact-card>strong {
+  color: #ffffff !important;
+  font-size: 56px !important;
+  line-height: 1 !important;
+  font-weight: 950 !important;
+}
+
+.volunteer-impact-card p {
+  max-width: 410px !important;
+  margin: 14px 0 70px !important;
+  color: rgba(255, 255, 255, .68) !important;
+  font-size: 20px !important;
+  line-height: 1.45 !important;
+}
+
+.volunteer-impact-card div {
+  display: flex !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+}
+
+.volunteer-impact-card span {
+  min-height: 38px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 0 22px !important;
+  border-radius: 999px !important;
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, .18) !important;
+  font-size: 16px !important;
+  font-weight: 950 !important;
+  text-transform: uppercase !important;
+}
+
+.volunteer-tips-card h3 svg {
+  color: var(--vol-orange) !important;
+}
+
+.volunteer-tips-card p {
+  display: grid !important;
+  grid-template-columns: 30px minmax(0, 1fr) !important;
+  gap: 18px !important;
+  margin: 32px 0 0 !important;
+}
+
+.volunteer-tips-card p svg {
+  color: var(--vol-green) !important;
+}
+
+@media (max-width: 1280px) {
+
+  .volunteer-overview-grid,
+  .volunteer-pickup-body {
+    grid-template-columns: 1fr !important;
+  }
+
+  .volunteer-map-image {
+    min-height: 360px !important;
+  }
+}
+
+@media (max-width: 760px) {
+
+  .volunteer-overview-head,
+  .volunteer-section-heading,
+  .volunteer-pickup-card header {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+  }
+
+  .volunteer-overview-head>span {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .volunteer-overview-stats,
+  .volunteer-task-list article {
     grid-template-columns: 1fr !important;
   }
 }

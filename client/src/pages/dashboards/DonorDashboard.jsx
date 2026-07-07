@@ -282,6 +282,24 @@ export default function DonorDashboard() {
   const totalMeals = donations.reduce((sum, item) => sum + Number(item.estimatedMeals || 0), 0);
   const foodSavedKg = donations.reduce((sum, item) => sum + getDonationKg(item), 0);
   const trendData = useMemo(() => buildDonationTrend(donations, trendMode), [donations, trendMode]);
+  const pickupMapQuery = form.pickupAddress
+    ? `${form.pickupAddress}, ${form.city || user?.profile?.city || ''}`.trim()
+    : '';
+  const pickupMapSrc = pickupMapQuery
+    ? `https://maps.google.com/maps?q=${encodeURIComponent(pickupMapQuery)}&z=14&output=embed`
+    : '';
+  const liveVolunteerCoords = selectedDonation?.volunteerLocation &&
+    Number.isFinite(Number(selectedDonation.volunteerLocation.latitude)) &&
+    Number.isFinite(Number(selectedDonation.volunteerLocation.longitude))
+    ? `${selectedDonation.volunteerLocation.latitude},${selectedDonation.volunteerLocation.longitude}`
+    : '';
+  const pickupCoords = selectedDonation?.pickupLocation &&
+    Number.isFinite(Number(selectedDonation.pickupLocation.latitude)) &&
+    Number.isFinite(Number(selectedDonation.pickupLocation.longitude))
+    ? `${selectedDonation.pickupLocation.latitude},${selectedDonation.pickupLocation.longitude}`
+    : '';
+  const trackMapQuery = liveVolunteerCoords || pickupCoords || `${selectedDonation?.pickupAddress || 'The Daily Bread Bakery 128 Market St'}, ${selectedDonation?.city || ''}`.trim();
+  const trackMapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(trackMapQuery)}&z=${liveVolunteerCoords ? 16 : 15}&output=embed`;
 
   useEffect(() => {
     if (user) {
@@ -362,6 +380,13 @@ export default function DonorDashboard() {
     const defaultPickupTime = new Date(Date.now() + 60 * 60 * 1000);
     defaultPickupTime.setMinutes(0, 0, 0);
     setPickupTime(formatDateTimeLocal(defaultPickupTime));
+  }
+
+  function updateExpiryTime(value) {
+    const expiryDate = new Date(value);
+    if (Number.isNaN(expiryDate.getTime())) return;
+    const hours = Math.max(1, Math.ceil((expiryDate.getTime() - Date.now()) / (60 * 60 * 1000)));
+    setExpiresInHours(hours);
   }
 
   function toggleLabel(label) {
@@ -698,211 +723,246 @@ export default function DonorDashboard() {
       </section>
 
       {/* Live tracking map card */}
-      <section className="donor-dashboard-grid" id="track-donations" style={{ marginTop: '24px' }}>
-        <article className="donor-panel large">
-          <div className="panel-heading">
-            <div>
-              <p className="dashboard-kicker">{t("Track Donation")}</p>
-              <h2>{selectedDonation?.title || t('No donation selected')}</h2>
-            </div>
+      <section className="donor-track-reference" id="track-donations">
+        <div className="donor-track-head">
+          <div>
+            <h2>{t("Track Donations")}</h2>
+            <p>{t("Real-time status of your pickup")} #{selectedDonation ? `RS-${selectedDonation._id.slice(-5).toUpperCase()}` : 'RS-99281'}</p>
           </div>
-          <div className="tracking-stack">
-            <DonationTimeline donation={selectedDonation} />
-            <TrackingMap donation={selectedDonation} />
+          <a href={`tel:${selectedDonation?.assignedVolunteer?.profile?.phone || selectedDonation?.assignedVolunteer?.phone || ''}`}>
+            <Phone size={21} /> {t("Contact Driver")}
+          </a>
+        </div>
+
+        <div className="donor-track-layout">
+          <div className="donor-track-main">
+            <article className="donor-track-map-card">
+              <div className="track-eta-chip">
+                <Clock size={23} />
+                <div>
+                  <strong>{liveVolunteerCoords ? t("Live driver location") : "12 mins away"}</strong>
+                  <span>{liveVolunteerCoords ? t("Updated from volunteer tracking") : "Estimated arrival: 2:45 PM"}</span>
+                </div>
+              </div>
+              <iframe
+                className="track-google-map-frame"
+                title="Google Maps live donation tracking"
+                src={trackMapSrc}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+              <footer>
+                <div className="track-driver-profile">
+                  <img src="https://images.unsplash.com/photo-1607746882042-944635dfe10e?auto=format&fit=crop&w=140&q=80" alt="" />
+                  <div>
+                    <strong>{selectedDonation?.assignedVolunteer?.name || 'David Mitchell'}</strong>
+                    <span>Volunteer Driver · 4.9 ★</span>
+                  </div>
+                </div>
+                <div className="track-map-actions">
+                  <button type="button"><MessageSquare size={22} /></button>
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trackMapQuery)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    title={t("Open in Google Maps")}
+                  >
+                    <Send size={22} />
+                  </a>
+                </div>
+              </footer>
+            </article>
+
+            <article className="donor-progress-card">
+              <h3>{t("Donation Progress")}</h3>
+              <TrackProgress donation={selectedDonation} />
+            </article>
           </div>
-        </article>
+
+          <aside className="donor-track-side">
+            <article className="donor-pickup-details-card">
+              <h3>{t("Pickup Details")}</h3>
+              <div className="track-detail-block">
+                <small>{t("Pickup From")}</small>
+                <strong>{selectedDonation?.donor?.profile?.organizationName || selectedDonation?.donor?.name || 'The Daily Bread Bakery'}</strong>
+                <p>{selectedDonation?.pickupAddress || '128 Market St, Suite 4B'}</p>
+              </div>
+              <div className="track-detail-block">
+                <small>{t("Items for Donation")}</small>
+                <TrackItems donation={selectedDonation} />
+              </div>
+              <div className="track-instructions-box">
+                <small>{t("Special Instructions")}</small>
+                <p>"{selectedDonation?.storageInstructions || 'Please use the rear loading dock entrance. Ring the bell for bakery staff.'}"</p>
+              </div>
+            </article>
+
+            <article className="donor-social-impact-card">
+              <h3>{t("Social Impact")}</h3>
+              <p>{t("This donation will provide approximately")}</p>
+              <strong>{selectedDonation?.estimatedMeals || 120}</strong>
+              <span>{t("Meals for Families")}</span>
+              <HeartHandshake size={110} />
+            </article>
+          </aside>
+        </div>
       </section>
 
       {/* Surplus Food Donation Form */}
       <section className="surplus-food-section" id="donate-food">
-        <h2>{t("Surplus Food Donation")}</h2>
-        <p className="sub">{t("Fill out the details below to share your surplus food. Make sure it's fresh and safe for consumption.")}</p>
+        <div className="donate-food-reference-head">
+          <h2>{t("Donate Food")}</h2>
+          <p>{t("Fill out the details below to share surplus food with those in need. Every meal counts.")}</p>
+        </div>
 
-        <form onSubmit={submitDonation}>
-          {/* Row 1: Title + Quantity */}
-          <div className="form-two-col">
-            <label>
-              <span className="field-label">{t("What are you donating?")}{' '}<span style={{ color: '#e2973c' }}>*</span></span>
-              <input
-                type="text"
-                name="title"
-                value={form.title}
+        <div className="donate-food-reference-grid">
+          <form className="donate-food-reference-form" onSubmit={submitDonation}>
+            <div className="donate-form-two">
+              <label>
+                <span>{t("Food Type")}</span>
+                <input
+                  type="text"
+                  name="title"
+                  value={form.title}
+                  onChange={update}
+                  placeholder={t("e.g. Cooked Rice, Sandwich")}
+                  required
+                />
+              </label>
+              <label>
+                <span>{t("Quantity (kg/servings)")}</span>
+                <input
+                  type="text"
+                  name="quantity"
+                  value={form.quantity}
+                  onChange={update}
+                  placeholder={t("e.g. 5kg or 20 servings")}
+                  required
+                />
+              </label>
+            </div>
+
+            <div className="donate-form-two">
+              <label>
+                <span>{t("Expiry Time")}</span>
+                <input
+                  type="datetime-local"
+                  value={formatDateTimeLocal(new Date(Date.now() + expiresInHours * 60 * 60 * 1000))}
+                  onChange={(event) => updateExpiryTime(event.target.value)}
+                  required
+                />
+              </label>
+              <label>
+                <span>{t("Pickup Time")}</span>
+                <input
+                  type="datetime-local"
+                  value={pickupTime}
+                  onChange={(event) => setPickupTime(event.target.value)}
+                  required
+                />
+              </label>
+            </div>
+
+            <label className="donate-location-field">
+              <span>{t("Pickup Location")}</span>
+              <div>
+                <MapPin size={20} />
+                <input
+                  type="text"
+                  name="pickupAddress"
+                  value={form.pickupAddress}
+                  onChange={update}
+                  placeholder={t("Enter full address or building name")}
+                  required
+                />
+              </div>
+            </label>
+
+            <div className="donate-pickup-map-card">
+              {pickupMapSrc ? (
+                <iframe
+                  title="Pickup location map"
+                  src={pickupMapSrc}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              ) : (
+                <div>
+                  <MapPin size={26} />
+                  <span>{t("Enter pickup location to preview it on map")}</span>
+                </div>
+              )}
+            </div>
+
+            <label className="donate-instruction-field">
+              <span><MessageSquare size={16} /> {t("Instructions / Important Message")}</span>
+              <textarea
+                className="donate-notes-box"
+                name="storageInstructions"
+                value={form.storageInstructions}
                 onChange={update}
-                placeholder={t("e.g. Mixed Veggie Salads, Fresh Sandwiches")}
-                required
+                placeholder={t("Example: Call before arrival, use back gate, food is in cold storage, bring large boxes, contains nuts...")}
               />
             </label>
-            <label>
-              <span className="field-label">{t("Quantity / Weight")}{' '}<span style={{ color: '#e2973c' }}>*</span></span>
-              <input
-                type="text"
-                name="quantity"
-                value={form.quantity}
-                onChange={update}
-                placeholder={t("e.g. 25 servings, 10 kg, 30 units")}
-                required
-              />
-            </label>
-          </div>
 
-          {/* Row 2: Food Category */}
-          <div className="form-row">
-            <span className="field-label">{t("Food Category")}</span>
-            <div className="category-buttons">
+            <div className="donate-hidden-options" aria-label="Food category and dietary options">
               {categories.map((cat) => (
                 <button
                   key={cat.id}
                   type="button"
-                  className={`category-btn ${selectedCategory === cat.id ? 'active' : ''}`}
+                  className={selectedCategory === cat.id ? 'active' : ''}
                   onClick={() => setSelectedCategory(cat.id)}
                 >
                   {t(cat.label)}
                 </button>
               ))}
             </div>
-          </div>
 
-          {/* Row 3: Expires + Pickup Window */}
-          <div className="form-two-col">
-            <div className="expiry-slider-container">
-              <div className="slider-label-row">
-                <span className="field-label" style={{ margin: 0 }}>{t("Expires in")}</span>
-                <span className="hours-badge">{expiresInHours} {t("hrs")}</span>
+            {formMessage && (
+              <div className={`form-notice ${formMessage.toLowerCase().includes('created') || formMessage.toLowerCase().includes('notified') ? 'success' : 'error'}`}>
+                {t(formMessage)}
               </div>
-              <input
-                type="range"
-                min="1"
-                max="48"
-                value={expiresInHours}
-                onChange={(e) => setExpiresInHours(Number(e.target.value))}
-                className="expiry-slider"
-              />
-              <div className="slider-warning">
-                <AlertTriangle size={14} />
-                <span>{t("Recommend at least 3 hours of safe buffer.")}</span>
-              </div>
-            </div>
+            )}
 
-            <div>
-              <span className="field-label">{t("Preferred Pickup Window")}{' '}<span style={{ color: '#e2973c' }}>*</span></span>
-              <div className="input-icon-wrap">
-                <Clock size={15} />
-                <input
-                  type="datetime-local"
-                  value={pickupTime}
-                  onChange={(e) => setPickupTime(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-          </div>
+            <button type="submit" className="donate-reference-submit">{t("Post Donation")}</button>
+          </form>
 
-          {/* Row 4: Pickup Location */}
-          <div className="form-row">
-            <span className="field-label">{t("Pickup Location")}{' '}<span style={{ color: '#e2973c' }}>*</span></span>
-            <div className="input-icon-wrap">
-              <MapPin size={15} />
-              <input
-                type="text"
-                name="pickupAddress"
-                value={form.pickupAddress}
-                onChange={update}
-                placeholder={t("Enter full pickup address")}
-                required
-              />
-            </div>
-            <p className="field-hint">{t("Defaults to your saved account address.")}</p>
-          </div>
-
-          {/* Row 5: Dietary Labels */}
-          <div className="form-row">
-            <span className="field-label">{t("Dietary Labels")}</span>
-            <p style={{ fontSize: '13px', color: '#98a2b3', margin: '0 0 10px' }}>{t("Select all that apply")}</p>
-            <div className="dietary-grid">
-              {dietaryLabelsList.map((label) => (
-                <button
-                  key={label}
-                  type="button"
-                  className={`dietary-pill ${selectedLabels.includes(label) ? 'active' : ''}`}
-                  onClick={() => toggleLabel(label)}
-                >
-                  {t(label)}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Row 6: Storage Instructions */}
-          <div className="form-row">
-            <span className="field-label">{t("Special Instructions / Storage Details")}</span>
-            <textarea
-              name="storageInstructions"
-              value={form.storageInstructions}
-              onChange={update}
-              placeholder={t("e.g. Keep refrigerated, ring back doorbell, packed in disposable boxes...")}
-            />
-          </div>
-
-          {/* Row 7: Image Upload */}
-          <div className="form-row">
-            <label
-              className={`upload-dropzone ${form.imageUrl ? 'has-image' : ''}`}
-              onDragOver={(event) => event.preventDefault()}
-              onDrop={handleUploadDrop}
-            >
-              {form.imageUrl ? (
-                <>
+          <aside className="donate-food-reference-side">
+            <article className="donate-photo-card">
+              <h3>{t("Food Photos")}</h3>
+              <p>{t("Visual verification helps volunteers assess and distribute food faster.")}</p>
+              <label
+                className={`donate-photo-upload ${form.imageUrl ? 'has-image' : ''}`}
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={handleUploadDrop}
+              >
+                {form.imageUrl ? (
                   <img src={form.imageUrl} alt="Uploaded food" />
-                  <span className="title">{t("Image uploaded")}</span>
-                  <span className="subtitle">{t("Click to browse another file")}</span>
-                  <button
-                    className="remove-upload"
-                    type="button"
-                    onClick={(event) => {
-                      event.preventDefault();
-                      setForm((current) => ({ ...current, imageUrl: '' }));
-                    }}
-                  >
-                    {t("Remove image")}
-                  </button>
-                </>
-              ) : (
-                <>
-                  <div className="upload-icon-container">
-                    <UploadCloud size={32} />
-                  </div>
-                  <span className="title">{t("Upload Image (Optional)")}</span>
-                  <span className="subtitle">{t("Drag and drop files here, or click to browse. Supported types: PNG, JPEG (Max 5MB)")}</span>
-                </>
-              )}
-              <div className="smart-badge">
-                <ImagePlus size={18} /> {t("Smart Auto-Image enabled based on your Selected Category!")}
+                ) : (
+                  <>
+                    <ImagePlus size={38} />
+                    <strong>{t("Click to upload")}</strong>
+                    <span>{t("SVG, PNG, JPG (max. 5MB)")}</span>
+                  </>
+                )}
+                <input type="file" accept="image/*" onChange={updateImage} />
+              </label>
+              <div className="donate-photo-thumbs">
+                <img src={form.imageUrl || categoryFallbackImages[selectedCategory]} alt="" />
+                <button type="button" onClick={() => setForm((current) => ({ ...current, imageUrl: '' }))}>
+                  <ImagePlus size={22} />
+                </button>
               </div>
-              <input type="file" accept="image/*" onChange={updateImage} style={{ display: 'none' }} />
-            </label>
-          </div>
+            </article>
 
-          {/* Form feedback */}
-          {formMessage && (
-            <div className={`form-notice ${formMessage.toLowerCase().includes('created') || formMessage.toLowerCase().includes('notified') ? 'success' : 'error'}`}>
-              {t(formMessage)}
-            </div>
-          )}
-
-          {/* Actions */}
-          <div className="form-actions-row">
-            <button
-              type="button"
-              className="btn-cancel"
-              onClick={resetDonationForm}
-            >
-              {t("Cancel")}
-            </button>
-            <button type="submit" className="btn-submit">
-              <Heart size={28} fill="currentColor" /> {t("List surplus food")}
-            </button>
-          </div>
-        </form>
+            <article className="donate-safety-card">
+              <h3><AlertTriangle size={18} /> {t("Safety First")}</h3>
+              <p><CheckCircle2 size={14} /> {t("Ensure food is stored in clean containers.")}</p>
+              <p><CheckCircle2 size={14} /> {t("Clearly mark any common allergens.")}</p>
+              <p><CheckCircle2 size={14} /> {t("Don't donate food past its expiry date.")}</p>
+            </article>
+          </aside>
+        </div>
       </section>
 
       <section className="donor-dashboard-grid" style={{ marginTop: '24px' }}>
@@ -1759,6 +1819,62 @@ function DonationTimeline({ donation }) {
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+function HomeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true">
+      <path d="M4 11.5 12 5l8 6.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-8.5Z" />
+    </svg>
+  );
+}
+
+function TrackItems({ donation }) {
+  const quantity = donation?.quantity || '24 units';
+  const title = donation?.title || 'Sourdough Loaves';
+  const items = [
+    [title, quantity],
+    ['Mixed Pastries', '12 boxes'],
+    ['Whole Wheat Flour', '15 lbs']
+  ];
+
+  return (
+    <div className="track-items-list">
+      {items.map(([label, value]) => (
+        <p key={label}><span>{label}</span><strong>{value}</strong></p>
+      ))}
+    </div>
+  );
+}
+
+function TrackProgress({ donation }) {
+  const currentStatus = donation?.status || 'picked_up';
+  const steps = [
+    ['posted', 'Donation Confirmed', 'Requested at 10:15 AM · 45.5 lbs of fresh produce'],
+    ['accepted', 'Driver Assigned', 'David M. accepted your pickup at 12:30 PM'],
+    ['pickup_scheduled', 'Out for Pickup', 'Driver is currently 2.4 miles away'],
+    ['picked_up', 'Arrival & Loading', 'Expected at 2:45 PM'],
+    ['delivered', 'Delivered', 'Food received by partner NGO']
+  ];
+  const activeIndex = Math.max(0, steps.findIndex(([status]) => status === currentStatus));
+
+  return (
+    <div className="track-progress-list">
+      {steps.map(([status, title, text], index) => {
+        const done = index <= activeIndex;
+        const active = index === activeIndex;
+        return (
+          <div className={`${done ? 'done' : ''} ${active ? 'active' : ''}`} key={status}>
+            <span>{done ? <CheckCircle2 size={16} /> : active ? <Truck size={15} /> : <MapPin size={15} />}</span>
+            <div>
+              <strong>{title}</strong>
+              <p>{text}</p>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

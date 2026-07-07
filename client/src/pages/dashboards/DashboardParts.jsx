@@ -14,7 +14,7 @@ export function DashboardShell({ eyebrow, title, children, actions }) {
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  
+
   const menuByRole = {
     donor: [
       [Grid2X2, 'Dashboard', '#dashboard-home'],
@@ -61,7 +61,7 @@ export function DashboardShell({ eyebrow, title, children, actions }) {
       [Settings, 'Settings', '#settings']
     ]
   };
-  
+
   const navItems = menuByRole[user?.role] || menuByRole.donor;
   const defaultHref = navItems[0]?.[2] || '#dashboard-home';
   const [activeHref, setActiveHref] = useState(location.hash || defaultHref);
@@ -247,7 +247,7 @@ function filterDashboardChildren(children, targetId) {
   const homeTargets = {
     'dashboard-home': 1,
     'ngo-home': 1,
-    'volunteer-home': 4,
+    'volunteer-home': 1,
     'admin-home': 3
   };
 

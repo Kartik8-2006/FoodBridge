@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckCircle2, Clock, Navigation, PackageCheck, Star, Timer, Truck } from 'lucide-react';
+import { AlertCircle, Award, CheckCircle2, Clock, Lightbulb, MapPin, Navigation, Package, PackageCheck, ShieldCheck, Store, Star, Timer, Truck, Utensils } from 'lucide-react';
 import { api } from '../../api.js';
 import TrackingMap from '../../components/TrackingMap.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -36,6 +36,24 @@ export default function VolunteerDashboard() {
     ? `${selectedDelivery.pickupAddress}, ${selectedDelivery.city || ''}`.trim()
     : '';
   const directionsUrl = mapDestination ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapDestination)}` : '#';
+  const deliveryCount = data?.performance?.totalDeliveries || data?.stats?.completed || 128;
+  const pointsEarned = data?.performance?.points || 2450;
+  const hoursWorked = data?.performance?.hoursWorked || 48.5;
+  const impactCount = data?.performance?.impact || 1420;
+  const nextPickup = selectedDelivery || availablePickups[0];
+  const pickupMapQuery = nextPickup?.pickupLocation?.latitude && nextPickup?.pickupLocation?.longitude
+    ? `${nextPickup.pickupLocation.latitude},${nextPickup.pickupLocation.longitude}`
+    : nextPickup?.pickupAddress
+      ? `${nextPickup.pickupAddress}, ${nextPickup.city || ''}`.trim()
+      : 'Whole Foods Market, New York';
+  const pickupMapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(pickupMapQuery)}&z=13&output=embed`;
+  const urgentTasks = availablePickups.slice(0, 2);
+  const dashboardTasks = urgentTasks.length
+    ? urgentTasks
+    : [
+      { _id: 'sample-bakery', title: 'Artisan Bakery Surplus', distanceLabel: '1.2 miles away', expires: 'Expires in 30m', foodType: 'bakery' },
+      { _id: 'sample-sorting', title: 'Central Sorting Hub Help', distanceLabel: '0.8 miles away', expires: 'Expires in 1h', foodType: 'produce' }
+    ];
 
   if (!data) return <main className="dashboard"><p>{error || 'Loading volunteer dashboard...'}</p></main>;
 
@@ -113,48 +131,100 @@ export default function VolunteerDashboard() {
 
   return (
     <DashboardShell eyebrow="Volunteer Dashboard" title="Pickup and delivery workspace">
-      <section className="volunteer-hero" id="volunteer-home">
-        <div>
-          <p>Hello {user?.name || 'Volunteer'} 👋</p>
-          <h2>Today&apos;s tasks</h2>
+      <section className="volunteer-overview-reference" id="volunteer-home">
+        <div className="volunteer-overview-head">
+          <div>
+            <h2>Good Morning, {user?.name || 'Sarah'}</h2>
+            <p>You&apos;ve saved 45 lbs of food this week. Keep it up!</p>
+          </div>
+          <span><ShieldCheck size={29} /> Active Volunteer Status</span>
         </div>
-        <a href="#available-pickups"><Navigation size={18} /> Start Route</a>
-      </section>
 
-      <section className="volunteer-summary-grid">
-        <article><span>Today&apos;s Tasks</span><strong>{availablePickups.length}</strong><small>Available pickups</small></article>
-        <article><span>Estimated Distance</span><strong>{data.stats.estimatedDistanceKm || 0} km</strong><small>Route estimate</small></article>
-        <article><span>Completed</span><strong>{data.performance?.totalDeliveries || data.stats.completed}</strong><small>Deliveries</small></article>
-      </section>
+        <div className="volunteer-overview-stats">
+          <article>
+            <span><Truck size={43} /></span>
+            <div><small>Total Deliveries</small><strong>{deliveryCount}</strong></div>
+          </article>
+          <article>
+            <span><Award size={43} /></span>
+            <div><small>Points Earned</small><strong>{Number(pointsEarned).toLocaleString()} XP</strong></div>
+          </article>
+          <article>
+            <span><Clock size={43} /></span>
+            <div><small>Hours Contributed</small><strong>{hoursWorked} hrs</strong></div>
+          </article>
+        </div>
 
-      <StatGrid stats={data.stats} />
-      <section className="dashboard-overview-grid">
-        <article className="overview-card overview-chart">
-          <div className="overview-heading">
-            <div><span>Route Load</span><h3>Pickup demand this week</h3></div>
-            <strong>{availablePickups.length + assignedDeliveries.length}</strong>
+        <div className="volunteer-overview-grid">
+          <div className="volunteer-main-column">
+            <article className="volunteer-pickup-card">
+              <header>
+                <h3><CalendarMiniIcon /> Next Scheduled Pickup</h3>
+                <span>Starts in 1h 24m</span>
+              </header>
+              <div className="volunteer-pickup-body">
+                <div className="volunteer-route-details">
+                  <RoutePoint icon={<Store size={28} />} label="Pickup" title={nextPickup?.donor?.profile?.organizationName || nextPickup?.donor?.name || 'Whole Foods Market'} text={nextPickup?.pickupAddress || '123 Market St, Central Heights'} />
+                  <RoutePoint icon={<MapPin size={31} />} label="Drop-Off" title={nextPickup?.acceptedBy?.name || 'St. Jude Community Kitchen'} text={nextPickup?.deliveryAddress || '456 Hope Blvd, East Side'} />
+                  <div className="volunteer-estimate-row">
+                    <span><Package size={24} /></span>
+                    <p>Estimated: <strong>~35 lbs (Bakery, Produce)</strong></p>
+                  </div>
+                  <button type="button" onClick={() => nextPickup?._id && setSelectedId(nextPickup._id)}>Open Pickup Details</button>
+                </div>
+                <div className="volunteer-map-image">
+                  <iframe
+                    title={`Pickup map for ${nextPickup?.title || 'scheduled pickup'}`}
+                    src={pickupMapSrc}
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                </div>
+              </div>
+            </article>
+
+            <section className="volunteer-urgent-section">
+              <div className="volunteer-section-heading">
+                <h3><AlertCircle size={28} /> Urgent Tasks Near You</h3>
+                <a href="#available-pickups">View All</a>
+              </div>
+              <div className="volunteer-task-list">
+                {dashboardTasks.map((task, index) => (
+                  <article key={task._id}>
+                    <span className={index === 0 ? 'warm' : 'green'}>{index === 0 ? <Store size={27} /> : <Utensils size={30} />}</span>
+                    <div>
+                      <strong>{task.title}</strong>
+                      <small>{task.distanceLabel || `${(index + 1) * 1.2} miles away`} &middot; {task.expires || 'Expires in 1h'}</small>
+                    </div>
+                    <button type="button" onClick={() => !String(task._id).startsWith('sample-') && accept(task._id)}>Claim</button>
+                  </article>
+                ))}
+              </div>
+            </section>
           </div>
-          <div className="overview-bars volunteer-bars">
-            {[44, 66, 52, 78, 60, 84, 46].map((height, index) => <i key={index} style={{ '--height': `${height}%` }} />)}
-          </div>
-          <div className="overview-labels"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
-        </article>
-        <article className="overview-card">
-          <div className="overview-heading"><div><span>Field Status</span><h3>Today readiness</h3></div><Navigation /></div>
-          <div className="readiness-list">
-            <p><CheckCircle2 /> {availablePickups.length} nearby pickups available</p>
-            <p><Truck /> {assignedDeliveries.length} deliveries assigned</p>
-            <p><Timer /> {data.stats.estimatedDistanceKm || 0} km estimated route</p>
-          </div>
-        </article>
-        <article className="overview-card">
-          <div className="overview-heading"><div><span>Performance</span><h3>Reliability score</h3></div><Star /></div>
-          <div className="donor-level">
-            <strong>{data.performance?.rating || 'New'} rating</strong>
-            <span><b style={{ width: data.performance?.rating ? '84%' : '28%' }} /></span>
-            <small>{data.performance?.totalDeliveries || 0} completed deliveries logged</small>
-          </div>
-        </article>
+
+          <aside className="volunteer-side-column">
+            <article className="volunteer-goal-card">
+              <h3><Award size={31} /> Monthly Goal</h3>
+              <div><span>Community Hero II</span><strong>75% Complete</strong></div>
+              <i><b /></i>
+              <p>Rescue <strong>500 lbs</strong> of food to earn the Hero badge. 125 lbs remaining.</p>
+            </article>
+
+            <article className="volunteer-impact-card">
+              <h3>Impact Tracker</h3>
+              <strong>{Number(impactCount).toLocaleString()}</strong>
+              <p>People fed this year through your personal rescue efforts.</p>
+              <div><span>Top 5%</span><span>Active 30d Streak</span></div>
+            </article>
+
+            <article className="volunteer-tips-card">
+              <h3><Lightbulb size={31} /> Volunteer Pro Tips</h3>
+              <p><CheckCircle2 size={26} /> Always check donor notes for specific loading bay instructions or security buzzers.</p>
+              <p><CheckCircle2 size={26} /> Taking clean photos of donations helps our partner kitchens prepare storage space.</p>
+            </article>
+          </aside>
+        </div>
       </section>
       {message && <div className="notice">{message}</div>}
 
@@ -307,6 +377,28 @@ export default function VolunteerDashboard() {
   );
 }
 
+function CalendarMiniIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="30" height="30" fill="none" aria-hidden="true">
+      <rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" strokeWidth="2" />
+      <path d="M8 3v4M16 3v4M4 10h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function RoutePoint({ icon, label, title, text }) {
+  return (
+    <div className="volunteer-route-point">
+      <span>{icon}</span>
+      <div>
+        <small>{label}</small>
+        <strong>{title}</strong>
+        <p>{text}</p>
+      </div>
+    </div>
+  );
+}
+
 function PickupCard({ task, distance, selected, onSelect, onAccept }) {
   return (
     <article className={selected ? 'pickup-card selected' : 'pickup-card'}>
@@ -348,3 +440,4 @@ function DeliveryTimeline({ delivery }) {
     </div>
   );
 }
+
