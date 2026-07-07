@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, ArrowRight, Award, CheckCircle2, Clock, Heart, HeartPulse, ImagePlus, Leaf, MapPin, Navigation, Package, Phone, Plus, ShieldCheck, ShoppingCart, Trash2, UploadCloud, UserCheck, Users, Utensils, X } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Award, Bell, CheckCircle2, ChevronDown, ChevronUp, Clock, Edit2, Eye, EyeOff, Globe, Heart, HeartHandshake, HeartPulse, HelpCircle, ImagePlus, Info, Languages, Leaf, Lock, Mail, MapPin, MessageSquare, Navigation, Package, Phone, Plus, Save, Send, Shield, ShieldCheck, ShoppingCart, Star, ClipboardList, Trash2, Truck, Upload, UploadCloud, User, UserCheck, UserX, Users, Utensils, X } from 'lucide-react';
 import { api } from '../../api.js';
 import TrackingMap from '../../components/TrackingMap.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -61,9 +61,66 @@ const initialForm = {
   imageUrl: ''
 };
 
+const mockHistoryList = [
+  {
+    createdAt: new Date('2024-10-24T14:20:00').toISOString(),
+    title: 'Fresh Sandwiches',
+    quantity: '25 Units',
+    acceptedBy: { name: 'City Hope Shelter' },
+    feedback: 'Timely & high quality',
+    rating: 5,
+    foodType: 'cooked'
+  },
+  {
+    createdAt: new Date('2024-10-21T09:15:00').toISOString(),
+    title: 'Assorted Pastries',
+    quantity: '15 KG',
+    acceptedBy: { name: 'Global Relief Org' },
+    feedback: 'Efficient pickup',
+    rating: 4,
+    foodType: 'bakery'
+  },
+  {
+    createdAt: new Date('2024-10-18T18:45:00').toISOString(),
+    title: 'Cooked Rice & Dal',
+    quantity: '40 Pax',
+    acceptedBy: { name: 'Green Valley Volunteer' },
+    feedback: 'Highly appreciated!',
+    rating: 5,
+    foodType: 'cooked'
+  },
+  {
+    createdAt: new Date('2024-10-15T11:30:00').toISOString(),
+    title: 'Fruit Baskets',
+    quantity: '12 Boxes',
+    acceptedBy: { name: 'City Hope Shelter' },
+    feedback: 'Very fresh fruit!',
+    rating: 5,
+    foodType: 'produce'
+  },
+  {
+    createdAt: new Date('2024-10-12T16:00:00').toISOString(),
+    title: 'Mixed Vegetable Curry',
+    quantity: '30 Servings',
+    acceptedBy: { name: 'Global Relief Org' },
+    feedback: 'Delicious and hot',
+    rating: 5,
+    foodType: 'cooked'
+  },
+  {
+    createdAt: new Date('2024-10-09T08:00:00').toISOString(),
+    title: 'Bread Rolls',
+    quantity: '50 Units',
+    acceptedBy: { name: 'Green Valley Volunteer' },
+    feedback: 'Great distribution',
+    rating: 4,
+    foodType: 'bakery'
+  }
+];
+
 export default function DonorDashboard() {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
   const { data, error, refresh } = useDashboardData();
   const [form, setForm] = useState(initialForm);
   const [selectedDonationId, setSelectedDonationId] = useState('');
@@ -77,6 +134,145 @@ export default function DonorDashboard() {
   const [expiresInHours, setExpiresInHours] = useState(4);
   const [pickupTime, setPickupTime] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const [historyPage, setHistoryPage] = useState(1);
+  const [notificationsList, setNotificationsList] = useState([
+    {
+      id: 1,
+      type: 'pickup',
+      title: 'Donation Picked Up',
+      time: '10:45 AM',
+      message: 'Your donation of 50 Meals has been successfully collected by our logistics partner. It\'s on its way to the downtown shelter.',
+      boldText: '50 Meals',
+      category: 'today',
+      unread: false,
+      buttons: [
+        { label: 'Track Delivery', style: 'dark', action: 'track' },
+        { label: 'View Details', style: 'outline', action: 'details' }
+      ]
+    },
+    {
+      id: 2,
+      type: 'request',
+      title: 'NGO Requesting Food',
+      time: '8:20 AM',
+      message: 'City Outreach Center has an urgent need for non-perishable goods in your area. Can you help today?',
+      boldText: 'City Outreach Center',
+      category: 'today',
+      unread: true,
+      accentBorder: true,
+      buttons: [
+        { label: 'Respond Now', style: 'primary', action: 'respond' }
+      ]
+    },
+    {
+      id: 3,
+      type: 'volunteer',
+      title: 'Volunteer Assigned',
+      time: 'Yesterday',
+      message: 'Volunteer Sarah Jenkins has been assigned to your scheduled pickup tomorrow at 2:00 PM.',
+      boldText: 'Sarah Jenkins',
+      category: 'yesterday',
+      unread: false
+    },
+    {
+      id: 4,
+      type: 'milestone',
+      title: 'Milestone Reached!',
+      time: 'Yesterday',
+      message: 'Congratulations! You\'ve officially donated over 100kg of fresh produce this year. Check out your updated impact report.',
+      boldText: '100kg',
+      category: 'yesterday',
+      unread: false
+    }
+  ]);
+
+  const handleMarkAllRead = () => {
+    setNotificationsList(prev => prev.map(item => ({ ...item, unread: false })));
+  };
+
+  const handleNotificationAction = (item, btn) => {
+    if (btn.action === 'track') {
+      const element = document.getElementById('track-donations');
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        alert(t('Tracking delivery details...'));
+      }
+    } else if (btn.action === 'details') {
+      alert(t('Loading donation details...'));
+    } else if (btn.action === 'respond') {
+      const element = document.getElementById('donate-food');
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        alert(t('Opening food donation response form...'));
+      }
+    }
+  };
+
+  const [profileForm, setProfileForm] = useState({
+    name: user?.name || 'Alexander Bennett',
+    email: user?.email || 'alexander.b@harvestgate.c',
+    phone: user?.profile?.phone || '+1 (555) 123-4567',
+    accountType: 'Restaurant',
+    address: user?.profile?.address || '742 Evergreen Terrace, Springfield, IL 62704'
+  });
+  const [profileNotice, setProfileNotice] = useState('');
+
+  const updateProfileField = (e) => {
+    const { name, value } = e.target;
+    setProfileForm(current => ({ ...current, [name]: value }));
+  };
+
+  const handleProfileSave = (e) => {
+    e.preventDefault();
+    setProfileNotice(t('Profile settings saved successfully!'));
+    setTimeout(() => setProfileNotice(''), 3000);
+  };
+
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [smsAlerts, setSmsAlerts] = useState(false);
+  const [sysAnnouncements, setSysAnnouncements] = useState(true);
+
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+
+  const [securityNotice, setSecurityNotice] = useState('');
+  const [securityError, setSecurityError] = useState('');
+  const [settingsNotice, setSettingsNotice] = useState('');
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    setSecurityNotice('');
+    setSecurityError('');
+
+    if (newPassword !== confirmNewPassword) {
+      setSecurityError(t('Confirm password does not match new password'));
+      return;
+    }
+
+    try {
+      const res = await api('/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword })
+      });
+      setSecurityNotice(t(res.message || 'Password changed successfully'));
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmNewPassword('');
+    } catch (err) {
+      setSecurityError(t(err.message || 'Failed to change password'));
+    }
+  };
+
+  const handleSettingsSave = (e) => {
+    if (e) e.preventDefault();
+    setSettingsNotice(t('Platform preferences saved successfully!'));
+    setTimeout(() => setSettingsNotice(''), 3000);
+  };
 
   const donations = data?.donations || [];
   const selectedDonation = donations.find((item) => item._id === selectedDonationId) || donations[0];
@@ -261,7 +457,7 @@ export default function DonorDashboard() {
       setSelectedCategory('cooked');
       setSelectedLabels([]);
       setExpiresInHours(4);
-      
+
       const defaultPickupTime = new Date(Date.now() + 60 * 60 * 1000);
       defaultPickupTime.setMinutes(0, 0, 0);
       setPickupTime(formatDateTimeLocal(defaultPickupTime));
@@ -401,7 +597,7 @@ export default function DonorDashboard() {
             const displayTitle = donation.title.includes(donation.quantity)
               ? donation.title
               : `${donation.title} (${donation.quantity})`;
-            
+
             let badgeClass = 'pending';
             let badgeText = t('Pending Approval');
             if (donation.status === 'accepted') {
@@ -424,11 +620,11 @@ export default function DonorDashboard() {
                   <span className={`card-badge ${badgeClass}`}>{badgeText}</span>
                   <img src={displayImage} alt={donation.title} />
                 </div>
-                
+
                 <div className="card-content-premium">
                   <span className="card-id-premium">{t("ID: ")}{cardId}</span>
                   <h3 className="card-title-premium">{displayTitle}</h3>
-                  
+
                   <div className="card-details-list">
                     <div className="card-detail-item">
                       <Clock size={16} />
@@ -467,7 +663,7 @@ export default function DonorDashboard() {
                     <button className="btn-delete-trash" type="button" onClick={() => cancelDonation(donation._id)} title={t("Cancel Donation")}>
                       <Trash2 size={18} />
                     </button>
-                    
+
                     <div className="card-action-buttons-right">
                       {['pickup_scheduled', 'picked_up'].includes(donation.status) ? (
                         <>
@@ -510,7 +706,7 @@ export default function DonorDashboard() {
               <h2>{selectedDonation?.title || t('No donation selected')}</h2>
             </div>
           </div>
-            <div className="tracking-stack">
+          <div className="tracking-stack">
             <DonationTimeline donation={selectedDonation} />
             <TrackingMap donation={selectedDonation} />
           </div>
@@ -521,30 +717,30 @@ export default function DonorDashboard() {
       <section className="surplus-food-section" id="donate-food">
         <h2>{t("Surplus Food Donation")}</h2>
         <p className="sub">{t("Fill out the details below to share your surplus food. Make sure it's fresh and safe for consumption.")}</p>
-        
+
         <form onSubmit={submitDonation}>
           {/* Row 1: Title + Quantity */}
           <div className="form-two-col">
             <label>
               <span className="field-label">{t("What are you donating?")}{' '}<span style={{ color: '#e2973c' }}>*</span></span>
-              <input 
+              <input
                 type="text"
-                name="title" 
-                value={form.title} 
-                onChange={update} 
-                placeholder={t("e.g. Mixed Veggie Salads, Fresh Sandwiches")} 
-                required 
+                name="title"
+                value={form.title}
+                onChange={update}
+                placeholder={t("e.g. Mixed Veggie Salads, Fresh Sandwiches")}
+                required
               />
             </label>
             <label>
               <span className="field-label">{t("Quantity / Weight")}{' '}<span style={{ color: '#e2973c' }}>*</span></span>
-              <input 
+              <input
                 type="text"
-                name="quantity" 
-                value={form.quantity} 
-                onChange={update} 
-                placeholder={t("e.g. 25 servings, 10 kg, 30 units")} 
-                required 
+                name="quantity"
+                value={form.quantity}
+                onChange={update}
+                placeholder={t("e.g. 25 servings, 10 kg, 30 units")}
+                required
               />
             </label>
           </div>
@@ -573,12 +769,12 @@ export default function DonorDashboard() {
                 <span className="field-label" style={{ margin: 0 }}>{t("Expires in")}</span>
                 <span className="hours-badge">{expiresInHours} {t("hrs")}</span>
               </div>
-              <input 
-                type="range" 
-                min="1" 
-                max="48" 
-                value={expiresInHours} 
-                onChange={(e) => setExpiresInHours(Number(e.target.value))} 
+              <input
+                type="range"
+                min="1"
+                max="48"
+                value={expiresInHours}
+                onChange={(e) => setExpiresInHours(Number(e.target.value))}
                 className="expiry-slider"
               />
               <div className="slider-warning">
@@ -591,10 +787,10 @@ export default function DonorDashboard() {
               <span className="field-label">{t("Preferred Pickup Window")}{' '}<span style={{ color: '#e2973c' }}>*</span></span>
               <div className="input-icon-wrap">
                 <Clock size={15} />
-                <input 
-                  type="datetime-local" 
-                  value={pickupTime} 
-                  onChange={(e) => setPickupTime(e.target.value)} 
+                <input
+                  type="datetime-local"
+                  value={pickupTime}
+                  onChange={(e) => setPickupTime(e.target.value)}
                   required
                 />
               </div>
@@ -606,13 +802,13 @@ export default function DonorDashboard() {
             <span className="field-label">{t("Pickup Location")}{' '}<span style={{ color: '#e2973c' }}>*</span></span>
             <div className="input-icon-wrap">
               <MapPin size={15} />
-              <input 
+              <input
                 type="text"
-                name="pickupAddress" 
-                value={form.pickupAddress} 
-                onChange={update} 
-                placeholder={t("Enter full pickup address")} 
-                required 
+                name="pickupAddress"
+                value={form.pickupAddress}
+                onChange={update}
+                placeholder={t("Enter full pickup address")}
+                required
               />
             </div>
             <p className="field-hint">{t("Defaults to your saved account address.")}</p>
@@ -639,11 +835,11 @@ export default function DonorDashboard() {
           {/* Row 6: Storage Instructions */}
           <div className="form-row">
             <span className="field-label">{t("Special Instructions / Storage Details")}</span>
-            <textarea 
-              name="storageInstructions" 
-              value={form.storageInstructions} 
-              onChange={update} 
-              placeholder={t("e.g. Keep refrigerated, ring back doorbell, packed in disposable boxes...")} 
+            <textarea
+              name="storageInstructions"
+              value={form.storageInstructions}
+              onChange={update}
+              placeholder={t("e.g. Keep refrigerated, ring back doorbell, packed in disposable boxes...")}
             />
           </div>
 
@@ -695,9 +891,9 @@ export default function DonorDashboard() {
 
           {/* Actions */}
           <div className="form-actions-row">
-            <button 
-              type="button" 
-              className="btn-cancel" 
+            <button
+              type="button"
+              className="btn-cancel"
               onClick={resetDonationForm}
             >
               {t("Cancel")}
@@ -725,61 +921,824 @@ export default function DonorDashboard() {
         </article>
       </section>
 
-      <section className="donor-dashboard-grid">
-        <article className="donor-panel" id="donation-history">
-          <div className="panel-heading">
-            <div>
-              <p className="dashboard-kicker">{t("Donation History")}</p>
-              <h2>{t("Completed and closed donations")}</h2>
+      <section className="donor-history-page" id="donation-history">
+        <div className="history-header-row">
+          <div className="history-header-text">
+            <h2>{t("Donation History")}</h2>
+            <p>{t("Review your past contributions and their impact.")}</p>
+          </div>
+          <div className="history-filters">
+            <div className="date-range-picker">
+              <input type="date" className="filter-date-input" />
+              <span>—</span>
+              <input type="date" className="filter-date-input" />
+            </div>
+            <button className="btn-apply-filters" type="button">
+              {t("Apply Filters")}
+            </button>
+          </div>
+        </div>
+
+        {/* Stats Row */}
+        <div className="history-stats-grid">
+          <div className="hist-stat-card">
+            <div className="stat-card-icon-wrap icon-brown">
+              <Heart size={20} fill="currentColor" />
+            </div>
+            <div className="stat-card-info">
+              <span className="stat-card-label">{t("Total Donations")}</span>
+              <strong className="stat-card-val">{donationHistory.length || 48}</strong>
             </div>
           </div>
-          <div className="history-list">
-            {(donationHistory.length ? donationHistory : donations).map((donation) => (
-              <div key={donation._id}>
-                <strong>{donation.title}</strong>
-                <span>{t(titleCase(donation.status))} · {formatDate(donation.safeBefore)}</span>
-                <button type="button" onClick={() => setSelectedDonationId(donation._id)}>{t("View Details")}</button>
+          <div className="hist-stat-card">
+            <div className="stat-card-icon-wrap icon-green">
+              <Utensils size={20} />
+            </div>
+            <div className="stat-card-info">
+              <span className="stat-card-label">{t("Meals Provided")}</span>
+              <strong className="stat-card-val">{totalMeals || 120}</strong>
+            </div>
+          </div>
+          <div className="hist-stat-card">
+            <div className="stat-card-icon-wrap icon-blue">
+              <Users size={20} />
+            </div>
+            <div className="stat-card-info">
+              <span className="stat-card-label">{t("Partner NGOs")}</span>
+              <strong className="stat-card-val">{12}</strong>
+            </div>
+          </div>
+          <div className="hist-stat-card">
+            <div className="stat-card-icon-wrap icon-amber">
+              <Star size={20} fill="currentColor" />
+            </div>
+            <div className="stat-card-info">
+              <span className="stat-card-label">{t("Avg. Feedback")}</span>
+              <strong className="stat-card-val">4.9</strong>
+            </div>
+          </div>
+        </div>
+
+        {/* Premium Table Card */}
+        <div className="history-table-card">
+          <div className="history-table-wrapper">
+            <table className="history-data-table">
+              <thead>
+                <tr>
+                  <th>{t("DATE")}</th>
+                  <th>{t("FOOD ITEM")}</th>
+                  <th>{t("QUANTITY")}</th>
+                  <th>{t("RECIPIENT (NGO/VOLUNTEER)")}</th>
+                  <th>{t("RATING/FEEDBACK")}</th>
+                  <th style={{ textAlign: 'right' }}>{t("ACTIONS")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(() => {
+                  const historyList = donationHistory.length ? donationHistory : mockHistoryList;
+                  const itemsPerPage = 3;
+                  const totalPages = Math.ceil(historyList.length / itemsPerPage) || 1;
+                  const currentHistoryPage = Math.min(historyPage, totalPages);
+                  const startIndex = (currentHistoryPage - 1) * itemsPerPage;
+                  const paginatedList = historyList.slice(startIndex, startIndex + itemsPerPage);
+
+                  return paginatedList.map((item, idx) => {
+                    const stars = item.rating || 5;
+                    return (
+                      <tr key={idx}>
+                        <td className="hist-date-cell">
+                          <span className="date-day">{new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                          <span className="date-time">{new Date(item.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+                        </td>
+                        <td className="hist-item-cell">
+                          <div className="food-item-name">
+                            <span className="food-icon-wrap">
+                              <Utensils size={16} />
+                            </span>
+                            <span className="food-title">{item.title}</span>
+                          </div>
+                        </td>
+                        <td>
+                          <span className="hist-qty-pill">{item.quantity}</span>
+                        </td>
+                        <td className="hist-recipient-cell">
+                          <div className="recipient-info">
+                            <span className="green-check-dot">✓</span>
+                            <span>{item.acceptedBy?.name || item.assignedVolunteer?.name || t("Delivered to Hub")}</span>
+                          </div>
+                        </td>
+                        <td className="hist-rating-cell">
+                          <div className="rating-stars-row">
+                            {[...Array(5)].map((_, i) => (
+                              <Star key={i} size={13} className={i < stars ? 'star-gold' : 'star-gray'} fill="currentColor" />
+                            ))}
+                          </div>
+                          {item.feedback && <span className="comment-text">"{item.feedback}"</span>}
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          <button
+                            className="btn-hist-action"
+                            type="button"
+                            onClick={() => setSelectedDonationId(item._id)}
+                            title={t("View Details")}
+                          >
+                            <ClipboardList size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  });
+                })()}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Table Footer / Pagination */}
+          <div className="history-table-footer">
+            {(() => {
+              const historyList = donationHistory.length ? donationHistory : mockHistoryList;
+              const itemsPerPage = 3;
+              const totalPages = Math.ceil(historyList.length / itemsPerPage) || 1;
+              const currentHistoryPage = Math.min(historyPage, totalPages);
+              const startCount = (currentHistoryPage - 1) * itemsPerPage + 1;
+              const endCount = Math.min(currentHistoryPage * itemsPerPage, historyList.length);
+
+              return (
+                <>
+                  <span className="footer-entries-count">
+                    {t(`Showing ${startCount} to ${endCount} of ${historyList.length} entries`)}
+                  </span>
+                  <div className="history-pagination">
+                    <button
+                      className="btn-pag-nav"
+                      type="button"
+                      disabled={currentHistoryPage === 1}
+                      onClick={() => setHistoryPage(p => Math.max(1, p - 1))}
+                    >
+                      ‹
+                    </button>
+                    {[...Array(totalPages)].map((_, pageIdx) => {
+                      const pNum = pageIdx + 1;
+                      return (
+                        <button
+                          key={pNum}
+                          className={`btn-pag-num${currentHistoryPage === pNum ? ' active' : ''}`}
+                          type="button"
+                          onClick={() => setHistoryPage(pNum)}
+                        >
+                          {pNum}
+                        </button>
+                      );
+                    })}
+                    <button
+                      className="btn-pag-nav"
+                      type="button"
+                      disabled={currentHistoryPage === totalPages}
+                      onClick={() => setHistoryPage(p => Math.min(totalPages, p + 1))}
+                    >
+                      ›
+                    </button>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        </div>
+
+        {/* Bottom details row (Category Distribution + Banner Row) */}
+        <div className="history-bottom-layout">
+          <div className="hist-distribution-card">
+            <h3>{t("Category Distribution")}</h3>
+            <div className="dist-list">
+              <div className="dist-item">
+                <div className="dist-label-row">
+                  <span>{t("Perishables")}</span>
+                  <span>65%</span>
+                </div>
+                <div className="progress-bar-wrap">
+                  <span className="progress-fill" style={{ width: '65%', background: '#e2973c' }} />
+                </div>
               </div>
-            ))}
-          </div>
-        </article>
-
-        <article className="donor-panel">
-          <div className="panel-heading">
-            <div>
-              <p className="dashboard-kicker">{t("Recent Activity")}</p>
-              <h2>{t("Timeline")}</h2>
+              <div className="dist-item">
+                <div className="dist-label-row">
+                  <span>{t("Packed / Canned")}</span>
+                  <span>20%</span>
+                </div>
+                <div className="progress-bar-wrap">
+                  <span className="progress-fill" style={{ width: '20%', background: '#4b525d' }} />
+                </div>
+              </div>
+              <div className="dist-item">
+                <div className="dist-label-row">
+                  <span>{t("Bakery / Bread")}</span>
+                  <span>15%</span>
+                </div>
+                <div className="progress-bar-wrap">
+                  <span className="progress-fill" style={{ width: '15%', background: '#ebdcd0' }} />
+                </div>
+              </div>
             </div>
           </div>
-          <ActivityTimeline donation={selectedDonation} />
-        </article>
+
+          <div className="hist-banner-card">
+            <img src="https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=600&q=80" alt="Food donation impact community support" />
+            <div className="banner-overlay-premium">
+              <h4>{t("ReliefShare Community")}</h4>
+              <p>{t("Your contributions support local shelters daily.")}</p>
+            </div>
+          </div>
+        </div>
       </section>
 
-      <section id="notifications"><NotificationList items={data.notifications} /></section>
+      {/* ── Redesigned Premium Notifications Section ── */}
+      <section className="notif-page" id="notifications">
+        
+        {/* Header Row */}
+        <div className="notif-header">
+          <div className="notif-header-text">
+            <h2>{t('Notifications')}</h2>
+            <p>{t('Stay updated on your impact and logistics.')}</p>
+          </div>
+          <button 
+            type="button" 
+            className="notif-mark-read"
+            onClick={handleMarkAllRead}
+          >
+            {t('Mark all as read')}
+          </button>
+        </div>
 
-      <section className="donor-dashboard-grid">
-        <article className="donor-panel" id="profile">
-          <div className="panel-heading"><div><p className="dashboard-kicker">{t("Profile")}</p><h2>{t("Donor identity")}</h2></div><ShieldCheck size={20} /></div>
-          <div className="profile-detail-grid">
-            <div><UserCheck size={18} /><span>Name</span><strong>{user?.name}</strong></div>
-            <div><Phone size={18} /><span>Phone</span><strong>{user?.profile?.phone || t('Phone not added')}</strong></div>
-            <div><MapPin size={18} /><span>City</span><strong>{user?.profile?.city || t('City not added')}</strong></div>
-            <div><HeartPulse size={18} /><span>Impact score</span><strong>{quickStats[2]?.[1] || 0} meals</strong></div>
+        {/* TODAY Section */}
+        <div className="notif-group-container">
+          <div className="notif-group-title">{t('TODAY')}</div>
+          <div className="notif-list">
+            {notificationsList.filter(item => item.category === 'today').map(item => {
+              const parts = item.message.split(item.boldText);
+              return (
+                <div 
+                  key={item.id} 
+                  className={`notif-card ${item.unread ? 'unread' : ''} ${item.accentBorder ? 'accent-border' : ''}`}
+                >
+                  <div className="notif-card-inner">
+                    {/* Left Icon */}
+                    <div className={`notif-icon-wrap icon-${item.type}`}>
+                      {item.type === 'pickup' && <Truck size={20} />}
+                      {item.type === 'request' && <HeartHandshake size={20} />}
+                      {item.type === 'volunteer' && <User size={20} />}
+                      {item.type === 'milestone' && <Award size={20} />}
+                    </div>
+
+                    {/* Content Area */}
+                    <div className="notif-content">
+                      <div className="notif-top-row">
+                        <h4 className="notif-card-title">
+                          {t(item.title)}
+                          {item.unread && <span className="notif-unread-dot" />}
+                        </h4>
+                        <span className="notif-time">{item.time}</span>
+                      </div>
+
+                      <p className="notif-message">
+                        {parts[0]}
+                        <strong>{item.boldText}</strong>
+                        {parts[1]}
+                      </p>
+
+                      {/* Interactive Buttons */}
+                      {item.buttons && item.buttons.length > 0 && (
+                        <div className="notif-btn-row">
+                          {item.buttons.map((btn, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              className={`btn-notif-${btn.style}`}
+                              onClick={() => handleNotificationAction(item, btn)}
+                            >
+                              {t(btn.label)}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-          <div className="profile-completion"><span><b style={{ width: '78%' }} /></span><small>Profile 78% complete. Add alternate pickup contact to improve partner response.</small></div>
-        </article>
-        <article className="donor-panel" id="settings">
-          <div className="panel-heading"><div><p className="dashboard-kicker">{t("Settings")}</p><h2>{t("Donation preferences")}</h2></div></div>
-          <div className="settings-grid">
-            <label><span>Auto notify nearby NGOs</span><input type="checkbox" defaultChecked /></label>
-            <label><span>SMS pickup reminders</span><input type="checkbox" defaultChecked /></label>
-            <label><span>Require volunteer ID check</span><input type="checkbox" defaultChecked /></label>
-            <label><span>Weekly impact report</span><input type="checkbox" /></label>
+        </div>
+
+        {/* YESTERDAY Section */}
+        <div className="notif-group-container" style={{ marginTop: '28px' }}>
+          <div className="notif-group-title">{t('YESTERDAY')}</div>
+          <div className="notif-list">
+            {notificationsList.filter(item => item.category === 'yesterday').map(item => {
+              const parts = item.message.split(item.boldText);
+              return (
+                <div 
+                  key={item.id} 
+                  className={`notif-card ${item.unread ? 'unread' : ''}`}
+                >
+                  <div className="notif-card-inner">
+                    {/* Left Icon */}
+                    <div className={`notif-icon-wrap icon-${item.type}`}>
+                      {item.type === 'pickup' && <Truck size={20} />}
+                      {item.type === 'request' && <HeartHandshake size={20} />}
+                      {item.type === 'volunteer' && <User size={20} />}
+                      {item.type === 'milestone' && <Award size={20} />}
+                    </div>
+
+                    {/* Content Area */}
+                    <div className="notif-content">
+                      <div className="notif-top-row">
+                        <h4 className="notif-card-title">{t(item.title)}</h4>
+                        <span className="notif-time">{t(item.time)}</span>
+                      </div>
+
+                      <p className="notif-message">
+                        {parts[0]}
+                        <strong>{item.boldText}</strong>
+                        {parts[1]}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-          <div className="settings-note"><ShieldCheck size={18} /> Safety checks and pickup rules are synced with backend donation status updates.</div>
-        </article>
+        </div>
+
+        {/* Footer */}
+        <div className="notif-footer">
+          <button className="btn-notif-load-more" type="button">
+            {t('Load Older Notifications')}
+          </button>
+        </div>
       </section>
+
+      {/* ── Redesigned Premium Profile Settings Section ── */}
+      <section className="prof-page" id="profile" data-dashboard-section="profile">
+        <ProfileSettingsPanel 
+          profileForm={profileForm}
+          updateProfileField={updateProfileField}
+          profileNotice={profileNotice}
+          handleProfileSave={handleProfileSave}
+          t={t}
+        />
+      </section>
+
+      {/* ── Redesigned Premium Settings Section (Matches Mockup Image) ── */}
+      <section className="sett-page" id="settings" data-dashboard-section="settings">
+        {/* Title Header */}
+        <div className="sett-header">
+          <div className="sett-header-text">
+            <h2>{t('Platform Settings')}</h2>
+            <p>{t('Manage your account preferences, notifications, and security settings.')}</p>
+          </div>
+          <button type="button" className="btn-sett-save-top" onClick={handleSettingsSave}>
+            <Save size={16} />
+            <span>{t('Save Changes')}</span>
+          </button>
+        </div>
+
+        {settingsNotice && (
+          <div className="sett-notice-success">
+            {settingsNotice}
+          </div>
+        )}
+
+        {/* Main Two-Column Row */}
+        <div className="sett-grid-two-col">
+          {/* Notifications Card */}
+          <div className="sett-card">
+            <div className="sett-card-header">
+              <div className="sett-icon-square icon-orange">
+                <Bell size={20} />
+              </div>
+              <h3>{t('Notifications')}</h3>
+            </div>
+
+            <div className="sett-notif-list">
+              {/* Row 1 */}
+              <div className="sett-notif-row">
+                <div className="sett-notif-text">
+                  <strong>{t('Email Notifications')}</strong>
+                  <span>{t('Receive impact reports and donation updates')}</span>
+                </div>
+                <label className="sett-switch" htmlFor="email-notif-toggle">
+                  <input 
+                    type="checkbox" 
+                    id="email-notif-toggle"
+                    checked={emailNotifications} 
+                    onChange={(e) => setEmailNotifications(e.target.checked)} 
+                  />
+                  <span className="sett-slider" />
+                </label>
+              </div>
+
+              {/* Row 2 */}
+              <div className="sett-notif-row">
+                <div className="sett-notif-text">
+                  <strong>{t('SMS Alerts')}</strong>
+                  <span>{t('Real-time pickup confirmations and urgent requests')}</span>
+                </div>
+                <label className="sett-switch" htmlFor="sms-alerts-toggle">
+                  <input 
+                    type="checkbox" 
+                    id="sms-alerts-toggle"
+                    checked={smsAlerts} 
+                    onChange={(e) => setSmsAlerts(e.target.checked)} 
+                  />
+                  <span className="sett-slider" />
+                </label>
+              </div>
+
+              {/* Row 3 */}
+              <div className="sett-notif-row">
+                <div className="sett-notif-text">
+                  <strong>{t('System Announcements')}</strong>
+                  <span>{t('New platform features and community news')}</span>
+                </div>
+                <label className="sett-switch" htmlFor="sys-ann-toggle">
+                  <input 
+                    type="checkbox" 
+                    id="sys-ann-toggle"
+                    checked={sysAnnouncements} 
+                    onChange={(e) => setSysAnnouncements(e.target.checked)} 
+                  />
+                  <span className="sett-slider" />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Language Card */}
+          <div className="sett-card">
+            <div className="sett-card-header">
+              <div className="sett-icon-square icon-gray">
+                <Languages size={20} />
+              </div>
+              <h3>{t('Language')}</h3>
+            </div>
+
+            <div className="sett-lang-content">
+              <p className="sett-lang-lbl">{t('Select your preferred platform language')}</p>
+              
+              <div className="sett-select-wrap">
+                <select 
+                  value={language} 
+                  onChange={(e) => setLanguage(e.target.value)}
+                  className="sett-select"
+                >
+                  <option value="en">English (United States)</option>
+                  <option value="hi">Hindi (हिंदी)</option>
+                </select>
+              </div>
+
+              <div className="sett-lang-info-banner">
+                <Info size={18} />
+                <span>{t('Changing language will reload the dashboard.')}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Security & Password Card (Full Width) */}
+        <div className="sett-card full-width-card">
+          <div className="sett-card-header-between">
+            <div className="sett-card-header">
+              <div className="sett-icon-square icon-dark">
+                <Shield size={20} />
+              </div>
+              <h3>{t('Security & Password')}</h3>
+            </div>
+            <div className="sett-security-badge">
+              <span className="sett-badge-dot" />
+              <span>{t('Last changed 3 months ago')}</span>
+            </div>
+          </div>
+
+          <form onSubmit={handleChangePassword} className="sett-security-form">
+            <div className="sett-security-inputs">
+              {/* Current Password */}
+              <div className="sett-field">
+                <span className="sett-field-label">{t('CURRENT PASSWORD')}</span>
+                <div className="sett-input-with-eye">
+                  <input 
+                    type={showCurrentPassword ? "text" : "password"} 
+                    placeholder="••••••••" 
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    required
+                  />
+                  <button 
+                    type="button" 
+                    className="sett-eye-btn"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                  >
+                    {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* New Password */}
+              <div className="sett-field">
+                <span className="sett-field-label">{t('NEW PASSWORD')}</span>
+                <input 
+                  type="password" 
+                  placeholder={t("Enter new password")}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                />
+              </div>
+
+              {/* Confirm New Password */}
+              <div className="sett-field">
+                <span className="sett-field-label">{t('CONFIRM NEW PASSWORD')}</span>
+                <input 
+                  type="password" 
+                  placeholder={t("Re-type new password")}
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            {securityNotice && (
+              <div className="sett-sec-notice-success">
+                {securityNotice}
+              </div>
+            )}
+
+            {securityError && (
+              <div className="sett-sec-notice-error">
+                {securityError}
+              </div>
+            )}
+
+            <div className="sett-security-actions">
+              <div className="sett-sec-left">
+                <button type="submit" className="btn-sett-change-pw">
+                  {t('Change Password')}
+                </button>
+                <a href="#support" className="sett-forgot-link">{t('Forgot Password?')}</a>
+              </div>
+
+              <div className="sett-sec-right">
+                <span className="sett-tfa-lbl">{t('Two-Factor Authentication:')}</span>
+                <span className="sett-tfa-badge-disabled">{t('Disabled')}</span>
+                <button type="button" className="btn-sett-tfa-enable">
+                  {t('Enable 2FA')}
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      {/* ── Support Section ── */}
+      <section className="donor-support-page" id="support" data-dashboard-section="support">
+        <div className="support-header-row">
+          <div className="support-header-text">
+            <h2>{t('Help & Support')}</h2>
+            <p>{t('Have questions about donating food, tracking pickups, or your account? We\'re here to help 24/7.')}</p>
+          </div>
+        </div>
+
+        <div className="support-main-card">
+          {/* FAQ Section */}
+          <div className="support-faq-section">
+            <h3 className="support-section-title">{t('Frequently Asked Questions')}</h3>
+
+            <SupportFAQ
+              question={t('How do I donate food through FoodBridge?')}
+              answer={t('Go to the "Donate Food" tab from your dashboard sidebar. Fill in the food details — type, quantity, pickup address, and expiry time — then submit. Nearby NGOs and volunteers will be notified instantly and can claim your donation for pickup.')}
+            />
+            <SupportFAQ
+              question={t('How can I track the status of my donation?')}
+              answer={t('Navigate to the "Track Donations" section to see real-time updates. Each donation goes through stages: Created → NGO Accepted → Volunteer Assigned → Picked Up → Delivered. You\'ll receive notifications at each stage.')}
+            />
+            <SupportFAQ
+              question={t('What happens if no one claims my donation?')}
+              answer={t('If your donation isn\'t claimed within the safe-before window, our system automatically alerts nearby partner NGOs and expands the search radius. You can also extend the pickup window or contact support for manual assistance.')}
+            />
+            <SupportFAQ
+              question={t('Can I edit or cancel a donation after posting?')}
+              answer={t('Yes, you can edit or cancel any donation that hasn\'t been picked up yet. Go to "My Active Donations", find the listing, and use the edit or cancel options. Once a volunteer has picked it up, changes are no longer possible.')}
+            />
+          </div>
+
+          <div className="support-divider" />
+
+          {/* Message Support Team */}
+          <div className="support-contact-section">
+            <h3 className="support-section-title">
+              <MessageSquare size={18} />
+              {t('Message Support Team')}
+            </h3>
+            <textarea
+              className="support-textarea"
+              placeholder={t('Describe your issue — e.g. a donation wasn\'t picked up, you need to change your account details, or have a question about the platform…')}
+              rows={5}
+            />
+            <button className="btn-support-submit" type="button">
+              <Send size={15} />
+              {t('Submit Message')}
+            </button>
+          </div>
+        </div>
+
+        {/* Quick Contact Cards */}
+        <div className="support-quick-contacts">
+          <div className="support-contact-card">
+            <div className="support-contact-icon email"><Mail size={24} /></div>
+            <h4>{t('Email Support')}</h4>
+            <p>{t('Get a response within 24 hours for non-urgent queries.')}</p>
+            <a href="mailto:support@foodbridge.org">support@foodbridge.org</a>
+          </div>
+          <div className="support-contact-card">
+            <div className="support-contact-icon phone"><Phone size={24} /></div>
+            <h4>{t('Phone Support')}</h4>
+            <p>{t('Speak directly with our team for urgent donation issues.')}</p>
+            <a href="tel:+911800123456">+91 1800-123-456</a>
+          </div>
+          <div className="support-contact-card">
+            <div className="support-contact-icon chat"><MessageSquare size={24} /></div>
+            <h4>{t('Live Chat')}</h4>
+            <p>{t('Chat with our support agents in real-time during business hours.')}</p>
+            <a href="#support">{t('Start Chat')}</a>
+          </div>
+        </div>
+      </section>
+
     </DashboardShell>
+  );
+}
+
+function ProfileSettingsPanel({ profileForm, updateProfileField, profileNotice, handleProfileSave, t }) {
+  return (
+    <>
+      {/* Title Header */}
+      <div className="prof-header">
+        <div className="prof-header-text">
+          <h2>{t('Profile Settings')}</h2>
+          <p>{t('Manage your personal information and donation preferences.')}</p>
+        </div>
+        <div className="prof-verified-badge">
+          <CheckCircle2 size={16} />
+          <span>{t('Verified Donor')}</span>
+        </div>
+      </div>
+
+      {/* Main Two-Column Card Grid */}
+      <div className="prof-layout">
+        {/* Left Column Card (Profile Summary) */}
+        <div className="prof-summary-card">
+          <div className="prof-avatar-container">
+            <div className="prof-avatar-outline">
+              <img 
+                src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" 
+                alt="Alexander Bennett" 
+                className="prof-avatar-img"
+              />
+              <button type="button" className="prof-avatar-edit-btn" title={t('Edit avatar')}>
+                <Edit2 size={14} />
+              </button>
+            </div>
+          </div>
+          <h3 className="prof-summary-name">{profileForm.name}</h3>
+          <span className="prof-summary-active-since">{t('Active since Nov 2023')}</span>
+
+          <div className="prof-divider-horizontal" />
+
+          <div className="prof-metrics-row">
+            <div className="prof-metric-item">
+              <strong className="prof-metric-val">42</strong>
+              <span className="prof-metric-lbl">{t('Donations')}</span>
+            </div>
+            <div className="prof-metric-item">
+              <strong className="prof-metric-val">1.2k</strong>
+              <span className="prof-metric-lbl">{t('Impact')}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column Card (Form Details) */}
+        <form className="prof-details-card" onSubmit={handleProfileSave}>
+          <div className="prof-form-grid">
+            <label className="prof-field">
+              <span className="prof-field-label">{t('Full Name')}</span>
+              <input 
+                type="text" 
+                name="name" 
+                value={profileForm.name} 
+                onChange={updateProfileField} 
+                required 
+              />
+            </label>
+
+            <label className="prof-field">
+              <span className="prof-field-label">{t('Email Address')}</span>
+              <input 
+                type="email" 
+                name="email" 
+                value={profileForm.email} 
+                onChange={updateProfileField} 
+                required 
+              />
+            </label>
+
+            <label className="prof-field">
+              <span className="prof-field-label">{t('Phone Number')}</span>
+              <input 
+                type="text" 
+                name="phone" 
+                value={profileForm.phone} 
+                onChange={updateProfileField} 
+                required 
+              />
+            </label>
+
+            <label className="prof-field">
+              <span className="prof-field-label">{t('Account Type')}</span>
+              <select 
+                name="accountType" 
+                value={profileForm.accountType} 
+                onChange={updateProfileField}
+              >
+                <option value="Restaurant">Restaurant</option>
+                <option value="Individual">Individual Donor</option>
+                <option value="Supermarket">Supermarket</option>
+                <option value="Corporate">Corporate Kitchen</option>
+              </select>
+            </label>
+
+            <label className="prof-field full-width">
+              <span className="prof-field-label">{t('Primary Pickup Address')}</span>
+              <div className="prof-input-with-icon">
+                <MapPin size={18} className="prof-field-icon" />
+                <input 
+                  type="text" 
+                  name="address" 
+                  value={profileForm.address} 
+                  onChange={updateProfileField} 
+                  required 
+                />
+              </div>
+            </label>
+          </div>
+
+          {/* ProfileNotice Feedback */}
+          {profileNotice && (
+            <div className="prof-notice-success">
+              {profileNotice}
+            </div>
+          )}
+
+          {/* Save Button */}
+          <div className="prof-action-row">
+            <button type="submit" className="btn-prof-save">
+              <span>{t('Save Changes')}</span>
+              <Save size={18} />
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Bottom Options Row */}
+      <div className="prof-options-row">
+        <div className="prof-option-card">
+          <div className="prof-option-icon-circle">
+            <Lock size={20} />
+          </div>
+          <div className="prof-option-text">
+            <strong>{t('Security')}</strong>
+            <span>{t('Manage password and 2FA')}</span>
+          </div>
+        </div>
+
+        <div className="prof-option-card">
+          <div className="prof-option-icon-circle">
+            <Bell size={20} />
+          </div>
+          <div className="prof-option-text">
+            <strong>{t('Alerts')}</strong>
+            <span>{t('Delivery & pickup updates')}</span>
+          </div>
+        </div>
+
+        <div className="prof-option-card prof-option-danger">
+          <div className="prof-option-icon-circle icon-danger">
+            <UserX size={20} />
+          </div>
+          <div className="prof-option-text text-danger">
+            <strong className="lbl-danger">{t('Account')}</strong>
+            <span>{t('Deactivate your profile')}</span>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -906,3 +1865,16 @@ function buildDonationTrend(donations, mode) {
   return { items, max, highlightIndex };
 }
 
+
+function SupportFAQ({ question, answer }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={`support-faq-item${open ? ' open' : ''}`}>
+      <button className="support-faq-q" type="button" onClick={() => setOpen(o => !o)}>
+        <span>{question}</span>
+        {open ? <ChevronUp size={17} /> : <ChevronDown size={17} />}
+      </button>
+      {open && <p className="support-faq-a">{answer}</p>}
+    </div>
+  );
+}

@@ -153,3 +153,34 @@ export const resetPassword = asyncHandler(async (req, res) => {
 export const me = asyncHandler(async (req, res) => {
   res.json({ user: publicUser(req.user) });
 });
+
+export const changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    res.status(400);
+    throw new Error('Current password and new password are required');
+  }
+
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  const isMatch = await user.comparePassword(currentPassword);
+  if (!isMatch) {
+    res.status(400);
+    throw new Error('Incorrect current password');
+  }
+
+  if (newPassword.length < 8) {
+    res.status(400);
+    throw new Error('New password must be at least 8 characters');
+  }
+
+  user.passwordHash = await User.hashPassword(newPassword);
+  await user.save();
+
+  res.json({ message: 'Password changed successfully' });
+});
