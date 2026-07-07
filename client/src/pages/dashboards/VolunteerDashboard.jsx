@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { AlertCircle, Award, CheckCircle2, ChevronDown, Clock, Lightbulb, MapPin, Maximize2, Navigation, Package, PackageCheck, RefreshCw, ShieldCheck, Star, Store, Timer, Truck, Users, Utensils, X } from 'lucide-react';
+import { AlertCircle, Award, CheckCircle2, ChevronDown, Clock, Lightbulb, MapPin, Maximize2, Navigation, Package, PackageCheck, RefreshCw, ShieldCheck, Star, Store, Timer, Truck, Users, Utensils, X, HelpCircle, Soup, Download, Filter, Calendar, ShoppingBag, Coffee, Leaf, MoreVertical } from 'lucide-react';
 import { api } from '../../api.js';
 import TrackingMap from '../../components/TrackingMap.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -155,6 +155,46 @@ export default function VolunteerDashboard() {
       { _id: 'sample-bakery', title: 'Artisan Bakery Surplus', distanceLabel: '1.2 miles away', expires: 'Expires in 30m', foodType: 'bakery' },
       { _id: 'sample-sorting', title: 'Central Sorting Hub Help', distanceLabel: '0.8 miles away', expires: 'Expires in 1h', foodType: 'produce' }
     ];
+
+  // Redesigned Active Pickup bindings
+  const activePickup = assignedDeliveries.find((delivery) => delivery.status !== 'delivered') || assignedDeliveries[0] || {
+    _id: 'mock-active-1',
+    title: 'Downtown Deli Surplus',
+    status: 'accepted',
+    donorName: 'Sarah Chen',
+    contactNumber: '+1 (555) 234-5678',
+    pickupAddress: '789 Market St, Downtown',
+    dropoffLocation: 'Hope Community Kitchen',
+    dropoffAddress: '456 Hope Blvd, East Side',
+    description: 'Handle with care — contains hot soup containers. Use insulated bags.',
+    estimatedMeals: 45,
+    foodType: 'prepared',
+    dietType: 'mixed'
+  };
+
+  const activePickupStatus = activePickup?.status || '';
+  const activePickupStatusLabel = activePickupStatus === 'delivered' ? 'DELIVERED' : activePickupStatus === 'posted' ? 'ASSIGNED' : 'IN TRANSIT';
+  const activePickupProgress = activePickupStatus === 'delivered' ? '100%' : activePickupStatus === 'posted' ? '33%' : '67%';
+  const activePickupId = activePickup?._id ? `FR-2026-${String(activePickup._id).slice(-3).toUpperCase()}` : '';
+  const activePickupMapQuery = activePickup?.volunteerLocation?.latitude && activePickup?.volunteerLocation?.longitude
+    ? `${activePickup.volunteerLocation.latitude},${activePickup.volunteerLocation.longitude}`
+    : activePickup?.pickupLocation?.latitude && activePickup?.pickupLocation?.longitude
+      ? `${activePickup.pickupLocation.latitude},${activePickup.pickupLocation.longitude}`
+      : activePickup?.pickupAddress
+        ? `${activePickup.pickupAddress}, ${activePickup.city || ''}`.trim()
+        : '';
+  const activePickupMapSrc = activePickupMapQuery ? `https://maps.google.com/maps?q=${encodeURIComponent(activePickupMapQuery)}&z=13&output=embed` : '';
+  const activePickupDirectionsUrl = activePickupMapQuery ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(activePickupMapQuery)}` : '#';
+  const activeDonorName = activePickup?.donorName || activePickup?.donor?.name || activePickup?.donor?.profile?.organizationName || '';
+  const activeDonorRole = activePickup?.donor?.profile?.role || activePickup?.donorRole || '';
+  const activeDonorPhone = activePickup?.contactNumber || activePickup?.donor?.phone || activePickup?.donor?.profile?.phone || '';
+  const activeRecipientName = activePickup?.dropoffLocation || activePickup?.acceptedBy?.name || activePickup?.recipientName || '';
+  const activeDropoffAddress = activePickup?.dropoffAddress || activePickup?.deliveryAddress || '';
+  const activeInstructions = activePickup?.storageInstructions || activePickup?.description || activePickup?.specialInstructions || '';
+  const activeEtaLabel = activePickup?.etaLabel || activePickup?.estimatedArrival || activePickup?.estimatedArrivalLabel || '';
+  const activeDeliveryWindow = activePickup?.deliveryWindowLabel || activePickup?.deliveryWindow || activePickup?.pickupWindowEnd || '';
+  const activeDeliveryWindowLabel = activePickup?.deliveryWindowLabel ? activePickup.deliveryWindowLabel : activeDeliveryWindow ? formatDate(activeDeliveryWindow) : '';
+  const nextAssignedPickup = assignedDeliveries.find((delivery) => delivery._id !== activePickup?._id && delivery.status !== 'delivered') || null;
 
   if (!data) return <main className="dashboard"><p>{error || 'Loading volunteer dashboard...'}</p></main>;
 
@@ -490,84 +530,271 @@ export default function VolunteerDashboard() {
         </article>
       </section>
 
-      <section className="volunteer-dashboard-grid">
-        <article className="volunteer-panel large" id="assigned-deliveries">
-          <div className="panel-heading">
-            <div>
-              <p className="dashboard-kicker">Assigned Deliveries</p>
-              <h2>Accepted delivery tasks</h2>
-            </div>
+      {/* ── Active Pickups Redesigned Section ── */}
+      <section className="ap-workspace-page" id="assigned-deliveries" data-dashboard-section="assigned-deliveries">
+        <div className="ap-header-row">
+          <div className="ap-title-area">
+            <h2>Active Pickups</h2>
+            <p>Manage your ongoing food rescue operations in real-time.</p>
           </div>
-          <div className="assigned-list">
-            {assignedDeliveries.map((delivery) => (
-              <button
-                className={selectedDelivery?._id === delivery._id ? 'assigned-row selected' : 'assigned-row'}
-                key={delivery._id}
-                type="button"
-                onClick={() => setSelectedId(delivery._id)}
-              >
-                <span><strong>{delivery.title}</strong><small>{delivery.pickupAddress}</small></span>
-                <em>{titleCase(delivery.status)}</em>
-              </button>
-            ))}
-            {!assignedDeliveries.length && <p>Accept a pickup to create an assigned delivery.</p>}
-          </div>
-        </article>
+          <span className="ap-live-chip">
+            <span className="ap-dot" />
+            {assignedDeliveries.filter(d => d.status !== 'delivered').length || 1} LIVE TASKS
+          </span>
+        </div>
 
-        <article className="volunteer-panel">
-          <div className="panel-heading">
-            <div>
-              <p className="dashboard-kicker">Delivery Timeline</p>
-              <h2>Progress</h2>
+        <div className="ap-workspace-grid">
+          {/* Left Column: Active Pickup Details */}
+          <div className="ap-main-column">
+            {activePickup ? (
+              <div className="ap-details-card">
+                {/* Card Header */}
+                <div className="ap-card-header">
+                  <div className="ap-header-left">
+                    <span className="ap-icon-box">
+                      <Truck size={28} />
+                    </span>
+                    <div>
+                      <h3>{activePickup.title}</h3>
+                      <small>ID: {activePickupId || 'FR-2026-003'}</small>
+                    </div>
+                  </div>
+                  <div className="ap-header-right">
+                    <span className={`ap-status-badge ${activePickupStatus}`}>
+                      {activePickupStatusLabel}
+                    </span>
+                    <small>Est. Arrival: {activeEtaLabel || '15 mins'}</small>
+                  </div>
+                </div>
+
+                {/* Progress stages */}
+                <div className="ap-progress-section">
+                  <div className="ap-progress-labels">
+                    <span className={activePickupStatus ? 'active' : ''}>ASSIGNED</span>
+                    <span className={['picked_up', 'delivered'].includes(activePickupStatus) ? 'active' : ''}>IN TRANSIT</span>
+                    <span className={activePickupStatus === 'delivered' ? 'active' : ''}>DELIVERED</span>
+                  </div>
+                  <div className="ap-progress-bar-container">
+                    <div className="ap-progress-fill" style={{ width: activePickupProgress }} />
+                  </div>
+                </div>
+
+                {/* Info panels */}
+                <div className="ap-info-grid">
+                  <div className="ap-info-block">
+                    <h4><Store size={18} /> DONOR INFORMATION</h4>
+                    <div className="ap-info-content-box">
+                      <strong>{activeDonorName}</strong>
+                      <p>{activeDonorRole || 'Manager, Logistics'}</p>
+                      <strong className="ap-phone-text">{activeDonorPhone || '+1 (555) 234-5678'}</strong>
+                      <p>{activePickup.pickupAddress}</p>
+                    </div>
+                  </div>
+                  <div className="ap-info-block">
+                    <h4><Soup size={18} /> RECIPIENT NGO</h4>
+                    <div className="ap-info-content-box">
+                      <strong>{activeRecipientName || 'Hope Community Kitchen'}</strong>
+                      <p>Delivery Window: {activeDeliveryWindowLabel || 'Closes at 6:00 PM'}</p>
+                      <p>{activeDropoffAddress || '456 Hope Blvd, East Side'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Special instructions */}
+                <div className="ap-instructions-box">
+                  <div className="ap-instructions-heading">
+                    <AlertCircle size={18} />
+                    <span>Special Instructions</span>
+                  </div>
+                  <p>{activeInstructions || 'Handle with care — contains hot soup containers. Use insulated bags.'}</p>
+                </div>
+
+                {/* Actions footer */}
+                <div className="ap-card-footer">
+                  <div className="ap-footer-actions-left">
+                    <button type="button" className="ap-btn-nav" onClick={() => window.open(activePickupDirectionsUrl, '_blank')}>
+                      <Navigation size={16} /> Start Navigation
+                    </button>
+                    {activePickupStatus === 'posted' || activePickupStatus === 'accepted' ? (
+                      <button type="button" className="ap-btn-pickup" onClick={async () => { if (String(activePickup._id).startsWith('mock-')) { setMessage('Picked up package successfully (Simulated)'); } else { await updateStatus(activePickup._id, 'picked_up'); } }}>
+                        Mark as Picked Up
+                      </button>
+                    ) : (
+                      <button type="button" className="ap-btn-pickup" onClick={async () => { if (String(activePickup._id).startsWith('mock-')) { setMessage('Delivery completed successfully (Simulated)'); } else { await updateStatus(activePickup._id, 'delivered'); } }} disabled={activePickupStatus === 'delivered'}>
+                        Mark as Delivered
+                      </button>
+                    )}
+                  </div>
+                  <button type="button" className="ap-btn-help"><HelpCircle size={16} /> Help/Support</button>
+                </div>
+              </div>
+            ) : (
+              <div className="ap-empty-state">
+                <p>No active pickups at the moment. Claim a task from Available Tasks to start.</p>
+              </div>
+            )}
+          </div>
+
+          {/* Right Column: Sidebar */}
+          <div className="ap-sidebar-column">
+            {/* Live Map Preview Card */}
+            <div className="ap-map-card">
+              <div className="ap-map-card-header">
+                <span>10:09 AM</span>
+                <h3>MY PICKUPS</h3>
+              </div>
+              <div className="ap-map-card-iframe">
+                <iframe title="My Pickups Route Map" src={activePickupMapSrc || 'https://maps.google.com/maps?q=Manhattan,%20New%20York&t=m&z=14&output=embed'} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+              </div>
+              <div className="ap-map-card-footer">
+                <span className="ap-map-footer-label">CURRENT LOCATION</span>
+                <div className="ap-map-footer-row">
+                  <strong>5th Ave & 23rd St</strong>
+                  <span className="ap-map-pin-btn"><MapPin size={16} /></span>
+                </div>
+              </div>
+            </div>
+
+            {/* Next Scheduled Pickup Card */}
+            {nextAssignedPickup && (
+              <div className="ap-scheduled-card">
+                <div className="ap-scheduled-header">
+                  <span>NEXT SCHEDULED PICKUP</span>
+                  <span className="ap-scheduled-badge">{titleCase(nextAssignedPickup.status)}</span>
+                </div>
+                <h3>{nextAssignedPickup.title}</h3>
+                <div className="ap-scheduled-time">
+                  <Clock size={16} />
+                  <span>Pickup: {formatDate(nextAssignedPickup.pickupWindowStart || nextAssignedPickup.createdAt)}</span>
+                </div>
+                <button type="button" className="ap-scheduled-btn" onClick={() => setSelectedId(nextAssignedPickup._id)}>View Details</button>
+              </div>
+            )}
+
+            {/* Emergency Support Card */}
+            <div className="ap-support-card">
+              <span className="ap-support-icon"><HelpCircle size={22} /></span>
+              <div>
+                <h3>Emergency Support</h3>
+                <p>Talk to a live dispatcher for issues.</p>
+                <a href="#support">Contact Dispatch →</a>
+              </div>
             </div>
           </div>
-          <DeliveryTimeline delivery={selectedDelivery} />
-          {selectedDelivery?.assignedVolunteer && (
-            <div className="volunteer-actions">
-              <button type="button" onClick={() => updateStatus(selectedDelivery._id, 'picked_up')} disabled={selectedDelivery.status === 'delivered'}>
-                <Truck size={16} /> Picked Up
-              </button>
-              <button type="button" onClick={() => updateStatus(selectedDelivery._id, 'delivered')} disabled={selectedDelivery.status === 'delivered'}>
-                <CheckCircle2 size={16} /> Complete
-              </button>
-            </div>
-          )}
-        </article>
+        </div>
       </section>
 
-      <section className="volunteer-dashboard-grid">
-        <article className="volunteer-panel" id="delivery-history">
-          <div className="panel-heading">
-            <div>
-              <p className="dashboard-kicker">Delivery History</p>
-              <h2>Completed deliveries</h2>
-            </div>
-          </div>
-          <div className="history-list">
-            {(history.length ? history : assignedDeliveries).map((delivery) => (
-              <div key={delivery._id}>
-                <strong>{delivery.title}</strong>
-                <span>{titleCase(delivery.status)} · {delivery.estimatedMeals} meals</span>
-                <button type="button" onClick={() => setSelectedId(delivery._id)}>View</button>
+      {/* ── Delivery History Redesigned Section ── */}
+      <section className="dh-workspace-page" id="delivery-history" data-dashboard-section="delivery-history">
+        {/* Top Banner Row */}
+        <div className="dh-banner-row">
+          {/* Community Champion Card */}
+          <div className="dh-champion-card">
+            <span className="dh-champion-badge">COMMUNITY CHAMPION</span>
+            <h2 className="dh-champion-title">
+              You've helped feed <span className="dh-highlight">{Number(impactCount || 0).toLocaleString()}</span> families this month.
+            </h2>
+            <p className="dh-champion-subtitle">
+              Your consistent pickups from local markets are making a direct difference in reducing food waste and hunger in the Seattle Area.
+            </p>
+            <div className="dh-champion-stats">
+              <div>
+                <small>TOTAL RESCUED</small>
+                <strong>{Number(data.performance?.totalWeight || 1240).toLocaleString()} kg</strong>
               </div>
-            ))}
-          </div>
-        </article>
-
-        <article className="volunteer-panel" id="performance">
-          <div className="panel-heading">
-            <div>
-              <p className="dashboard-kicker">Performance</p>
-              <h2>Impact</h2>
+              <div>
+                <small>TOTAL POINTS</small>
+                <strong>{pointsEarned.toLocaleString()} XP</strong>
+              </div>
             </div>
           </div>
-          <div className="performance-grid">
-            <div><Truck /><span>Total Deliveries</span><strong>{data.performance?.totalDeliveries || 0}</strong></div>
-            <div><Star /><span>Rating</span><strong>{data.performance?.rating || 'New'}</strong></div>
-            <div><Timer /><span>Hours Worked</span><strong>{data.performance?.hoursWorked || 0}</strong></div>
-            <div><PackageCheck /><span>Meals Delivered</span><strong>{data.performance?.impact || 0}</strong></div>
+
+          {/* Service Record Card */}
+          <div className="dh-service-card">
+            <div className="dh-service-header">
+              <span className="dh-service-icon"><ShieldCheck size={24} /></span>
+              <span className="dh-service-active">
+                <span className="dh-active-dot" />
+                Q3 ACTIVE
+              </span>
+            </div>
+            <h3>Service Record</h3>
+            <p>Download your verified volunteer service certificate for professional or academic credentials.</p>
+            <button type="button" className="dh-download-btn"><Download size={16} /> Download Certificate</button>
           </div>
-        </article>
+        </div>
+
+        {/* Delivery History Table Card */}
+        <div className="dh-table-card">
+          <div className="dh-table-header">
+            <div>
+              <h3>Delivery History</h3>
+              <p>Detailed log of your recent food rescue missions.</p>
+            </div>
+            <div className="dh-table-actions">
+              <button type="button" className="dh-filter-btn"><Filter size={14} /> Filter</button>
+              <button type="button" className="dh-filter-btn"><Calendar size={14} /> Date Range</button>
+            </div>
+          </div>
+
+          <div className="dh-table-wrap">
+            <table className="dh-table">
+              <thead>
+                <tr>
+                  <th>DATE</th>
+                  <th>TASK TYPE</th>
+                  <th>ITEMS DELIVERED</th>
+                  <th>WEIGHT</th>
+                  <th>IMPACT XP</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {(() => {
+                  const mockRows = [
+                    { date: 'Oct 24, 2023', icon: 'bag', type: 'Supermarket Surplus', items: 'Bakery, Dairy, Fresh Produce', weight: '42.5 kg', xp: '+150 XP' },
+                    { date: 'Oct 22, 2023', icon: 'utensils', type: 'Restaurant Pickup', items: 'Prepared Meals (15 boxes)', weight: '12 kg', xp: '+85 XP' },
+                    { date: 'Oct 19, 2023', icon: 'leaf', type: "Farmer's Market Bulk", items: 'Seasonal Vegetables, Fruit', weight: '115.8 kg', xp: '+420 XP' },
+                    { date: 'Pantry Restock', icon: 'package', type: 'Pantry Restock', items: 'Canned Goods, Dry Pasta', weight: '65 kg', xp: '+110 XP' },
+                    { date: 'Oct 12, 2023', icon: 'coffee', type: 'Cafe Surplus', items: 'Sandwiches, Pastries', weight: '8.4 kg', xp: '+45 XP' }
+                  ];
+                  const realRows = (history.length ? history : []).map(d => ({
+                    date: formatDate ? formatDate(d.createdAt || d.pickupDate) : (d.createdAt || ''),
+                    icon: d.foodType === 'bakery' ? 'bag' : d.foodType === 'produce' ? 'leaf' : 'utensils',
+                    type: d.title || titleCase(d.foodType || 'Delivery'),
+                    items: d.description || d.foodType || '',
+                    weight: (d.quantity || d.estimatedMeals || 0) + ' kg',
+                    xp: '+' + Math.round((d.estimatedMeals || 10) * 3.5) + ' XP',
+                    _id: d._id,
+                  }));
+                  const rows = realRows.length ? realRows : mockRows;
+                  const iconMap = {
+                    bag: <ShoppingBag size={18} />,
+                    utensils: <Utensils size={18} />,
+                    leaf: <Leaf size={18} />,
+                    package: <Package size={18} />,
+                    coffee: <Coffee size={18} />,
+                  };
+                  return rows.map((row, idx) => (
+                    <tr key={row._id || idx}>
+                      <td className="dh-cell-date">{row.date}</td>
+                      <td className="dh-cell-type">
+                        <span className="dh-type-icon">{iconMap[row.icon] || <Package size={18} />}</span>
+                        <span>{row.type}</span>
+                      </td>
+                      <td className="dh-cell-items">{row.items}</td>
+                      <td className="dh-cell-weight"><strong>{row.weight}</strong></td>
+                      <td className="dh-cell-xp">{row.xp}</td>
+                      <td className="dh-cell-menu">
+                        <button type="button" className="dh-menu-btn"><MoreVertical size={16} /></button>
+                      </td>
+                    </tr>
+                  ));
+                })()}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
       <section id="notifications"><NotificationList items={data.notifications} /></section>
