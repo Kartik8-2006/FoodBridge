@@ -14,6 +14,7 @@ import { notificationRoutes } from './routes/notificationRoutes.js';
 import { newsletterRoutes } from './routes/newsletterRoutes.js';
 import { partnerRoutes } from './routes/partnerRoutes.js';
 import { supportRoutes } from './routes/supportRoutes.js';
+import { messageRoutes } from './routes/messageRoutes.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 
 dotenv.config({ path: fileURLToPath(new URL('../.env', import.meta.url)) });
@@ -41,6 +42,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/partners', partnerRoutes);
 app.use('/api/support-requests', supportRoutes);
+app.use('/api/messages', messageRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

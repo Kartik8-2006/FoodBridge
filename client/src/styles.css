@@ -9419,7 +9419,6 @@ body {
   background: #fff7ec !important;
 }
 
-.volunteer-map-wrap,
 .ngo-map,
 .admin-map,
 .tracking-stack {
@@ -9441,13 +9440,7 @@ body {
   border: 0 !important;
 }
 
-.volunteer-route-footer {
-  display: flex !important;
-  justify-content: space-between !important;
-  gap: 14px !important;
-  padding: 14px 16px !important;
-  border-top: 1px solid #ebe5e1 !important;
-}
+
 
 .beneficiary-grid button,
 .settings-grid label {
@@ -9604,8 +9597,7 @@ body {
   .panel-heading,
   .admin-panel-heading,
   .overview-heading,
-  .section-header-row,
-  .volunteer-route-footer {
+  .section-header-row {
     align-items: flex-start !important;
     flex-direction: column !important;
   }
@@ -17155,5 +17147,320 @@ body {
   .ap-sidebar-column {
     height: auto !important;
     overflow: visible !important;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   DELIVERY HISTORY SECTION – Volunteer Dashboard
+   ═══════════════════════════════════════════════════════════════════ */
+
+.dh-workspace-page {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* ── Banner Row ── */
+.dh-banner-row {
+  display: grid !important;
+  grid-template-columns: 1fr 320px !important;
+  gap: 20px !important;
+  margin-bottom: 24px !important;
+  align-items: stretch !important;
+}
+@media (max-width: 860px) {
+  .dh-banner-row {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Community Champion Card */
+.dh-champion-card {
+  background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 50%, #2e2418 100%) !important;
+  border-radius: 18px !important;
+  padding: 28px 32px 24px !important;
+  color: #fff !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+}
+.dh-champion-badge {
+  display: inline-block !important;
+  background: #4caf50 !important;
+  color: #fff !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.8px !important;
+  padding: 4px 12px !important;
+  border-radius: 6px !important;
+  margin-bottom: 16px !important;
+  width: fit-content !important;
+}
+.dh-champion-title {
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  color: #fff !important;
+  margin: 0 0 8px 0 !important;
+  line-height: 1.35 !important;
+}
+.dh-highlight {
+  color: #d4a574 !important;
+}
+.dh-champion-subtitle {
+  font-size: 12.5px !important;
+  color: #a0a0a0 !important;
+  margin: 0 0 20px 0 !important;
+  line-height: 1.55 !important;
+}
+.dh-champion-stats {
+  display: flex !important;
+  gap: 32px !important;
+  border-top: 1px solid rgba(255,255,255,0.12) !important;
+  padding-top: 16px !important;
+  margin-top: auto !important;
+}
+.dh-champion-stats > div {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+.dh-champion-stats small {
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.8px !important;
+  color: #8a8a8a !important;
+}
+.dh-champion-stats strong {
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  color: #fff !important;
+}
+
+/* Service Record Card */
+.dh-service-card {
+  background: #ffffff !important;
+  border: 1px solid #e8e0d8 !important;
+  border-radius: 18px !important;
+  padding: 24px !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+.dh-service-header {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  margin-bottom: 14px !important;
+}
+.dh-service-icon {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 12px !important;
+  background: #eef7ee !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #4caf50 !important;
+}
+.dh-service-active {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+  color: #4caf50 !important;
+}
+.dh-active-dot {
+  width: 7px !important;
+  height: 7px !important;
+  border-radius: 50% !important;
+  background: #4caf50 !important;
+  display: inline-block !important;
+}
+.dh-service-card h3 {
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  color: #1a1a2e !important;
+  margin: 0 0 6px 0 !important;
+}
+.dh-service-card > p {
+  font-size: 12.5px !important;
+  color: #7a7a8e !important;
+  margin: 0 0 18px 0 !important;
+  line-height: 1.55 !important;
+}
+.dh-download-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+  padding: 11px 0 !important;
+  border-radius: 10px !important;
+  border: 1px solid #e0d8d0 !important;
+  background: #ffffff !important;
+  color: #1a1a2e !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  margin-top: auto !important;
+  transition: all 0.2s !important;
+}
+.dh-download-btn:hover {
+  background: #f5f0eb !important;
+  border-color: #c4956a !important;
+}
+
+/* ── Delivery History Table Card ── */
+.dh-table-card {
+  background: #ffffff !important;
+  border: 1px solid #e8e0d8 !important;
+  border-radius: 18px !important;
+  overflow: hidden !important;
+}
+.dh-table-header {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  padding: 22px 26px 16px !important;
+  border-bottom: 1px solid #f0e8e0 !important;
+}
+.dh-table-header h3 {
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  color: #1a1a2e !important;
+  margin: 0 0 4px 0 !important;
+}
+.dh-table-header p {
+  font-size: 12.5px !important;
+  color: #7a7a8e !important;
+  margin: 0 !important;
+}
+.dh-table-actions {
+  display: flex !important;
+  gap: 8px !important;
+}
+.dh-filter-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 7px 14px !important;
+  border-radius: 8px !important;
+  border: 1px solid #e0d8d0 !important;
+  background: #ffffff !important;
+  color: #3a3a4e !important;
+  font-size: 12.5px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+}
+.dh-filter-btn:hover {
+  background: #f5f0eb !important;
+  border-color: #c4956a !important;
+}
+
+/* Table */
+.dh-table-wrap {
+  overflow-x: auto !important;
+}
+.dh-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+}
+.dh-table thead th {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.6px !important;
+  color: #9a8a7a !important;
+  text-align: left !important;
+  padding: 12px 20px !important;
+  border-bottom: 1px solid #f0e8e0 !important;
+  white-space: nowrap !important;
+}
+.dh-table tbody tr {
+  border-bottom: 1px solid #f5f0eb !important;
+  transition: background 0.15s !important;
+}
+.dh-table tbody tr:hover {
+  background: #fdfaf7 !important;
+}
+.dh-table tbody tr:last-child {
+  border-bottom: none !important;
+}
+.dh-table td {
+  padding: 16px 20px !important;
+  vertical-align: middle !important;
+}
+
+/* Cell Types */
+.dh-cell-date {
+  font-size: 13px !important;
+  color: #5a5a6e !important;
+  white-space: nowrap !important;
+  min-width: 110px !important;
+}
+.dh-cell-type {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #1a1a2e !important;
+  white-space: nowrap !important;
+}
+.dh-type-icon {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 9px !important;
+  background: #f5f0eb !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #5a5a4e !important;
+  flex-shrink: 0 !important;
+}
+.dh-cell-items {
+  font-size: 13px !important;
+  color: #7a7a8e !important;
+}
+.dh-cell-weight {
+  white-space: nowrap !important;
+}
+.dh-cell-weight strong {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: #1a1a2e !important;
+}
+.dh-cell-xp {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: #c4956a !important;
+  white-space: nowrap !important;
+}
+.dh-cell-menu {
+  width: 36px !important;
+  text-align: center !important;
+}
+.dh-menu-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 30px !important;
+  height: 30px !important;
+  border: none !important;
+  background: transparent !important;
+  color: #9a8a7a !important;
+  cursor: pointer !important;
+  border-radius: 6px !important;
+  transition: background 0.15s !important;
+}
+.dh-menu-btn:hover {
+  background: #f0e8e0 !important;
+}
+
+@media (max-width: 720px) {
+  .dh-table-header {
+    flex-direction: column !important;
+    gap: 12px !important;
   }
 }

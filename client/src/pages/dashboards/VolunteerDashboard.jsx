@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { AlertCircle, Award, CheckCircle2, ChevronDown, Clock, Lightbulb, MapPin, Maximize2, Navigation, Package, PackageCheck, RefreshCw, ShieldCheck, Star, Store, Timer, Truck, Users, Utensils, X, HelpCircle, Soup, Download, Filter, Calendar, ShoppingBag, Coffee, Leaf, MoreVertical } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { AlertCircle, Award, CheckCircle2, ChevronDown, Clock, Lightbulb, MapPin, Maximize2, MessageSquare, Navigation, Package, PackageCheck, RefreshCw, Send, ShieldCheck, Star, Store, Timer, Truck, Users, Utensils, X, HelpCircle, Soup, Download, Filter, Calendar, ShoppingBag, Coffee, Leaf, MoreVertical } from 'lucide-react';
 import { api } from '../../api.js';
 import TrackingMap from '../../components/TrackingMap.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -195,6 +195,49 @@ export default function VolunteerDashboard() {
   const activeDeliveryWindow = activePickup?.deliveryWindowLabel || activePickup?.deliveryWindow || activePickup?.pickupWindowEnd || '';
   const activeDeliveryWindowLabel = activePickup?.deliveryWindowLabel ? activePickup.deliveryWindowLabel : activeDeliveryWindow ? formatDate(activeDeliveryWindow) : '';
   const nextAssignedPickup = assignedDeliveries.find((delivery) => delivery._id !== activePickup?._id && delivery.status !== 'delivered') || null;
+
+  // ── Chat / Messenger State ──
+  const [chatContacts, setChatContacts] = useState([]);
+  const [selectedContact, setSelectedContact] = useState(null);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [newMessageText, setNewMessageText] = useState('');
+
+  async function fetchContacts() {
+    try {
+      const res = await api('/messages/contacts');
+      setChatContacts(res.contacts || []);
+      if (res.contacts?.length && !selectedContact) setSelectedContact(res.contacts[0]);
+    } catch (err) { console.error('Failed to load chat contacts', err); }
+  }
+  async function fetchChatMessages(contactId) {
+    if (!contactId) return;
+    try {
+      const res = await api(`/messages/thread/${contactId}`);
+      setChatMessages(res.messages || []);
+    } catch (err) { console.error('Failed to load messages', err); }
+  }
+  async function handleSendMessage(e) {
+    e.preventDefault();
+    if (!newMessageText.trim() || !selectedContact) return;
+    const text = newMessageText;
+    setNewMessageText('');
+    try {
+      await api('/messages', { method: 'POST', body: JSON.stringify({ recipientId: selectedContact._id, text }) });
+      fetchChatMessages(selectedContact._id);
+    } catch (err) { console.error('Failed to send message', err); }
+  }
+  useEffect(() => {
+    fetchContacts();
+    const iv = setInterval(fetchContacts, 6000);
+    return () => clearInterval(iv);
+  }, []);
+  useEffect(() => {
+    if (selectedContact?._id) {
+      fetchChatMessages(selectedContact._id);
+      const iv = setInterval(() => fetchChatMessages(selectedContact._id), 3000);
+      return () => clearInterval(iv);
+    }
+  }, [selectedContact?._id]);
 
   if (!data) return <main className="dashboard"><p>{error || 'Loading volunteer dashboard...'}</p></main>;
 
@@ -818,6 +861,87 @@ export default function VolunteerDashboard() {
             <label><span>Show long distance tasks</span><input type="checkbox" /></label>
           </div>
         </article>
+      </section>
+
+      {/* ── Messages / Chat Section ── */}
+      <section className="messages-inbox-page" id="messages" data-dashboard-section="messages">
+        <div className="messages-layout">
+          <div className="chats-sidebar">
+            <div className="chats-sidebar-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <MessageSquare size={18} />
+                <div>
+                  <h3 style={{ margin: '0', fontWeight: '800', color: '#22252a' }}>Messenger</h3>
+                  <p style={{ margin: '2px 0 0 0', color: '#7b818a', fontWeight: '500' }}>Chat with NGO & Donor</p>
+                </div>
+              </div>
+            </div>
+            <div className="chats-list">
+              {chatContacts.map((contact) => (
+                <div
+                  className={`chat-list-item ${selectedContact?._id === contact._id ? 'active-chat' : ''}`}
+                  key={contact._id}
+                  onClick={() => setSelectedContact(contact)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <div className="chat-item-avatar-placeholder"><span>{contact.name?.slice(0, 2).toUpperCase()}</span></div>
+                  <div className="chat-item-info">
+                    <div className="chat-item-row">
+                      <strong>{contact.name}</strong>
+                      <span className="chat-status" style={{ fontSize: '11px', textTransform: 'uppercase' }}>{contact.role || ''}</span>
+                    </div>
+                    {contact.phone && <p className="chat-preview" style={{ fontSize: '11px' }}>{contact.phone}</p>}
+                  </div>
+                </div>
+              ))}
+              {!chatContacts.length && <p style={{ padding: '16px', color: '#7b818a' }}>No active chats yet.</p>}
+            </div>
+          </div>
+
+          <div className="chats-content">
+            {selectedContact ? (
+              <>
+                <div className="chat-thread-header">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div className="chat-item-avatar-placeholder" style={{ width: 36, height: 36 }}><span>{selectedContact.name?.slice(0, 2).toUpperCase()}</span></div>
+                    <div>
+                      <h4 style={{ margin: '0 0 2px 0', fontWeight: '800', color: '#22252a' }}>{selectedContact.name}</h4>
+                      <span className="header-status-label" style={{ background: '#ebf8ff', color: '#2b6cb0' }}>Live Messaging</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="chat-messages-thread" style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '20px', overflowY: 'auto' }}>
+                  {chatMessages.map((msg) => {
+                    const isOut = msg.sender === user?._id;
+                    return (
+                      <div className={`message-bubble-row ${isOut ? 'outgoing' : 'incoming'}`} key={msg._id} style={{ alignSelf: isOut ? 'flex-end' : 'flex-start', maxWidth: '70%' }}>
+                        <div className="message-bubble" style={{ background: isOut ? 'linear-gradient(135deg,#83531b,#b87322)' : '#edf2f7', color: isOut ? '#fff' : '#2d3748', padding: '10px 14px', borderRadius: '16px', fontSize: '14px' }}>{msg.text}</div>
+                        <span className="message-timestamp" style={{ fontSize: '11px', color: '#a0aec0', display: 'block', textAlign: isOut ? 'right' : 'left', marginTop: '4px' }}>{formatDate(msg.createdAt)}</span>
+                      </div>
+                    );
+                  })}
+                  {!chatMessages.length && <p style={{ textAlign: 'center', color: '#a0aec0', padding: '20px' }}>Send a message to start the conversation.</p>}
+                </div>
+                <form onSubmit={handleSendMessage} style={{ display: 'flex', padding: '16px', background: '#fff', borderTop: '1px solid #edf2f7' }}>
+                  <input
+                    type="text"
+                    value={newMessageText}
+                    onChange={(e) => setNewMessageText(e.target.value)}
+                    placeholder="Type a message..."
+                    style={{ flex: 1, padding: '12px 16px', borderRadius: '24px', border: '1px solid #cbd5e0', outline: 'none', fontSize: '14px' }}
+                  />
+                  <button type="submit" className="button button-primary" style={{ marginLeft: '12px', borderRadius: '50%', width: '42px', height: '42px', minHeight: '42px', padding: '0', display: 'grid', placeItems: 'center', background: '#83531b', boxShadow: 'none' }}>
+                    <Send size={16} />
+                  </button>
+                </form>
+              </>
+            ) : (
+              <div style={{ display: 'grid', placeItems: 'center', height: '100%', color: '#a0aec0', textAlign: 'center' }}>
+                <div><MessageSquare size={48} style={{ margin: '0 auto 12px' }} /><p>Select a contact from the sidebar to chat.</p></div>
+              </div>
+            )}
+          </div>
+        </div>
       </section>
     </DashboardShell>
   );

@@ -7,18 +7,75 @@ import { User } from '../models/User.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { addDistanceToDonation, cityRegex } from '../utils/distance.js';
 
+function getDonationKg(donation) {
+  const quantity = String(donation?.quantity || '');
+  const number = Number(quantity.match(/\d+(\.\d+)?/)?.[0] || 0);
+  if (!number) return 0;
+  if (/meal|pack|serving|pax|unit|box|tray|pan/i.test(quantity)) return Math.round(number * 0.45);
+  return number;
+}
+
+function hoursBetween(start, end) {
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime()) || endDate <= startDate) return null;
+  return (endDate - startDate) / (60 * 60 * 1000);
+}
+
+function averageDeliveryTimeLabel(donations) {
+  const durations = donations
+    .map((item) => hoursBetween(item.pickupWindowStart || item.createdAt, item.deliveredAt || item.updatedAt))
+    .filter((value) => Number.isFinite(value));
+  if (!durations.length) return 'Pending';
+  const average = durations.reduce((sum, value) => sum + value, 0) / durations.length;
+  return `${average.toFixed(1)} hrs`;
+}
+
+function buildMonthlySeries(donations, field = 'kg') {
+  const now = new Date();
+  return Array.from({ length: 6 }, (_, index) => {
+    const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
+    const month = date.getMonth();
+    const year = date.getFullYear();
+    const items = donations.filter((donation) => {
+      const sourceDate = new Date(donation.deliveredAt || donation.updatedAt || donation.createdAt);
+      return sourceDate.getMonth() === month && sourceDate.getFullYear() === year;
+    });
+    const value = items.reduce((sum, item) => sum + (field === 'meals' ? Number(item.estimatedMeals || 0) : getDonationKg(item)), 0);
+    return {
+      label: date.toLocaleString('en-US', { month: 'short' }).toUpperCase(),
+      value
+    };
+  });
+}
+
 export const dashboard = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const role = req.user.role;
   const data = {};
 
   if (role === 'donor') {
-    const donations = await Donation.find({ donor: userId }).sort({ createdAt: -1 }).limit(8);
+    const allDonations = await Donation.find({ donor: userId })
+      .populate('donor', 'name email profile')
+      .populate('acceptedBy', 'name role profile')
+      .populate('assignedVolunteer', 'name role profile')
+      .sort({ createdAt: -1 });
+    const donations = allDonations.slice(0, 20);
+    const deliveredDonations = allDonations.filter((item) => item.status === 'delivered');
+    const activeDonations = allDonations.filter((item) => ['posted', 'accepted', 'pickup_scheduled', 'picked_up'].includes(item.status));
+    const totalMeals = allDonations.reduce((sum, item) => sum + Number(item.estimatedMeals || 0), 0);
+    const foodSavedKg = allDonations.reduce((sum, item) => sum + getDonationKg(item), 0);
     data.stats = {
-      totalDonations: await Donation.countDocuments({ donor: userId }),
-      mealsContributed: (await Donation.find({ donor: userId })).reduce((sum, item) => sum + item.estimatedMeals, 0),
-      pendingPickups: await Donation.countDocuments({ donor: userId, status: { $in: ['posted', 'accepted', 'pickup_scheduled'] } }),
-      completed: await Donation.countDocuments({ donor: userId, status: 'delivered' })
+      totalDonations: allDonations.length,
+      mealsContributed: totalMeals,
+      foodSavedKg,
+      peopleImpacted: deliveredDonations.reduce((sum, item) => sum + Number(item.beneficiaryCount || item.estimatedMeals || 0), 0),
+      activeDonations: activeDonations.length,
+      pendingPickups: activeDonations.length,
+      completed: deliveredDonations.length,
+      ngosHelped: new Set(allDonations.map((item) => String(item.acceptedBy?._id || item.acceptedBy || '')).filter(Boolean)).size,
+      volunteersAssigned: allDonations.filter((item) => item.assignedVolunteer).length,
+      averagePickupTime: averageDeliveryTimeLabel(deliveredDonations)
     };
     data.donations = donations;
   }
@@ -27,6 +84,8 @@ export const dashboard = asyncHandler(async (req, res) => {
     const acceptedDonations = await Donation.find({ acceptedBy: userId }).sort({ updatedAt: -1 });
     const deliveredDonations = acceptedDonations.filter((item) => item.status === 'delivered');
     const totalMealsDistributed = deliveredDonations.reduce((sum, item) => sum + Number(item.estimatedMeals || 0), 0);
+    const totalFoodKg = deliveredDonations.reduce((sum, item) => sum + getDonationKg(item), 0);
+    const totalBeneficiaries = deliveredDonations.reduce((sum, item) => sum + Number(item.beneficiaryCount || item.estimatedMeals || 0), 0);
     const targetCounts = acceptedDonations.reduce((acc, item) => {
       const key = item.distributionTarget || 'families';
       acc[key] = (acc[key] || 0) + 1;
@@ -51,28 +110,47 @@ export const dashboard = asyncHandler(async (req, res) => {
     data.volunteers = await User.find({ role: 'volunteer', isActive: true }).select('-passwordHash').sort({ name: 1 }).limit(25);
     data.reports = {
       mealsDistributed: totalMealsDistributed,
-      foodReceived: acceptedDonations.reduce((sum, item) => sum + Number(item.estimatedMeals || 0), 0),
-      averageDeliveryTime: deliveredDonations.length ? '3.1 hrs' : 'Pending',
+      foodReceived: totalFoodKg,
+      averageDeliveryTime: averageDeliveryTimeLabel(deliveredDonations),
       monthlyAnalytics: acceptedDonations.length,
-      beneficiaryTargets: targetCounts
+      beneficiaryTargets: targetCounts,
+      livesTouched: totalBeneficiaries,
+      targetEfficiency: acceptedDonations.length ? Math.round((deliveredDonations.length / acceptedDonations.length) * 100) : 0,
+      foodTrend: buildMonthlySeries(deliveredDonations, 'kg'),
+      beneficiaryRegions: Object.entries(targetCounts).map(([target, count]) => ({
+        district: target.replace(/_/g, ' '),
+        peopleFed: deliveredDonations
+          .filter((item) => (item.distributionTarget || 'families') === target)
+          .reduce((sum, item) => sum + Number(item.beneficiaryCount || item.estimatedMeals || 0), 0),
+        growth: '0%',
+        status: count ? 'ACTIVE' : 'PENDING'
+      })),
+      wasteReductionPercent: totalFoodKg ? Math.min(100, Math.round((totalFoodKg / (totalFoodKg + 1)) * 100)) : 0,
+      directSaveKg: totalFoodKg,
+      optimizedKg: acceptedDonations.filter((item) => item.status !== 'delivered').reduce((sum, item) => sum + getDonationKg(item), 0),
+      milestoneGoal: Number(req.user.profile?.monthlyGoalKg || 0),
+      milestoneProgress: req.user.profile?.monthlyGoalKg ? Math.round((totalFoodKg / Number(req.user.profile.monthlyGoalKg)) * 100) : 0,
+      milestoneMessage: totalFoodKg ? `${Math.round(totalFoodKg).toLocaleString()} kg of verified food rescued.` : ''
     };
   }
 
   if (role === 'volunteer') {
-    const userCity = req.user.profile?.city || req.user.profile?.serviceArea;
-    const sameCity = cityRegex(userCity);
-    const volunteerTasks = await Donation.find({
-      $or: [
-        sameCity ? { status: 'posted', city: sameCity } : { status: 'posted' },
-        { assignedVolunteer: userId }
-      ]
-    })
+    const volunteerTasks = await Donation.find({ assignedVolunteer: userId })
       .populate('donor', 'name email profile')
       .populate('acceptedBy', 'name role profile')
+      .populate('assignedVolunteer', 'name role profile')
       .sort({ safeBefore: 1 })
       .limit(12);
     const assignedDeliveries = volunteerTasks.filter((item) => String(item.assignedVolunteer) === String(userId));
     const completedDeliveries = assignedDeliveries.filter((item) => item.status === 'delivered');
+    const completedKg = completedDeliveries.reduce((sum, item) => sum + getDonationKg(item), 0);
+    const weeklyKg = completedDeliveries
+      .filter((item) => new Date(item.deliveredAt || item.updatedAt) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+      .reduce((sum, item) => sum + getDonationKg(item), 0);
+    const monthlyKg = completedDeliveries
+      .filter((item) => new Date(item.deliveredAt || item.updatedAt) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
+      .reduce((sum, item) => sum + getDonationKg(item), 0);
+    const monthlyGoalKg = Number(req.user.profile?.monthlyGoalKg || 0);
 
     data.stats = {
       nearbyTasks: await Donation.countDocuments({ status: 'posted' }),
@@ -87,9 +165,19 @@ export const dashboard = asyncHandler(async (req, res) => {
     data.deliveryHistory = completedDeliveries.map((donation) => addDistanceToDonation(donation, req.user));
     data.performance = {
       totalDeliveries: completedDeliveries.length,
-      rating: completedDeliveries.length ? '4.8' : 'New',
+      rating: req.user.profile?.rating || (completedDeliveries.length ? 'Unrated' : 'New'),
       hoursWorked: completedDeliveries.length * 2,
-      impact: completedDeliveries.reduce((sum, item) => sum + Number(item.estimatedMeals || 0), 0)
+      impact: completedDeliveries.reduce((sum, item) => sum + Number(item.estimatedMeals || 0), 0),
+      points: completedDeliveries.reduce((sum, item) => sum + Number(item.estimatedMeals || 0), 0) * 10,
+      totalWeight: completedKg,
+      weeklySaved: weeklyKg,
+      monthlySaved: monthlyKg,
+      monthlyGoalKg,
+      monthlyGoalProgress: monthlyGoalKg ? Math.min(100, Math.round((monthlyKg / monthlyGoalKg) * 100)) : 0,
+      monthlyGoalRemaining: monthlyGoalKg ? Math.max(0, monthlyGoalKg - monthlyKg) : 0,
+      averageDeliveryTime: averageDeliveryTimeLabel(completedDeliveries),
+      activeStreakDays: 0,
+      rankLabel: completedDeliveries.length ? 'Active volunteer' : 'New volunteer'
     };
   }
 

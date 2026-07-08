@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, Award, CalendarDays, CheckCircle2, ChevronDown, ChevronUp, Clock, Database, Download, Globe, HelpCircle, Home, Leaf, Lock, Mail, MapPin, MessageSquare, PackageCheck, Phone, Plus, RefreshCw, Scale, School, Send, Share2, Shield, Sliders, Soup, Star, TrendingUp, Truck, UserPlus, Utensils, Users, UsersRound } from 'lucide-react';
 import { api } from '../../api';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -55,6 +55,48 @@ export default function NgoDashboard() {
   const [message, setMessage] = useState('');
   const [showAssignForId, setShowAssignForId] = useState('');
   const [selectedVolunteerId, setSelectedVolunteerId] = useState('');
+
+  const [chatContacts, setChatContacts] = useState([]);
+  const [selectedContact, setSelectedContact] = useState(null);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [newMessageText, setNewMessageText] = useState('');
+
+  async function fetchContacts() {
+    try {
+      const res = await api('/messages/contacts');
+      setChatContacts(res.contacts || []);
+      if (res.contacts?.length && !selectedContact) setSelectedContact(res.contacts[0]);
+    } catch (err) { console.error('Failed to load chat contacts', err); }
+  }
+  async function fetchChatMessages(contactId) {
+    if (!contactId) return;
+    try {
+      const res = await api(`/messages/thread/${contactId}`);
+      setChatMessages(res.messages || []);
+    } catch (err) { console.error('Failed to load messages', err); }
+  }
+  async function handleSendMessage(e) {
+    e.preventDefault();
+    if (!newMessageText.trim() || !selectedContact) return;
+    const text = newMessageText;
+    setNewMessageText('');
+    try {
+      await api('/messages', { method: 'POST', body: JSON.stringify({ recipientId: selectedContact._id, text }) });
+      fetchChatMessages(selectedContact._id);
+    } catch (err) { console.error('Failed to send message', err); }
+  }
+  useEffect(() => {
+    fetchContacts();
+    const iv = setInterval(fetchContacts, 6000);
+    return () => clearInterval(iv);
+  }, []);
+  useEffect(() => {
+    if (selectedContact?._id) {
+      fetchChatMessages(selectedContact._id);
+      const iv = setInterval(() => fetchChatMessages(selectedContact._id), 3000);
+      return () => clearInterval(iv);
+    }
+  }, [selectedContact?._id]);
 
   const [distanceRadius, setDistanceRadius] = useState(25);
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -708,7 +750,15 @@ export default function NgoDashboard() {
                       ) : (
                         <span className="sched-volunteer-name">
                           <Users size={13} />
-                          {donation.assignedVolunteer?.name || 'Marcus Thorne'}
+                          {donation.assignedVolunteer?.name || t('Unassigned')}
+                          <span style={{
+                            fontSize: '10px', padding: '2px 6px', borderRadius: '8px', marginLeft: '6px',
+                            background: donation.volunteerAccepted ? '#c6f6d5' : '#feebc8',
+                            color: donation.volunteerAccepted ? '#22543d' : '#c05621',
+                            fontWeight: 'bold', display: 'inline-block'
+                          }}>
+                            {donation.volunteerAccepted ? t('Confirmed') : t('Awaiting')}
+                          </span>
                         </span>
                       )}
                     </div>
@@ -1463,133 +1513,72 @@ export default function NgoDashboard() {
 
       <section className="messages-inbox-page" id="notifications">
         <div className="messages-layout">
-          {/* Left panel: Active Despatches */}
           <div className="chats-sidebar">
             <div className="chats-sidebar-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className="sidebar-chat-icon" style={{ fontSize: '18px' }}>💬</span>
+                <MessageSquare size={18} />
                 <div>
-                  <h3 style={{ margin: '0', fontWeight: '800', color: '#22252a' }}>{t("Active Despatches")}</h3>
-                  <p style={{ margin: '2px 0 0 0', color: '#7b818a', fontWeight: '500' }}>{t("Secure satellite communication lines")}</p>
+                  <h3 style={{ margin: '0', fontWeight: '800', color: '#22252a' }}>{t("Volunteer Messenger")}</h3>
+                  <p style={{ margin: '2px 0 0 0', color: '#7b818a', fontWeight: '500' }}>{t("Direct NGO-Volunteer Chat")}</p>
                 </div>
               </div>
             </div>
-            
             <div className="chats-list">
-              {/* Marcus Thorne (Active, Unread) */}
-              <div className="chat-list-item active-chat">
-                <div style={{ position: 'relative', display: 'flex', flexShrink: 0 }}>
-                  <img 
-                    src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&h=80&q=80" 
-                    alt="Marcus Thorne" 
-                    className="chat-item-avatar" 
-                  />
-                  <span className="unread-badge">1</span>
-                </div>
-                <div className="chat-item-info">
-                  <div className="chat-item-row">
-                    <strong>{t("Marcus Thorne")}</strong>
-                    <span className="chat-time">09:20 AM</span>
+              {chatContacts.map((contact) => (
+                <div
+                  className={`chat-list-item ${selectedContact?._id === contact._id ? 'active-chat' : ''}`}
+                  key={contact._id}
+                  onClick={() => setSelectedContact(contact)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <div className="chat-item-avatar-placeholder"><span>{contact.name?.slice(0, 2).toUpperCase()}</span></div>
+                  <div className="chat-item-info">
+                    <div className="chat-item-row">
+                      <strong>{contact.name}</strong>
+                      <span className="chat-status" style={{ fontSize: '11px', textTransform: 'uppercase' }}>{t(contact.role || 'volunteer')}</span>
+                    </div>
+                    {contact.phone && <p className="chat-preview" style={{ fontSize: '11px' }}>{contact.phone}</p>}
                   </div>
-                  <span className="chat-status">{t("VOLUNTEER - ACTIVE")}</span>
-                  <p className="chat-preview unread-text">{t("I am arriving at City Hospital in 10 ...")}</p>
                 </div>
-              </div>
-
-              {/* Sarah Jenkins (Idle) */}
-              <div className="chat-list-item">
-                <img 
-                  src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&h=80&q=80" 
-                  alt="Sarah Jenkins" 
-                  className="chat-item-avatar" 
-                />
-                <div className="chat-item-info">
-                  <div className="chat-item-row">
-                    <strong>{t("Sarah Jenkins")}</strong>
-                    <span className="chat-time">09:20 AM</span>
-                  </div>
-                  <span className="chat-status">{t("VOLUNTEER - IDLE")}</span>
-                  <p className="chat-preview">{t("Textile pickup completed early. Recei...")}</p>
-                </div>
-              </div>
-
-              {/* North District Hub */}
-              <div className="chat-list-item">
-                <div className="chat-item-avatar-placeholder">
-                  <span>ND</span>
-                </div>
-                <div className="chat-item-info">
-                  <div className="chat-item-row">
-                    <strong>{t("North District Hub")}</strong>
-                    <span className="chat-time">09:20 AM</span>
-                  </div>
-                  <span className="chat-status">{t("HUB DISPATCH")}</span>
-                  <p className="chat-preview">{t("Received 12 pallets of non-perishable...")}</p>
-                </div>
-              </div>
+              ))}
+              {!chatContacts.length && <p style={{ padding: '16px', color: '#7b818a' }}>{t('No active volunteer chats yet.')}</p>}
             </div>
           </div>
 
-          {/* Right panel: Active Thread */}
           <div className="chats-content">
-            {/* Header */}
-            <div className="chat-thread-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <img 
-                  src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&h=80&q=80" 
-                  alt="Marcus Thorne" 
-                  className="chat-header-avatar" 
-                />
-                <div>
-                  <h4 style={{ margin: '0 0 2px 0', fontWeight: '800', color: '#22252a' }}>{t("Marcus Thorne")}</h4>
-                  <span className="header-status-label">{t("VOLUNTEER - ACTIVE")}</span>
+            {selectedContact ? (
+              <>
+                <div className="chat-thread-header">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div className="chat-item-avatar-placeholder" style={{ width: 36, height: 36 }}><span>{selectedContact.name?.slice(0, 2).toUpperCase()}</span></div>
+                    <div>
+                      <h4 style={{ margin: '0 0 2px 0', fontWeight: '800', color: '#22252a' }}>{selectedContact.name}</h4>
+                      <span className="header-status-label" style={{ background: '#ebf8ff', color: '#2b6cb0' }}>{t("Live Messaging")}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <button className="chat-call-btn" title={t("Call Driver")}>
-                <Phone size={15} />
-              </button>
-            </div>
-
-            {/* Scrollable messages container */}
-            <div className="chat-messages-thread">
-              {/* Message 1 (Incoming) */}
-              <div className="message-bubble-row incoming">
-                <div className="message-bubble">
-                  {t("Hi Sarah, starting the route for the City Hospital pickup now.")}
+                <div className="chat-messages-thread" style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '20px', overflowY: 'auto' }}>
+                  {chatMessages.map((msg) => {
+                    const isOut = msg.sender === user?._id;
+                    return (
+                      <div className={`message-bubble-row ${isOut ? 'outgoing' : 'incoming'}`} key={msg._id} style={{ alignSelf: isOut ? 'flex-end' : 'flex-start', maxWidth: '70%' }}>
+                        <div className="message-bubble" style={{ background: isOut ? 'linear-gradient(135deg,#83531b,#b87322)' : '#edf2f7', color: isOut ? '#fff' : '#2d3748', padding: '10px 14px', borderRadius: '16px', fontSize: '14px' }}>{msg.text}</div>
+                        <span className="message-timestamp" style={{ fontSize: '11px', color: '#a0aec0', display: 'block', textAlign: isOut ? 'right' : 'left', marginTop: '4px' }}>{formatDate(msg.createdAt)}</span>
+                      </div>
+                    );
+                  })}
+                  {!chatMessages.length && <p style={{ textAlign: 'center', color: '#a0aec0', padding: '20px' }}>{t('Send a message to start the conversation.')}</p>}
                 </div>
-                <span className="message-timestamp">09:05 AM</span>
+                <form onSubmit={handleSendMessage} style={{ display: 'flex', padding: '16px', background: '#fff', borderTop: '1px solid #edf2f7' }}>
+                  <input type="text" value={newMessageText} onChange={(e) => setNewMessageText(e.target.value)} placeholder={t("Type a message...")} style={{ flex: 1, padding: '12px 16px', borderRadius: '24px', border: '1px solid #cbd5e0', outline: 'none', fontSize: '14px' }} />
+                  <button type="submit" className="button button-primary" style={{ marginLeft: '12px', borderRadius: '50%', width: '42px', height: '42px', minHeight: '42px', padding: '0', display: 'grid', placeItems: 'center', background: '#83531b', boxShadow: 'none' }}><Send size={16} /></button>
+                </form>
+              </>
+            ) : (
+              <div style={{ display: 'grid', placeItems: 'center', height: '100%', color: '#a0aec0', textAlign: 'center' }}>
+                <div><MessageSquare size={48} style={{ margin: '0 auto 12px' }} /><p>{t('Select a contact from the sidebar to chat.')}</p></div>
               </div>
-
-              {/* Message 2 (Outgoing) */}
-              <div className="message-bubble-row outgoing">
-                <div className="message-bubble gold-bg">
-                  {t("Excellent! Drive safe. Let me know if you run into any traffic.")}
-                </div>
-                <span className="message-timestamp">
-                  09:08 AM <span className="double-check">✓✓</span>
-                </span>
-              </div>
-
-              {/* Message 3 (Incoming) */}
-              <div className="message-bubble-row incoming">
-                <div className="message-bubble">
-                  {t("I am arriving at City Hospital in 10 minutes. Please confirm dock entry.")}
-                </div>
-                <span className="message-timestamp">09:20 AM</span>
-              </div>
-            </div>
-
-            {/* Input area */}
-            <div className="chat-input-area">
-              <input 
-                type="text" 
-                placeholder={t("Send encrypted instructions to Marcus Thorne...")}
-                className="chat-text-input"
-              />
-              <button className="chat-send-btn">
-                <Send size={15} />
-              </button>
-            </div>
+            )}
           </div>
         </div>
       </section>

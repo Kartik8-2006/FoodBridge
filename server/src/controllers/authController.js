@@ -11,7 +11,8 @@ function publicUser(user) {
     name: user.name,
     email: user.email,
     role: user.role,
-    profile: user.profile
+    profile: user.profile,
+    createdAt: user.createdAt
   };
 }
 
@@ -152,6 +153,50 @@ export const resetPassword = asyncHandler(async (req, res) => {
 
 export const me = asyncHandler(async (req, res) => {
   res.json({ user: publicUser(req.user) });
+});
+
+export const updateProfile = asyncHandler(async (req, res) => {
+  const { name, profile = {} } = req.body;
+  const user = await User.findById(req.user._id);
+
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  if (typeof name === 'string') {
+    user.name = name.trim();
+  }
+
+  const allowedProfileFields = [
+    'organizationName',
+    'organizationType',
+    'foodSourceType',
+    'registrationNumber',
+    'contactPerson',
+    'serviceArea',
+    'availability',
+    'hasTransport',
+    'vehicleType',
+    'serviceRadiusKm',
+    'monthlyGoalKg',
+    'rating',
+    'avatarUrl',
+    'householdSize',
+    'assistanceNeed',
+    'city',
+    'address',
+    'phone'
+  ];
+
+  for (const field of allowedProfileFields) {
+    if (Object.prototype.hasOwnProperty.call(profile, field)) {
+      user.profile[field] = profile[field];
+    }
+  }
+
+  await user.save();
+  res.json({ user: publicUser(user), message: 'Profile updated successfully' });
 });
 
 export const changePassword = asyncHandler(async (req, res) => {

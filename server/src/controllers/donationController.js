@@ -29,8 +29,12 @@ export const listDonations = asyncHandler(async (req, res) => {
   if (status) filter.status = status;
   if (city) filter.city = new RegExp(city, 'i');
   if (mine === 'true' && req.user.role === 'donor') filter.donor = req.user._id;
-  if (!status && ['ngo', 'volunteer'].includes(req.user.role)) {
+  if (req.user.role === 'volunteer') filter.assignedVolunteer = req.user._id;
+  if (!status && req.user.role === 'ngo') {
     filter.status = { $in: ['posted', 'accepted', 'pickup_scheduled'] };
+  }
+  if (!status && req.user.role === 'volunteer') {
+    filter.assignedVolunteer = req.user._id;
   }
   if (!city && ['ngo', 'volunteer'].includes(req.user.role)) {
     const userCity = req.user.profile?.city || req.user.profile?.serviceArea;
@@ -158,9 +162,9 @@ export const createDonation = asyncHandler(async (req, res) => {
 });
 
 export const acceptDonation = asyncHandler(async (req, res) => {
-  if (!['ngo', 'volunteer', 'admin'].includes(req.user.role)) {
+  if (!['ngo', 'admin'].includes(req.user.role)) {
     res.status(403);
-    throw new Error('Only NGOs, volunteers, or admins can accept donations');
+    throw new Error('Only NGOs or admins can accept donor food requests');
   }
 
   const donation = await Donation.findById(req.params.id);
@@ -176,9 +180,6 @@ export const acceptDonation = asyncHandler(async (req, res) => {
 
   donation.status = 'accepted';
   donation.acceptedBy = req.user._id;
-  if (req.user.role === 'volunteer') {
-    donation.assignedVolunteer = req.user._id;
-  }
   await donation.save();
 
   await Notification.create({
@@ -234,23 +235,86 @@ export const schedulePickup = asyncHandler(async (req, res) => {
     throw new Error('Only the accepting NGO, volunteer, or admin can schedule this pickup');
   }
 
+  const volunteer = req.body.assignedVolunteer
+    ? await User.findOne({ _id: req.body.assignedVolunteer, role: 'volunteer', isActive: true })
+    : null;
+
+  if (!volunteer) {
+    res.status(400);
+    throw new Error('Select an active volunteer to assign this pickup');
+  }
+
   const pickup = await PickupSchedule.create({
     donation: donation._id,
     acceptedBy: donation.acceptedBy || req.user._id,
-    assignedVolunteer: req.body.assignedVolunteer,
+    assignedVolunteer: volunteer._id,
     scheduledAt: req.body.scheduledAt,
     deliveryLocation: req.body.deliveryLocation,
     notes: req.body.notes
   });
 
   donation.status = 'pickup_scheduled';
-  donation.assignedVolunteer = req.body.assignedVolunteer;
+  donation.assignedVolunteer = volunteer._id;
+  donation.volunteerAccepted = false;
   donation.deliveryAddress = req.body.deliveryLocation;
   const deliveryLocation = normalizeLocation(req.body.deliveryCoordinates, req.body.deliveryLocation);
   if (deliveryLocation) donation.deliveryLocation = deliveryLocation;
   await donation.save();
 
+  await Notification.create({
+    user: volunteer._id,
+    title: 'New pickup assignment request',
+    message: `NGO ${req.user.name} has assigned you to pick up: ${donation.title}.`,
+    type: 'pickup',
+    donation: donation._id,
+    link: '/dashboard/volunteer#assigned-deliveries'
+  });
+
   res.status(201).json({ pickup, donation });
+});
+
+export const acceptVolunteerAssignment = asyncHandler(async (req, res) => {
+  const donation = await Donation.findById(req.params.id).populate('donor acceptedBy');
+  if (!donation) {
+    res.status(404);
+    throw new Error('Donation not found');
+  }
+
+  if (!donation.assignedVolunteer?.equals(req.user._id) && req.user.role !== 'admin') {
+    res.status(403);
+    throw new Error('Only the assigned volunteer can accept this pickup task');
+  }
+
+  donation.volunteerAccepted = true;
+  donation.status = 'pickup_scheduled';
+  await donation.save();
+
+  await PickupSchedule.findOneAndUpdate(
+    { donation: donation._id },
+    { status: 'scheduled' }
+  );
+
+  if (donation.acceptedBy) {
+    await Notification.create({
+      user: donation.acceptedBy._id,
+      title: 'Volunteer accepted pickup task',
+      message: `Volunteer ${req.user.name} has accepted the pickup for donation: ${donation.title}.`,
+      type: 'pickup',
+      donation: donation._id,
+      link: '/dashboard/ngo#claimed-donations'
+    });
+  }
+
+  await Notification.create({
+    user: donation.donor._id,
+    title: 'Volunteer assigned for pickup',
+    message: `Volunteer ${req.user.name} has accepted the task and will pick up ${donation.title}. You can now track their coordinates.`,
+    type: 'donation',
+    donation: donation._id,
+    link: '/dashboard/donor#track-donations'
+  });
+
+  res.json({ donation });
 });
 
 export const updateDonationTracking = asyncHandler(async (req, res) => {
@@ -329,6 +393,18 @@ export const updateDonationStatus = asyncHandler(async (req, res) => {
     { donation: donation._id },
     { status: status === 'delivered' ? 'delivered' : status === 'picked_up' ? 'picked_up' : 'cancelled' }
   );
+
+  const notifyUsers = [donation.donor, donation.acceptedBy].filter(Boolean);
+  if (notifyUsers.length && ['picked_up', 'delivered', 'cancelled', 'expired'].includes(status)) {
+    await Notification.insertMany(notifyUsers.map((user) => ({
+      user,
+      title: `Donation ${status.replace(/_/g, ' ')}`,
+      message: `${donation.title} status changed to ${status.replace(/_/g, ' ')}.`,
+      type: status === 'picked_up' ? 'pickup' : 'donation',
+      donation: donation._id,
+      link: '/dashboard'
+    })));
+  }
 
   res.json({ donation });
 });

@@ -34,6 +34,7 @@ const donationSchema = new mongoose.Schema(
     },
     acceptedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     assignedVolunteer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    volunteerAccepted: { type: Boolean, default: false },
     deliveryAddress: String,
     deliveryLocation: {
       latitude: Number,

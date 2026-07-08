@@ -22,6 +22,7 @@ export function DashboardShell({ eyebrow, title, children, actions }) {
       [Package, 'My Active Donations', '#active-donations'],
       [ClipboardList, 'Donation History', '#donation-history'],
       [MapPin, 'Track Donations', '#track-donations'],
+      [MessageSquare, 'Messages', '#messages'],
       [Bell, 'Notifications', '#notifications'],
       [UserRoundCog, 'Profile', '#profile'],
       [Settings, 'Settings', '#settings']
@@ -41,7 +42,7 @@ export function DashboardShell({ eyebrow, title, children, actions }) {
       [MapPin, 'Available Pickups', '#available-pickups'],
       [Truck, 'Assigned Deliveries', '#assigned-deliveries'],
       [PackageCheck, 'Delivery History', '#delivery-history'],
-      [MapPin, 'Navigation', '#navigation'],
+      [MessageSquare, 'Messages', '#messages'],
       [Bell, 'Notifications', '#notifications'],
       [UserRoundCog, 'Profile', '#profile'],
       [Settings, 'Settings', '#settings']
@@ -49,14 +50,10 @@ export function DashboardShell({ eyebrow, title, children, actions }) {
     admin: [
       [LayoutDashboard, 'Dashboard', '#admin-home'],
       [UsersRound, 'Users', '#users'],
-      [PackageCheck, 'Donors', '#donors'],
-      [HeartHandshake, 'NGOs', '#ngos'],
-      [Truck, 'Volunteers', '#volunteers'],
       [ClipboardList, 'Donations', '#donations'],
       [Soup, 'Food Requests', '#food-requests'],
-      [BarChart3, 'Reports', '#reports'],
-      [BarChart3, 'Analytics', '#analytics'],
       [ShieldCheck, 'Verification', '#verification'],
+      [BarChart3, 'Analytics', '#analytics'],
       [Bell, 'Notifications', '#notifications'],
       [Settings, 'Settings', '#settings']
     ]
@@ -215,7 +212,11 @@ export function DashboardShell({ eyebrow, title, children, actions }) {
             <span className="dashboard-action-divider" />
             {actions || (user?.role === 'donor' && <a className="button button-primary" href="#donate-food"><Plus size={18} /> {t("Donate Food")}</a>)}
             <div className="topbar-avatar">
-              {user?.profile?.avatarUrl ? <img src={user.profile.avatarUrl} alt="" /> : <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80" alt="" />}
+              {user?.profile?.avatarUrl ? (
+                <img src={user.profile.avatarUrl} alt="" />
+              ) : (
+                <span>{user?.name?.slice(0, 2)?.toUpperCase() || 'U'}</span>
+              )}
             </div>
           </div>
         </header>

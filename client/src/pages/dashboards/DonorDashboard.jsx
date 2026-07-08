@@ -16,13 +16,6 @@ const statusSteps = [
   ['delivered', 'Delivered']
 ];
 
-const categoryFallbackImages = {
-  cooked: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80',
-  produce: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80',
-  bakery: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80',
-  packaged: 'https://images.unsplash.com/photo-1595853035070-59a39fe84de3?auto=format&fit=crop&w=600&q=80',
-};
-
 const categories = [
   { id: 'cooked', label: 'Cooked Meals' },
   { id: 'produce', label: 'Fresh Produce' },
@@ -61,63 +54,6 @@ const initialForm = {
   imageUrl: ''
 };
 
-const mockHistoryList = [
-  {
-    createdAt: new Date('2024-10-24T14:20:00').toISOString(),
-    title: 'Fresh Sandwiches',
-    quantity: '25 Units',
-    acceptedBy: { name: 'City Hope Shelter' },
-    feedback: 'Timely & high quality',
-    rating: 5,
-    foodType: 'cooked'
-  },
-  {
-    createdAt: new Date('2024-10-21T09:15:00').toISOString(),
-    title: 'Assorted Pastries',
-    quantity: '15 KG',
-    acceptedBy: { name: 'Global Relief Org' },
-    feedback: 'Efficient pickup',
-    rating: 4,
-    foodType: 'bakery'
-  },
-  {
-    createdAt: new Date('2024-10-18T18:45:00').toISOString(),
-    title: 'Cooked Rice & Dal',
-    quantity: '40 Pax',
-    acceptedBy: { name: 'Green Valley Volunteer' },
-    feedback: 'Highly appreciated!',
-    rating: 5,
-    foodType: 'cooked'
-  },
-  {
-    createdAt: new Date('2024-10-15T11:30:00').toISOString(),
-    title: 'Fruit Baskets',
-    quantity: '12 Boxes',
-    acceptedBy: { name: 'City Hope Shelter' },
-    feedback: 'Very fresh fruit!',
-    rating: 5,
-    foodType: 'produce'
-  },
-  {
-    createdAt: new Date('2024-10-12T16:00:00').toISOString(),
-    title: 'Mixed Vegetable Curry',
-    quantity: '30 Servings',
-    acceptedBy: { name: 'Global Relief Org' },
-    feedback: 'Delicious and hot',
-    rating: 5,
-    foodType: 'cooked'
-  },
-  {
-    createdAt: new Date('2024-10-09T08:00:00').toISOString(),
-    title: 'Bread Rolls',
-    quantity: '50 Units',
-    acceptedBy: { name: 'Green Valley Volunteer' },
-    feedback: 'Great distribution',
-    rating: 4,
-    foodType: 'bakery'
-  }
-];
-
 export default function DonorDashboard() {
   const { user } = useAuth();
   const { language, setLanguage, t } = useLanguage();
@@ -135,59 +71,19 @@ export default function DonorDashboard() {
   const [pickupTime, setPickupTime] = useState('');
   const [activeTab, setActiveTab] = useState('all');
   const [historyPage, setHistoryPage] = useState(1);
-  const [notificationsList, setNotificationsList] = useState([
-    {
-      id: 1,
-      type: 'pickup',
-      title: 'Donation Picked Up',
-      time: '10:45 AM',
-      message: 'Your donation of 50 Meals has been successfully collected by our logistics partner. It\'s on its way to the downtown shelter.',
-      boldText: '50 Meals',
-      category: 'today',
-      unread: false,
-      buttons: [
-        { label: 'Track Delivery', style: 'dark', action: 'track' },
-        { label: 'View Details', style: 'outline', action: 'details' }
-      ]
-    },
-    {
-      id: 2,
-      type: 'request',
-      title: 'NGO Requesting Food',
-      time: '8:20 AM',
-      message: 'City Outreach Center has an urgent need for non-perishable goods in your area. Can you help today?',
-      boldText: 'City Outreach Center',
-      category: 'today',
-      unread: true,
-      accentBorder: true,
-      buttons: [
-        { label: 'Respond Now', style: 'primary', action: 'respond' }
-      ]
-    },
-    {
-      id: 3,
-      type: 'volunteer',
-      title: 'Volunteer Assigned',
-      time: 'Yesterday',
-      message: 'Volunteer Sarah Jenkins has been assigned to your scheduled pickup tomorrow at 2:00 PM.',
-      boldText: 'Sarah Jenkins',
-      category: 'yesterday',
-      unread: false
-    },
-    {
-      id: 4,
-      type: 'milestone',
-      title: 'Milestone Reached!',
-      time: 'Yesterday',
-      message: 'Congratulations! You\'ve officially donated over 100kg of fresh produce this year. Check out your updated impact report.',
-      boldText: '100kg',
-      category: 'yesterday',
-      unread: false
-    }
-  ]);
+  const [notificationsList, setNotificationsList] = useState([]);
+  const [chatContacts, setChatContacts] = useState([]);
+  const [selectedContact, setSelectedContact] = useState(null);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [newMessageText, setNewMessageText] = useState('');
 
-  const handleMarkAllRead = () => {
-    setNotificationsList(prev => prev.map(item => ({ ...item, unread: false })));
+  const handleMarkAllRead = async () => {
+    try {
+      await api('/notifications/read-all', { method: 'PATCH' });
+      setNotificationsList(prev => prev.map(item => ({ ...item, unread: false, readAt: item.readAt || new Date().toISOString() })));
+    } catch (err) {
+      setFormMessage(err.message);
+    }
   };
 
   const handleNotificationAction = (item, btn) => {
@@ -211,11 +107,11 @@ export default function DonorDashboard() {
   };
 
   const [profileForm, setProfileForm] = useState({
-    name: user?.name || 'Alexander Bennett',
-    email: user?.email || 'alexander.b@harvestgate.c',
-    phone: user?.profile?.phone || '+1 (555) 123-4567',
-    accountType: 'Restaurant',
-    address: user?.profile?.address || '742 Evergreen Terrace, Springfield, IL 62704'
+    name: user?.name || '',
+    email: user?.email || '',
+    phone: user?.profile?.phone || '',
+    accountType: user?.profile?.foodSourceType || '',
+    address: user?.profile?.address || ''
   });
   const [profileNotice, setProfileNotice] = useState('');
 
@@ -224,10 +120,26 @@ export default function DonorDashboard() {
     setProfileForm(current => ({ ...current, [name]: value }));
   };
 
-  const handleProfileSave = (e) => {
+  const handleProfileSave = async (e) => {
     e.preventDefault();
-    setProfileNotice(t('Profile settings saved successfully!'));
-    setTimeout(() => setProfileNotice(''), 3000);
+    setProfileNotice('');
+    try {
+      const res = await api('/auth/profile', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          name: profileForm.name,
+          profile: {
+            phone: profileForm.phone,
+            foodSourceType: profileForm.accountType,
+            address: profileForm.address
+          }
+        })
+      });
+      setProfileNotice(t(res.message || 'Profile settings saved successfully!'));
+      setTimeout(() => setProfileNotice(''), 3000);
+    } catch (err) {
+      setProfileNotice(t(err.message || 'Unable to update profile.'));
+    }
   };
 
   const [emailNotifications, setEmailNotifications] = useState(true);
@@ -274,14 +186,63 @@ export default function DonorDashboard() {
     setTimeout(() => setSettingsNotice(''), 3000);
   };
 
+  async function fetchContacts() {
+    try {
+      const res = await api('/messages/contacts');
+      setChatContacts(res.contacts || []);
+      if (res.contacts?.length && !selectedContact) setSelectedContact(res.contacts[0]);
+    } catch (err) {
+      setFormMessage(err.message || 'Failed to load chat contacts');
+    }
+  }
+
+  async function fetchChatMessages(contactId) {
+    if (!contactId) return;
+    try {
+      const res = await api(`/messages/thread/${contactId}`);
+      setChatMessages(res.messages || []);
+    } catch (err) {
+      setFormMessage(err.message || 'Failed to load messages');
+    }
+  }
+
+  async function handleSendMessage(event) {
+    event.preventDefault();
+    if (!newMessageText.trim() || !selectedContact) return;
+    const text = newMessageText.trim();
+    setNewMessageText('');
+    try {
+      await api('/messages', {
+        method: 'POST',
+        body: JSON.stringify({ recipientId: selectedContact._id, text })
+      });
+      fetchChatMessages(selectedContact._id);
+    } catch (err) {
+      setFormMessage(err.message || 'Failed to send message');
+    }
+  }
+
   const donations = data?.donations || [];
+  const stats = data?.stats || {};
   const selectedDonation = donations.find((item) => item._id === selectedDonationId) || donations[0];
 
   const activeDonations = donations.filter((item) => ['posted', 'accepted', 'pickup_scheduled', 'picked_up'].includes(item.status));
   const donationHistory = donations.filter((item) => ['delivered', 'cancelled', 'expired'].includes(item.status));
-  const totalMeals = donations.reduce((sum, item) => sum + Number(item.estimatedMeals || 0), 0);
-  const foodSavedKg = donations.reduce((sum, item) => sum + getDonationKg(item), 0);
+  const totalMeals = Number(stats.mealsContributed ?? donations.reduce((sum, item) => sum + Number(item.estimatedMeals || 0), 0));
+  const foodSavedKg = Number(stats.foodSavedKg ?? donations.reduce((sum, item) => sum + getDonationKg(item), 0));
   const trendData = useMemo(() => buildDonationTrend(donations, trendMode), [donations, trendMode]);
+  const categoryDistribution = useMemo(() => {
+    const buckets = [
+      ['Perishables', (item) => !['packaged', 'bakery'].includes(item.foodType)],
+      ['Packed / Canned', (item) => item.foodType === 'packaged'],
+      ['Bakery / Bread', (item) => item.foodType === 'bakery']
+    ];
+    const total = Math.max(1, donations.length);
+    return buckets.map(([label, matches]) => ({
+      label,
+      percent: Math.round((donations.filter(matches).length / total) * 100)
+    }));
+  }, [donations]);
   const pickupMapQuery = form.pickupAddress
     ? `${form.pickupAddress}, ${form.city || user?.profile?.city || ''}`.trim()
     : '';
@@ -298,19 +259,51 @@ export default function DonorDashboard() {
     Number.isFinite(Number(selectedDonation.pickupLocation.longitude))
     ? `${selectedDonation.pickupLocation.latitude},${selectedDonation.pickupLocation.longitude}`
     : '';
-  const trackMapQuery = liveVolunteerCoords || pickupCoords || `${selectedDonation?.pickupAddress || 'The Daily Bread Bakery 128 Market St'}, ${selectedDonation?.city || ''}`.trim();
-  const trackMapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(trackMapQuery)}&z=${liveVolunteerCoords ? 16 : 15}&output=embed`;
+  const trackMapQuery = liveVolunteerCoords || pickupCoords || (selectedDonation?.pickupAddress ? `${selectedDonation.pickupAddress}, ${selectedDonation.city || ''}`.trim() : '');
+  const trackMapSrc = trackMapQuery ? `https://maps.google.com/maps?q=${encodeURIComponent(trackMapQuery)}&z=${liveVolunteerCoords ? 16 : 15}&output=embed` : '';
 
   useEffect(() => {
     if (user) {
       setForm((current) => ({
         ...current,
         pickupAddress: current.pickupAddress || user.profile?.address || '',
-        city: current.city || user.profile?.city || 'Bengaluru',
+        city: current.city || user.profile?.city || '',
         contactNumber: current.contactNumber || user.profile?.phone || user.phone || ''
       }));
     }
   }, [user]);
+
+  useEffect(() => {
+    const today = new Date().toDateString();
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toDateString();
+    setNotificationsList((data?.notifications || []).map((item) => {
+      const createdDate = item.createdAt ? new Date(item.createdAt) : null;
+      const createdDay = createdDate?.toDateString();
+      return {
+        ...item,
+        id: item._id || item.id,
+        category: createdDay === today ? 'today' : createdDay === yesterday ? 'yesterday' : 'older',
+        time: createdDate ? formatDate(createdDate) : '',
+        unread: !item.readAt,
+        boldText: item.metadata?.donationTitle || item.donation?.title || '',
+        buttons: item.link ? [{ label: 'View', style: 'primary', action: item.link.includes('track') ? 'track' : 'details' }] : []
+      };
+    }));
+  }, [data?.notifications]);
+
+  useEffect(() => {
+    fetchContacts();
+    const interval = setInterval(fetchContacts, 6000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (selectedContact?._id) {
+      fetchChatMessages(selectedContact._id);
+      const interval = setInterval(() => fetchChatMessages(selectedContact._id), 3000);
+      return () => clearInterval(interval);
+    }
+  }, [selectedContact?._id]);
 
   useEffect(() => {
     const defaultPickupTime = new Date(Date.now() + 60 * 60 * 1000);
@@ -319,8 +312,8 @@ export default function DonorDashboard() {
   }, []);
 
   const quickStats = useMemo(() => {
-    const ngosHelped = new Set(donations.map((item) => item.acceptedBy?._id || item.acceptedBy).filter(Boolean)).size;
-    const volunteersAssigned = donations.filter((item) => item.assignedVolunteer).length;
+    const ngosHelped = stats.ngosHelped ?? new Set(donations.map((item) => item.acceptedBy?._id || item.acceptedBy).filter(Boolean)).size;
+    const volunteersAssigned = stats.volunteersAssigned ?? donations.filter((item) => item.assignedVolunteer).length;
 
     return [
       ['Total Donations', donations.length],
@@ -328,9 +321,9 @@ export default function DonorDashboard() {
       ['Meals Provided', totalMeals],
       ['NGOs Helped', ngosHelped],
       ['Volunteers Assigned', volunteersAssigned],
-      ['Average Pickup Time', donations.length ? '2.4 hrs' : t('Pending')]
+      ['Average Pickup Time', stats.averagePickupTime || t('Pending')]
     ];
-  }, [donations, foodSavedKg, totalMeals, t]);
+  }, [donations, foodSavedKg, stats, totalMeals, t]);
 
   if (!data) return <main className="dashboard"><p>{t(error) || t('Loading donor dashboard...')}</p></main>;
 
@@ -366,7 +359,7 @@ export default function DonorDashboard() {
       title: '',
       quantity: '',
       pickupAddress: user?.profile?.address || '',
-      city: user?.profile?.city || 'Bengaluru',
+      city: user?.profile?.city || '',
       contactNumber: user?.profile?.phone || user?.phone || 'Not provided',
       storageInstructions: '',
       allergenNotes: '',
@@ -451,7 +444,7 @@ export default function DonorDashboard() {
       dietType = 'veg';
     }
 
-    const finalImageUrl = form.imageUrl || categoryFallbackImages[selectedCategory];
+    const finalImageUrl = form.imageUrl;
 
     try {
       await api('/donations', {
@@ -473,7 +466,7 @@ export default function DonorDashboard() {
         title: '',
         quantity: '',
         pickupAddress: user.profile?.address || '',
-        city: user.profile?.city || 'Bengaluru',
+        city: user.profile?.city || '',
         contactNumber: user.profile?.phone || '',
         storageInstructions: '',
         allergenNotes: '',
@@ -500,11 +493,11 @@ export default function DonorDashboard() {
         <div className="donor-home-head">
           <div>
             <h2>Donor Dashboard</h2>
-            <p>Good morning! Your contributions have helped 15 families this week.</p>
+            <p>{stats.peopleImpacted ? t('Your completed donations have reached real beneficiaries.') : t('Create and complete donations to build your impact report.')}</p>
           </div>
           <article className="saved-chip">
             <span><Leaf size={24} fill="currentColor" /></span>
-            <div><small>TOTAL SAVED</small><strong>{foodSavedKg || 450} kg Food</strong></div>
+            <div><small>TOTAL SAVED</small><strong>{Number(foodSavedKg || 0).toLocaleString()} kg Food</strong></div>
           </article>
         </div>
 
@@ -512,8 +505,8 @@ export default function DonorDashboard() {
           <article className="donor-home-stat">
             <span className="donor-stat-icon warm"><Utensils size={27} /></span>
             <small>TOTAL MEALS DONATED</small>
-            <strong>{(totalMeals || 1270).toLocaleString()}</strong>
-            <em>↗ +12% from last month</em>
+            <strong>{Number(totalMeals || 0).toLocaleString()}</strong>
+            <em>{t('From verified donation records')}</em>
           </article>
           <article className="donor-home-stat">
             <span className="donor-stat-icon neutral"><Package size={27} /></span>
@@ -524,7 +517,7 @@ export default function DonorDashboard() {
           <article className="donor-home-stat">
             <span className="donor-stat-icon neutral"><Users size={27} /></span>
             <small>PEOPLE IMPACTED</small>
-            <strong>82</strong>
+            <strong>{Number(stats.peopleImpacted || 0).toLocaleString()}</strong>
             <p>Local community members</p>
           </article>
           <article className="hunger-card">
@@ -564,19 +557,28 @@ export default function DonorDashboard() {
           <article className="recent-card">
             <div className="recent-head"><h3>Recent Activity</h3><a href="#donation-history">View All</a></div>
             <div className="recent-list">
-              <ActivityRow icon={<ShoppingCart size={26} />} tone="warm" title="Vegetable Crate Pick-up" text="Scheduled for tomorrow, 10:00 AM" tag="PENDING" />
-              <ActivityRow icon={<CheckCircle2 size={26} />} title="Donation Delivered" text="25kg of Grains reached City Shelter" tag="COMPLETED · 2H AGO" positive />
-              <ActivityRow icon={<Award size={26} />} title="Achievement Unlocked" text="You've hit the '1000 Meals' milestone!" tag="SYSTEM · 1D AGO" />
+              {donations.slice(0, 3).map((donation) => (
+                <ActivityRow
+                  key={donation._id}
+                  icon={donation.status === 'delivered' ? <CheckCircle2 size={26} /> : <ShoppingCart size={26} />}
+                  tone={donation.status === 'delivered' ? 'neutral' : 'warm'}
+                  title={donation.title}
+                  text={donation.pickupAddress || t('Pickup address unavailable')}
+                  tag={titleCase(donation.status)}
+                  positive={donation.status === 'delivered'}
+                />
+              ))}
+              {!donations.length && <p>{t('No recent donation activity yet.')}</p>}
             </div>
           </article>
         </section>
 
         <button className="impact-story-card" type="button" onClick={() => setImpactOpen(true)}>
-          <img src="https://images.unsplash.com/photo-1547496502-affa22d38842?auto=format&fit=crop&w=900&q=85" alt="" />
+          <span className="impact-story-placeholder"><Leaf size={40} /></span>
           <span>
             <small>IMPACT STORY</small>
-            <strong>How your last donation changed 20 lives.</strong>
-            <em>Last Tuesday, your surplus bakery items were distributed to the Sunrise Community Center. 20 local students received fresh nutritious snacks during their after-school programs.</em>
+            <strong>{t('Impact report')}</strong>
+            <em>{t('Your verified impact report will appear after completed donations are processed by the backend.')}</em>
             <b>Read Full Report <ArrowRight size={17} /></b>
           </span>
         </button>
@@ -636,14 +638,13 @@ export default function DonorDashboard() {
               badgeText = t('In Transit');
             }
 
-            const fallbackImage = categoryFallbackImages[donation.foodType] || categoryFallbackImages.cooked;
-            const displayImage = donation.imageUrl || fallbackImage;
+            const displayImage = donation.imageUrl || '';
 
             return (
               <article className="donation-card-premium" key={donation._id}>
                 <div className="card-image-wrapper">
                   <span className={`card-badge ${badgeClass}`}>{badgeText}</span>
-                  <img src={displayImage} alt={donation.title} />
+                  {displayImage ? <img src={displayImage} alt={donation.title} /> : <div className="pickup-placeholder"><Package /></div>}
                 </div>
 
                 <div className="card-content-premium">
@@ -680,7 +681,6 @@ export default function DonorDashboard() {
                         <span>{t("LOGISTICS PARTNER")}</span>
                         <strong>{donation.assignedVolunteer.name}</strong>
                       </div>
-                      <div className="partner-eta-badge">{t("15 mins")}</div>
                     </div>
                   )}
 
@@ -727,7 +727,7 @@ export default function DonorDashboard() {
         <div className="donor-track-head">
           <div>
             <h2>{t("Track Donations")}</h2>
-            <p>{t("Real-time status of your pickup")} #{selectedDonation ? `RS-${selectedDonation._id.slice(-5).toUpperCase()}` : 'RS-99281'}</p>
+            <p>{selectedDonation ? `${t("Real-time status of your pickup")} #RS-${selectedDonation._id.slice(-5).toUpperCase()}` : t('Select a donation to track live status')}</p>
           </div>
           <a href={`tel:${selectedDonation?.assignedVolunteer?.profile?.phone || selectedDonation?.assignedVolunteer?.phone || ''}`}>
             <Phone size={21} /> {t("Contact Driver")}
@@ -740,8 +740,8 @@ export default function DonorDashboard() {
               <div className="track-eta-chip">
                 <Clock size={23} />
                 <div>
-                  <strong>{liveVolunteerCoords ? t("Live driver location") : "12 mins away"}</strong>
-                  <span>{liveVolunteerCoords ? t("Updated from volunteer tracking") : "Estimated arrival: 2:45 PM"}</span>
+                  <strong>{liveVolunteerCoords ? t("Live driver location") : t("Tracking unavailable")}</strong>
+                  <span>{liveVolunteerCoords ? t("Updated from volunteer tracking") : t("Waiting for volunteer location")}</span>
                 </div>
               </div>
               <iframe
@@ -753,10 +753,10 @@ export default function DonorDashboard() {
               />
               <footer>
                 <div className="track-driver-profile">
-                  <img src="https://images.unsplash.com/photo-1607746882042-944635dfe10e?auto=format&fit=crop&w=140&q=80" alt="" />
+                  <User size={32} />
                   <div>
                     <strong>{selectedDonation?.assignedVolunteer?.name || 'David Mitchell'}</strong>
-                    <span>Volunteer Driver · 4.9 ★</span>
+                    <span>{selectedDonation?.assignedVolunteer?.profile?.rating ? `${t('Volunteer Driver')} - ${selectedDonation.assignedVolunteer.profile.rating}` : t('Volunteer Driver')}</span>
                   </div>
                 </div>
                 <div className="track-map-actions">
@@ -784,7 +784,7 @@ export default function DonorDashboard() {
               <h3>{t("Pickup Details")}</h3>
               <div className="track-detail-block">
                 <small>{t("Pickup From")}</small>
-                <strong>{selectedDonation?.donor?.profile?.organizationName || selectedDonation?.donor?.name || 'The Daily Bread Bakery'}</strong>
+                <strong>{selectedDonation?.donor?.profile?.organizationName || selectedDonation?.donor?.name || t('Donor details unavailable')}</strong>
                 <p>{selectedDonation?.pickupAddress || '128 Market St, Suite 4B'}</p>
               </div>
               <div className="track-detail-block">
@@ -948,7 +948,7 @@ export default function DonorDashboard() {
                 <input type="file" accept="image/*" onChange={updateImage} />
               </label>
               <div className="donate-photo-thumbs">
-                <img src={form.imageUrl || categoryFallbackImages[selectedCategory]} alt="" />
+                {form.imageUrl ? <img src={form.imageUrl} alt="" /> : <Package size={42} />}
                 <button type="button" onClick={() => setForm((current) => ({ ...current, imageUrl: '' }))}>
                   <ImagePlus size={22} />
                 </button>
@@ -1007,7 +1007,7 @@ export default function DonorDashboard() {
             </div>
             <div className="stat-card-info">
               <span className="stat-card-label">{t("Total Donations")}</span>
-              <strong className="stat-card-val">{donationHistory.length || 48}</strong>
+              <strong className="stat-card-val">{donationHistory.length}</strong>
             </div>
           </div>
           <div className="hist-stat-card">
@@ -1034,7 +1034,7 @@ export default function DonorDashboard() {
             </div>
             <div className="stat-card-info">
               <span className="stat-card-label">{t("Avg. Feedback")}</span>
-              <strong className="stat-card-val">4.9</strong>
+              <strong className="stat-card-val">{t('Pending')}</strong>
             </div>
           </div>
         </div>
@@ -1055,7 +1055,7 @@ export default function DonorDashboard() {
               </thead>
               <tbody>
                 {(() => {
-                  const historyList = donationHistory.length ? donationHistory : mockHistoryList;
+                  const historyList = donationHistory;
                   const itemsPerPage = 3;
                   const totalPages = Math.ceil(historyList.length / itemsPerPage) || 1;
                   const currentHistoryPage = Math.min(historyPage, totalPages);
@@ -1116,7 +1116,7 @@ export default function DonorDashboard() {
           {/* Table Footer / Pagination */}
           <div className="history-table-footer">
             {(() => {
-              const historyList = donationHistory.length ? donationHistory : mockHistoryList;
+                  const historyList = donationHistory;
               const itemsPerPage = 3;
               const totalPages = Math.ceil(historyList.length / itemsPerPage) || 1;
               const currentHistoryPage = Math.min(historyPage, totalPages);
@@ -1170,33 +1170,17 @@ export default function DonorDashboard() {
           <div className="hist-distribution-card">
             <h3>{t("Category Distribution")}</h3>
             <div className="dist-list">
-              <div className="dist-item">
-                <div className="dist-label-row">
-                  <span>{t("Perishables")}</span>
-                  <span>65%</span>
+              {categoryDistribution.map((item, index) => (
+                <div className="dist-item" key={item.label}>
+                  <div className="dist-label-row">
+                    <span>{t(item.label)}</span>
+                    <span>{item.percent}%</span>
+                  </div>
+                  <div className="progress-bar-wrap">
+                    <span className="progress-fill" style={{ width: `${item.percent}%`, background: ['#e2973c', '#4b525d', '#ebdcd0'][index] }} />
+                  </div>
                 </div>
-                <div className="progress-bar-wrap">
-                  <span className="progress-fill" style={{ width: '65%', background: '#e2973c' }} />
-                </div>
-              </div>
-              <div className="dist-item">
-                <div className="dist-label-row">
-                  <span>{t("Packed / Canned")}</span>
-                  <span>20%</span>
-                </div>
-                <div className="progress-bar-wrap">
-                  <span className="progress-fill" style={{ width: '20%', background: '#4b525d' }} />
-                </div>
-              </div>
-              <div className="dist-item">
-                <div className="dist-label-row">
-                  <span>{t("Bakery / Bread")}</span>
-                  <span>15%</span>
-                </div>
-                <div className="progress-bar-wrap">
-                  <span className="progress-fill" style={{ width: '15%', background: '#ebdcd0' }} />
-                </div>
-              </div>
+              ))}
             </div>
           </div>
 
@@ -1335,6 +1319,87 @@ export default function DonorDashboard() {
         </div>
       </section>
 
+      {/* ── Messages / Chat Section ── */}
+      <section className="messages-inbox-page" id="messages" data-dashboard-section="messages">
+        <div className="messages-layout">
+          <div className="chats-sidebar">
+            <div className="chats-sidebar-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <MessageSquare size={18} />
+                <div>
+                  <h3 style={{ margin: '0', fontWeight: '800', color: '#22252a' }}>{t("Messenger")}</h3>
+                  <p style={{ margin: '2px 0 0 0', color: '#7b818a', fontWeight: '500' }}>{t("Chat with NGO & Volunteer")}</p>
+                </div>
+              </div>
+            </div>
+            <div className="chats-list">
+              {chatContacts.map((contact) => (
+                <div
+                  className={`chat-list-item ${selectedContact?._id === contact._id ? 'active-chat' : ''}`}
+                  key={contact._id}
+                  onClick={() => setSelectedContact(contact)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <div className="chat-item-avatar-placeholder"><span>{contact.name?.slice(0, 2).toUpperCase()}</span></div>
+                  <div className="chat-item-info">
+                    <div className="chat-item-row">
+                      <strong>{contact.name}</strong>
+                      <span className="chat-status" style={{ fontSize: '11px', textTransform: 'uppercase' }}>{t(contact.role || '')}</span>
+                    </div>
+                    {contact.phone && <p className="chat-preview" style={{ fontSize: '11px' }}>{contact.phone}</p>}
+                  </div>
+                </div>
+              ))}
+              {!chatContacts.length && <p style={{ padding: '16px', color: '#7b818a' }}>{t('No active chats yet.')}</p>}
+            </div>
+          </div>
+
+          <div className="chats-content">
+            {selectedContact ? (
+              <>
+                <div className="chat-thread-header">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div className="chat-item-avatar-placeholder" style={{ width: 36, height: 36 }}><span>{selectedContact.name?.slice(0, 2).toUpperCase()}</span></div>
+                    <div>
+                      <h4 style={{ margin: '0 0 2px 0', fontWeight: '800', color: '#22252a' }}>{selectedContact.name}</h4>
+                      <span className="header-status-label" style={{ background: '#ebf8ff', color: '#2b6cb0' }}>{t("Live Messaging")}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="chat-messages-thread" style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '20px', overflowY: 'auto' }}>
+                  {chatMessages.map((msg) => {
+                    const isOut = msg.sender === user?._id;
+                    return (
+                      <div className={`message-bubble-row ${isOut ? 'outgoing' : 'incoming'}`} key={msg._id} style={{ alignSelf: isOut ? 'flex-end' : 'flex-start', maxWidth: '70%' }}>
+                        <div className="message-bubble" style={{ background: isOut ? 'linear-gradient(135deg,#83531b,#b87322)' : '#edf2f7', color: isOut ? '#fff' : '#2d3748', padding: '10px 14px', borderRadius: '16px', fontSize: '14px' }}>{msg.text}</div>
+                        <span className="message-timestamp" style={{ fontSize: '11px', color: '#a0aec0', display: 'block', textAlign: isOut ? 'right' : 'left', marginTop: '4px' }}>{formatDate(msg.createdAt)}</span>
+                      </div>
+                    );
+                  })}
+                  {!chatMessages.length && <p style={{ textAlign: 'center', color: '#a0aec0', padding: '20px' }}>{t('Send a message to start the conversation.')}</p>}
+                </div>
+                <form onSubmit={handleSendMessage} style={{ display: 'flex', padding: '16px', background: '#fff', borderTop: '1px solid #edf2f7' }}>
+                  <input 
+                    type="text" 
+                    value={newMessageText} 
+                    onChange={(e) => setNewMessageText(e.target.value)} 
+                    placeholder={t("Type a message...")} 
+                    style={{ flex: 1, padding: '12px 16px', borderRadius: '24px', border: '1px solid #cbd5e0', outline: 'none', fontSize: '14px' }} 
+                  />
+                  <button type="submit" className="button button-primary" style={{ marginLeft: '12px', borderRadius: '50%', width: '42px', height: '42px', minHeight: '42px', padding: '0', display: 'grid', placeItems: 'center', background: '#83531b', boxShadow: 'none' }}>
+                    <Send size={16} />
+                  </button>
+                </form>
+              </>
+            ) : (
+              <div style={{ display: 'grid', placeItems: 'center', height: '100%', color: '#a0aec0', textAlign: 'center' }}>
+                <div><MessageSquare size={48} style={{ margin: '0 auto 12px' }} /><p>{t('Select a contact from the sidebar to chat.')}</p></div>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
       {/* ── Redesigned Premium Profile Settings Section ── */}
       <section className="prof-page" id="profile" data-dashboard-section="profile">
         <ProfileSettingsPanel 
@@ -1342,6 +1407,9 @@ export default function DonorDashboard() {
           updateProfileField={updateProfileField}
           profileNotice={profileNotice}
           handleProfileSave={handleProfileSave}
+          user={user}
+          donations={donations}
+          totalMeals={totalMeals}
           t={t}
         />
       </section>
@@ -1636,7 +1704,7 @@ export default function DonorDashboard() {
   );
 }
 
-function ProfileSettingsPanel({ profileForm, updateProfileField, profileNotice, handleProfileSave, t }) {
+function ProfileSettingsPanel({ profileForm, updateProfileField, profileNotice, handleProfileSave, user, donations, totalMeals, t }) {
   return (
     <>
       {/* Title Header */}
@@ -1657,18 +1725,18 @@ function ProfileSettingsPanel({ profileForm, updateProfileField, profileNotice, 
         <div className="prof-summary-card">
           <div className="prof-avatar-container">
             <div className="prof-avatar-outline">
-              <img 
-                src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" 
-                alt="Alexander Bennett" 
-                className="prof-avatar-img"
-              />
+              {user?.profile?.avatarUrl ? (
+                <img src={user.profile.avatarUrl} alt={profileForm.name} className="prof-avatar-img" />
+              ) : (
+                <User size={48} />
+              )}
               <button type="button" className="prof-avatar-edit-btn" title={t('Edit avatar')}>
                 <Edit2 size={14} />
               </button>
             </div>
           </div>
           <h3 className="prof-summary-name">{profileForm.name}</h3>
-          <span className="prof-summary-active-since">{t('Active since Nov 2023')}</span>
+          {user?.createdAt && <span className="prof-summary-active-since">{t('Active since')} {formatDate(user.createdAt)}</span>}
 
           <div className="prof-divider-horizontal" />
 
