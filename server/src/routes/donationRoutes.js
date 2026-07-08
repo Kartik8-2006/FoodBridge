@@ -6,7 +6,8 @@ import {
   schedulePickup,
   updateDonationStatus,
   updateDonationTracking,
-  acceptVolunteerAssignment
+  acceptVolunteerAssignment,
+  claimVolunteerDonation
 } from '../controllers/donationController.js';
 import { authenticate } from '../middleware/auth.js';
 
@@ -18,5 +19,6 @@ donationRoutes.post('/', createDonation);
 donationRoutes.patch('/:id/accept', acceptDonation);
 donationRoutes.post('/:id/pickups', schedulePickup);
 donationRoutes.patch('/:id/volunteer-accept', acceptVolunteerAssignment);
+donationRoutes.patch('/:id/volunteer-claim', claimVolunteerDonation);
 donationRoutes.patch('/:id/tracking', updateDonationTracking);
 donationRoutes.patch('/:id/status', updateDonationStatus);

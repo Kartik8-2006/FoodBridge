@@ -408,3 +408,64 @@ export const updateDonationStatus = asyncHandler(async (req, res) => {
 
   res.json({ donation });
 });
+
+export const claimVolunteerDonation = asyncHandler(async (req, res) => {
+  if (req.user.role !== 'volunteer' && req.user.role !== 'admin') {
+    res.status(403);
+    throw new Error('Only volunteers can claim pickup tasks');
+  }
+
+  const donation = await Donation.findById(req.params.id).populate('donor acceptedBy');
+  if (!donation) {
+    res.status(404);
+    throw new Error('Donation not found');
+  }
+
+  if (donation.status !== 'accepted' || donation.assignedVolunteer) {
+    res.status(409);
+    throw new Error('This pickup is no longer available or already assigned');
+  }
+
+  donation.assignedVolunteer = req.user._id;
+  donation.volunteerAccepted = true;
+  donation.status = 'pickup_scheduled';
+  donation.deliveryAddress = donation.acceptedBy?.profile?.address || donation.acceptedBy?.profile?.serviceArea || 'NGO Hub';
+  
+  await donation.save();
+
+  await PickupSchedule.findOneAndUpdate(
+    { donation: donation._id },
+    {
+      donation: donation._id,
+      acceptedBy: donation.acceptedBy?._id,
+      assignedVolunteer: req.user._id,
+      status: 'scheduled',
+      scheduledAt: new Date(Date.now() + 2 * 60 * 60 * 1000),
+      deliveryLocation: donation.deliveryAddress,
+      notes: 'Volunteer claimed task directly from dashboard.'
+    },
+    { upsert: true, new: true }
+  );
+
+  if (donation.acceptedBy) {
+    await Notification.create({
+      user: donation.acceptedBy._id,
+      title: 'Volunteer claimed pickup task',
+      message: `Volunteer ${req.user.name} has claimed the pickup for donation: ${donation.title}.`,
+      type: 'pickup',
+      donation: donation._id,
+      link: '/dashboard/ngo#claimed-donations'
+    });
+  }
+
+  await Notification.create({
+    user: donation.donor._id,
+    title: 'Volunteer assigned for pickup',
+    message: `Volunteer ${req.user.name} has claimed the task and will pick up ${donation.title}. You can now track their coordinates.`,
+    type: 'donation',
+    donation: donation._id,
+    link: '/dashboard/donor#track-donations'
+  });
+
+  res.json({ donation });
+});

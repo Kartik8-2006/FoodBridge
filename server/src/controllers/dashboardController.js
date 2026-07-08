@@ -135,13 +135,30 @@ export const dashboard = asyncHandler(async (req, res) => {
   }
 
   if (role === 'volunteer') {
+    const userCity = req.user.profile?.city || req.user.profile?.serviceArea;
+    const sameCity = cityRegex(userCity);
+    const availableFilter = {
+      status: 'accepted',
+      assignedVolunteer: { $exists: false },
+      ...(sameCity ? { city: sameCity } : {})
+    };
+
+    const availableTasks = await Donation.find(availableFilter)
+      .populate('donor', 'name email profile')
+      .populate('acceptedBy', 'name role profile')
+      .sort({ safeBefore: 1 })
+      .limit(12);
+
     const volunteerTasks = await Donation.find({ assignedVolunteer: userId })
       .populate('donor', 'name email profile')
       .populate('acceptedBy', 'name role profile')
       .populate('assignedVolunteer', 'name role profile')
       .sort({ safeBefore: 1 })
       .limit(12);
-    const assignedDeliveries = volunteerTasks.filter((item) => String(item.assignedVolunteer) === String(userId));
+
+    const assignedDeliveries = volunteerTasks.filter(
+      (item) => String(item.assignedVolunteer?._id || item.assignedVolunteer) === String(userId)
+    );
     const completedDeliveries = assignedDeliveries.filter((item) => item.status === 'delivered');
     const completedKg = completedDeliveries.reduce((sum, item) => sum + getDonationKg(item), 0);
     const weeklyKg = completedDeliveries
@@ -153,14 +170,14 @@ export const dashboard = asyncHandler(async (req, res) => {
     const monthlyGoalKg = Number(req.user.profile?.monthlyGoalKg || 0);
 
     data.stats = {
-      nearbyTasks: await Donation.countDocuments({ status: 'posted' }),
+      nearbyTasks: await Donation.countDocuments(availableFilter),
       assignedPickups: await Donation.countDocuments({ assignedVolunteer: userId }),
       completed: await Donation.countDocuments({ assignedVolunteer: userId, status: 'delivered' }),
       scheduled: await PickupSchedule.countDocuments({ assignedVolunteer: userId, status: 'scheduled' }),
       estimatedDistanceKm: volunteerTasks.length ? volunteerTasks.length * 4 : 0,
       mealsDelivered: completedDeliveries.reduce((sum, item) => sum + Number(item.estimatedMeals || 0), 0)
     };
-    data.tasks = volunteerTasks.map((donation) => addDistanceToDonation(donation, req.user));
+    data.tasks = availableTasks.map((donation) => addDistanceToDonation(donation, req.user));
     data.assignedDeliveries = assignedDeliveries.map((donation) => addDistanceToDonation(donation, req.user));
     data.deliveryHistory = completedDeliveries.map((donation) => addDistanceToDonation(donation, req.user));
     data.performance = {
@@ -256,7 +273,7 @@ export const dashboard = asyncHandler(async (req, res) => {
     ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 10);
   }
 
-  data.notifications = await Notification.find({ user: userId }).sort({ createdAt: -1 }).limit(6);
+  data.notifications = await Notification.find({ user: userId }).sort({ createdAt: -1 }).limit(20);
   data.unreadNotificationCount = await Notification.countDocuments({ user: userId, readAt: { $exists: false } });
 
   res.json(data);

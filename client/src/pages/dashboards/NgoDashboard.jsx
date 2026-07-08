@@ -303,7 +303,7 @@ export default function NgoDashboard() {
             <span className="stat-label">{t("Total Food Collected")}</span>
             <div className="stat-value-row">
               <span className="stat-value">
-                {data.reports?.mealsDistributed ? (data.reports.mealsDistributed * 0.4).toLocaleString(undefined, {maximumFractionDigits: 0}) : '12,525'} <small>kg</small>
+                {data.reports?.foodReceived ? Math.round(data.reports.foodReceived).toLocaleString() : '0'} <small>kg</small>
               </span>
               <span className="stat-badge success">
                 <TrendingUp size={12} />
@@ -320,11 +320,11 @@ export default function NgoDashboard() {
             <span className="stat-label">{t("Active Pickups")}</span>
             <div className="stat-value-row">
               <span className="stat-value">
-                {claimedDonations.filter(d => d.status !== 'delivered').length || 3}
+                {claimedDonations.filter(d => d.status !== 'delivered' && d.status !== 'cancelled').length}
               </span>
               <span className="stat-badge progress-badge">
                 <Award size={11} />
-                2 {t("in progress")}
+                {claimedDonations.filter(d => ['pickup_scheduled', 'picked_up'].includes(d.status)).length} {t("in progress")}
               </span>
             </div>
           </div>
@@ -332,10 +332,10 @@ export default function NgoDashboard() {
           <div className="ngo-stat-card">
             <span className="stat-label">{t("Shelters Served")}</span>
             <div className="stat-value-row">
-              <span className="stat-value">42</span>
+              <span className="stat-value">{data.reports?.beneficiaryTargets?.shelters || 0}</span>
               <span className="stat-badge pending-badge">
                 <Award size={11} />
-                2 {t("pending")}
+                {data.reports?.beneficiaryTargets?.orphanages || 0} {t("orphanages")}
               </span>
             </div>
           </div>
@@ -343,10 +343,10 @@ export default function NgoDashboard() {
           <div className="ngo-stat-card">
             <span className="stat-label">{t("Volunteer Count")}</span>
             <div className="stat-value-row">
-              <span className="stat-value">{data.volunteers?.length || 186}</span>
+              <span className="stat-value">{data.volunteers?.length || 0}</span>
               <span className="stat-badge success">
                 <TrendingUp size={12} />
-                + 4
+                + {data.volunteers?.length ? Math.min(4, data.volunteers.length) : 0}
               </span>
             </div>
             {/* Sparkline Visual */}
@@ -432,44 +432,20 @@ export default function NgoDashboard() {
               <h3 className="panel-title" style={{ marginBottom: '20px' }}>{t("Recent Activity")}</h3>
               
               <div className="activity-list">
-                <div className="activity-item delivered">
-                  <div className="activity-icon-dot" />
-                  <div className="activity-content">
-                    <strong>{t("Donation Delivered")}</strong>
-                    <p>{t("85kg from Fresh Market delivered to St. Jude's Shelter by Volunteer James P.")}</p>
-                    <span>24 MINS AGO</span>
+                {(data.notifications || []).slice(0, 4).map((notif, index) => (
+                  <div className="activity-item delivered" key={notif._id || index}>
+                    <div className="activity-icon-dot" />
+                    <div className="activity-content">
+                      <strong>{t(notif.title)}</strong>
+                      <p>{t(notif.message)}</p>
+                      <span>{formatDate(notif.createdAt)}</span>
+                    </div>
                   </div>
-                </div>
-
-                <div className="activity-item onboarded">
-                  <div className="activity-icon-dot" />
-                  <div className="activity-content">
-                    <strong>{t("New Volunteer Onboarded")}</strong>
-                    <p>{t("Elena Rodriguez completed hygiene certification and is ready for duty.")}</p>
-                    <span>2 HOURS AGO</span>
-                  </div>
-                </div>
-
-                <div className="activity-item scheduled">
-                  <div className="activity-icon-dot" />
-                  <div className="activity-content">
-                    <strong>{t("Pickup Scheduled")}</strong>
-                    <p>{t("Scheduled for Tomorrow, 09:00 AM at Whole Foods Market Central.")}</p>
-                    <span>5 HOURS AGO</span>
-                  </div>
-                </div>
-
-                <div className="activity-item report">
-                  <div className="activity-icon-dot" />
-                  <div className="activity-content">
-                    <strong>{t("Monthly Report Generated")}</strong>
-                    <p>{t("September Impact Report is now available for download in the portal.")}</p>
-                    <span>YESTERDAY</span>
-                  </div>
-                </div>
+                ))}
+                {!data.notifications?.length && (
+                  <p style={{ color: 'var(--ngo-text-muted)', fontSize: '14px' }}>{t("No recent activity.")}</p>
+                )}
               </div>
-
-              <button className="activity-load-more">{t("Load More History")}</button>
             </div>
 
             {/* Impact Milestone */}
@@ -479,14 +455,14 @@ export default function NgoDashboard() {
                 <h3>{t("Impact Milestone")}</h3>
               </div>
               <p>
-                {t("You're only")} <span>220kg</span> {t("away from reaching 15,000kg this month!")}
+                {t("You've rescued")} <span>{data.reports?.foodReceived ? Math.round(data.reports.foodReceived).toLocaleString() : '0'} kg</span> {t("of verified food.")}
               </p>
               <div className="milestone-progress-bar">
-                <div className="milestone-progress-fill" style={{ width: '83%' }} />
+                <div className="milestone-progress-fill" style={{ width: `${data.reports?.milestoneProgress || 0}%` }} />
               </div>
               <div className="milestone-labels">
-                <span>12,480KG</span>
-                <span>15,000KG GOAL</span>
+                <span>{data.reports?.foodReceived ? Math.round(data.reports.foodReceived).toLocaleString() : '0'} KG</span>
+                <span>{(data.reports?.milestoneGoal || 15000).toLocaleString()} KG GOAL</span>
               </div>
             </div>
           </div>
@@ -614,7 +590,7 @@ export default function NgoDashboard() {
                     </div>
                     <div className="meta-row">
                       <MapPin size={15} />
-                      <span>{donation.pickupAddress || t('452 Oak St, Central Hub')}</span>
+                      <span>{donation.status === 'posted' ? `${donation.city || 'Local Area'} (${t('Exact address visible after claiming')})` : (donation.pickupAddress || t('452 Oak St, Central Hub'))}</span>
                     </div>
                   </div>
 
@@ -691,12 +667,17 @@ export default function NgoDashboard() {
                 <a href="#notifications" className="sched-routes-link">{t("View Full Map")}</a>
               </div>
               <div className="sched-mini-map">
-                {selectedDonation?.pickupAddress ? (
+                {selectedDonation?.pickupAddress && selectedDonation?.status !== 'posted' ? (
                   <iframe
                     title="Mini Route Map"
                     src={`https://maps.google.com/maps?q=${encodeURIComponent(`${selectedDonation.pickupAddress} ${selectedDonation.city || ''}`)}&output=embed`}
                     style={{ width: '100%', height: '100%', border: 'none', borderRadius: '12px' }}
                   />
+                ) : selectedDonation?.status === 'posted' ? (
+                  <div className="sched-mini-map-placeholder">
+                    <Lock size={28} />
+                    <span>{t("Claim donation to view map")}</span>
+                  </div>
                 ) : (
                   <div className="sched-mini-map-placeholder">
                     <MapPin size={28} />
@@ -900,237 +881,70 @@ export default function NgoDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {/* Row 1: Marcus */}
-                <tr>
-                  <td>
-                    <div className="courier-info-cell">
-                      <img 
-                        src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&h=80&q=80" 
-                        alt="Marcus Thorne" 
-                        className="courier-avatar" 
-                      />
-                      <div>
-                        <strong className="driver-name">{t("Marcus Thorne")}</strong>
-                        <div className="route-sub" style={{ marginTop: '2px' }}>{t("Sprinter Van Driver")}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="vehicle-info-cell">
-                      <Truck size={14} style={{ color: '#7b818a' }} />
-                      <span>{t("Sprinter Van (ABC-1234)")}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="overlay-badge perishable" style={{ fontSize: '12px', padding: '4px 10px' }}>
-                      {t("Active")}
-                    </span>
-                  </td>
-                  <td>
-                    <span className="weight-val">142</span>
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '800', color: '#22252a' }}>
-                      <Star size={14} fill="#e2973c" stroke="#e2973c" />
-                      <span>4.9</span>
-                    </div>
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                      <button className="volunteer-action-btn" title={t("Email")}>
-                        <Mail size={16} />
-                      </button>
-                      <button className="volunteer-action-btn" title={t("Call")}>
-                        <Phone size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                {(data.volunteers || []).map((volunteer) => {
+                  const rating = volunteer.profile?.rating || '5.0';
+                  const vehicle = volunteer.profile?.vehicleType || t('Standard Vehicle');
+                  const status = volunteer.profile?.availability || t('Active');
+                  const completedCount = volunteer.profile?.monthlyGoalKg ? Math.round(volunteer.profile.monthlyGoalKg / 5) : 12;
+                  const avatar = volunteer.profile?.avatarUrl || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&h=80&q=80";
 
-                {/* Row 2: Sarah */}
-                <tr>
-                  <td>
-                    <div className="courier-info-cell">
-                      <img 
-                        src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&h=80&q=80" 
-                        alt="Sarah Jenkins" 
-                        className="courier-avatar" 
-                      />
-                      <div>
-                        <strong className="driver-name">{t("Sarah Jenkins")}</strong>
-                        <div className="route-sub" style={{ marginTop: '2px' }}>{t("E-Bike Courier")}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="vehicle-info-cell">
-                      <Truck size={14} style={{ color: '#7b818a' }} />
-                      <span>{t("E-Cargo Bike (BK-01)")}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="overlay-badge perishable" style={{ fontSize: '12px', padding: '4px 10px' }}>
-                      {t("Active")}
-                    </span>
-                  </td>
-                  <td>
-                    <span className="weight-val">89</span>
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '800', color: '#22252a' }}>
-                      <Star size={14} fill="#e2973c" stroke="#e2973c" />
-                      <span>4.8</span>
-                    </div>
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                      <button className="volunteer-action-btn" title={t("Email")}>
-                        <Mail size={16} />
-                      </button>
-                      <button className="volunteer-action-btn" title={t("Call")}>
-                        <Phone size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-
-                {/* Row 3: James */}
-                <tr>
-                  <td>
-                    <div className="courier-info-cell">
-                      <img 
-                        src="https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=80&h=80&q=80" 
-                        alt="James Patterson" 
-                        className="courier-avatar" 
-                      />
-                      <div>
-                        <strong className="driver-name">{t("James Patterson")}</strong>
-                        <div className="route-sub" style={{ marginTop: '2px' }}>{t("Heavy Truck Specialist")}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="vehicle-info-cell">
-                      <Truck size={14} style={{ color: '#7b818a' }} />
-                      <span>{t("Box Truck (RE-9902)")}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="overlay-badge perishable" style={{ fontSize: '12px', padding: '4px 10px' }}>
-                      {t("Active")}
-                    </span>
-                  </td>
-                  <td>
-                    <span className="weight-val">231</span>
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '800', color: '#22252a' }}>
-                      <Star size={14} fill="#e2973c" stroke="#e2973c" />
-                      <span>5.0</span>
-                    </div>
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                      <button className="volunteer-action-btn" title={t("Email")}>
-                        <Mail size={16} />
-                      </button>
-                      <button className="volunteer-action-btn" title={t("Call")}>
-                        <Phone size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-
-                {/* Row 4: Elena */}
-                <tr>
-                  <td>
-                    <div className="courier-info-cell">
-                      <img 
-                        src="https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=80&h=80&q=80" 
-                        alt="Elena Rodriguez" 
-                        className="courier-avatar" 
-                      />
-                      <div>
-                        <strong className="driver-name">{t("Elena Rodriguez")}</strong>
-                        <div className="route-sub" style={{ marginTop: '2px' }}>{t("Local Volunteer")}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="vehicle-info-cell">
-                      <Truck size={14} style={{ color: '#7b818a' }} />
-                      <span>{t("Personal Sedan (CA-993A)")}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="overlay-badge" style={{ backgroundColor: '#fff6e6', color: '#e2973c', fontSize: '12px', padding: '4px 10px', fontWeight: '800' }}>
-                      {t("Pending Certification")}
-                    </span>
-                  </td>
-                  <td>
-                    <span className="weight-val">0</span>
-                  </td>
-                  <td>
-                    <span style={{ fontSize: '12px', fontWeight: '800', color: '#9da3ab', letterSpacing: '0.3px' }}>{t("UNRANKED")}</span>
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                      <button className="volunteer-action-btn" title={t("Email")}>
-                        <Mail size={16} />
-                      </button>
-                      <button className="volunteer-action-btn" title={t("Call")}>
-                        <Phone size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-
-                {/* Row 5: David */}
-                <tr>
-                  <td>
-                    <div className="courier-info-cell">
-                      <img 
-                        src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&h=80&q=80" 
-                        alt="David Cho" 
-                        className="courier-avatar" 
-                      />
-                      <div>
-                        <strong className="driver-name">{t("David Cho")}</strong>
-                        <div className="route-sub" style={{ marginTop: '2px' }}>{t("Motorcycle Courier")}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="vehicle-info-cell">
-                      <Truck size={14} style={{ color: '#7b818a' }} />
-                      <span>{t("Motorcycle (MC-2101)")}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="overlay-badge non-perishable" style={{ fontSize: '12px', padding: '4px 10px' }}>
-                      {t("On Leave")}
-                    </span>
-                  </td>
-                  <td>
-                    <span className="weight-val">64</span>
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '800', color: '#22252a' }}>
-                      <Star size={14} fill="#e2973c" stroke="#e2973c" />
-                      <span>4.7</span>
-                    </div>
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                      <button className="volunteer-action-btn" title={t("Email")}>
-                        <Mail size={16} />
-                      </button>
-                      <button className="volunteer-action-btn" title={t("Call")}>
-                        <Phone size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                  return (
+                    <tr key={volunteer._id}>
+                      <td>
+                        <div className="courier-info-cell">
+                          <img 
+                            src={avatar} 
+                            alt={volunteer.name} 
+                            className="courier-avatar" 
+                          />
+                          <div>
+                            <strong className="driver-name">{volunteer.name}</strong>
+                            <div className="route-sub" style={{ marginTop: '2px' }}>{volunteer.email}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="vehicle-info-cell">
+                          <Truck size={14} style={{ color: '#7b818a' }} />
+                          <span>{vehicle}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <span className="overlay-badge perishable" style={{ fontSize: '12px', padding: '4px 10px' }}>
+                          {status}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="weight-val">{completedCount}</span>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '800', color: '#22252a' }}>
+                          <Star size={14} fill="#e2973c" stroke="#e2973c" />
+                          <span>{rating}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                          <a href={`mailto:${volunteer.email}`} className="volunteer-action-btn" title={t("Email")}>
+                            <Mail size={16} />
+                          </a>
+                          {volunteer.profile?.phone && (
+                            <a href={`tel:${volunteer.profile.phone}`} className="volunteer-action-btn" title={t("Call")}>
+                              <Phone size={16} />
+                            </a>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {!data.volunteers?.length && (
+                  <tr>
+                    <td colSpan="6" style={{ textAlign: 'center', color: '#7b818a', padding: '20px' }}>
+                      {t("No volunteers onboarded yet.")}
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -1500,11 +1314,16 @@ export default function NgoDashboard() {
           <h2>{t("Pickup location map")}</h2>
         </div>
         <div className="ngo-map">
-          {selectedDonation?.pickupAddress ? (
+          {selectedDonation?.pickupAddress && selectedDonation?.status !== 'posted' ? (
             <iframe
               title="Donation pickup map"
               src={`https://maps.google.com/maps?q=${encodeURIComponent(`${selectedDonation.pickupAddress} ${selectedDonation.city}`)}&output=embed`}
             />
+          ) : selectedDonation?.status === 'posted' ? (
+            <div className="sched-mini-map-placeholder" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '12px' }}>
+              <Lock size={32} />
+              <span>{t("Claim this donation to view the pickup route map.")}</span>
+            </div>
           ) : (
             <><MapPin /><span>{t("Select a donation to preview pickup location.")}</span></>
           )}

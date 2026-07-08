@@ -28,7 +28,7 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '1mb' }));
 app.use(morgan('dev'));
-app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 250 }));
+app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 10000 }));
 
 app.get('/api/health', (req, res) => {
   res.json({ ok: true, service: 'FoodBridge API' });

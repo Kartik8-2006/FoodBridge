@@ -225,6 +225,8 @@ export default function DonorDashboard() {
   const donations = data?.donations || [];
   const stats = data?.stats || {};
   const selectedDonation = donations.find((item) => item._id === selectedDonationId) || donations[0];
+  const isVolunteerAwaiting = selectedDonation?.assignedVolunteer && !selectedDonation?.volunteerAccepted;
+  const isVolunteerActive = selectedDonation?.assignedVolunteer && selectedDonation?.volunteerAccepted;
 
   const activeDonations = donations.filter((item) => ['posted', 'accepted', 'pickup_scheduled', 'picked_up'].includes(item.status));
   const donationHistory = donations.filter((item) => ['delivered', 'cancelled', 'expired'].includes(item.status));
@@ -729,9 +731,11 @@ export default function DonorDashboard() {
             <h2>{t("Track Donations")}</h2>
             <p>{selectedDonation ? `${t("Real-time status of your pickup")} #RS-${selectedDonation._id.slice(-5).toUpperCase()}` : t('Select a donation to track live status')}</p>
           </div>
-          <a href={`tel:${selectedDonation?.assignedVolunteer?.profile?.phone || selectedDonation?.assignedVolunteer?.phone || ''}`}>
-            <Phone size={21} /> {t("Contact Driver")}
-          </a>
+          {isVolunteerActive && (
+            <a href={`tel:${selectedDonation?.assignedVolunteer?.profile?.phone || selectedDonation?.assignedVolunteer?.phone || ''}`}>
+              <Phone size={21} /> {t("Contact Driver")}
+            </a>
+          )}
         </div>
 
         <div className="donor-track-layout">
@@ -740,36 +744,78 @@ export default function DonorDashboard() {
               <div className="track-eta-chip">
                 <Clock size={23} />
                 <div>
-                  <strong>{liveVolunteerCoords ? t("Live driver location") : t("Tracking unavailable")}</strong>
-                  <span>{liveVolunteerCoords ? t("Updated from volunteer tracking") : t("Waiting for volunteer location")}</span>
+                  <strong>
+                    {isVolunteerActive && liveVolunteerCoords ? t("Live driver location") : 
+                     isVolunteerAwaiting ? t("Awaiting volunteer acceptance") : 
+                     selectedDonation?.assignedVolunteer ? t("Volunteer assigned") : t("Coordinating pickup logistics")}
+                  </strong>
+                  <span>
+                    {isVolunteerActive && liveVolunteerCoords ? t("Updated from volunteer tracking") : 
+                     isVolunteerAwaiting ? t("Logistics partner has been assigned and is reviewing the task") : 
+                     selectedDonation?.assignedVolunteer ? t("Waiting for volunteer confirmation") : t("NGO is assigning a volunteer driver...")}
+                  </span>
                 </div>
               </div>
-              <iframe
-                className="track-google-map-frame"
-                title="Google Maps live donation tracking"
-                src={trackMapSrc}
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
+              {isVolunteerActive ? (
+                <iframe
+                  className="track-google-map-frame"
+                  title="Google Maps live donation tracking"
+                  src={trackMapSrc}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              ) : isVolunteerAwaiting ? (
+                <div style={{ display: 'grid', placeItems: 'center', height: '350px', background: '#f9f6f3', color: '#83531b', borderRadius: '16px', border: '1px solid #ebdcd0', textAlign: 'center' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                    <Lock size={40} style={{ color: '#e2973c' }} />
+                    <p style={{ margin: 0, fontWeight: '700' }}>{t("Live Tracking Locked")}</p>
+                    <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#7b818a' }}>{t("Tracking details will be visible once the volunteer accepts the pickup.")}</p>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: 'grid', placeItems: 'center', height: '350px', background: '#f9f6f3', color: '#83531b', borderRadius: '16px', border: '1px solid #ebdcd0', textAlign: 'center' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                    <Clock size={40} style={{ color: '#7b818a' }} />
+                    <p style={{ margin: 0, fontWeight: '700' }}>{t("Waiting for Logistics Coordination")}</p>
+                    <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#7b818a' }}>{t("Live map will appear when a volunteer accepts the pickup assignment.")}</p>
+                  </div>
+                </div>
+              )}
               <footer>
                 <div className="track-driver-profile">
                   <User size={32} />
                   <div>
-                    <strong>{selectedDonation?.assignedVolunteer?.name || 'David Mitchell'}</strong>
-                    <span>{selectedDonation?.assignedVolunteer?.profile?.rating ? `${t('Volunteer Driver')} - ${selectedDonation.assignedVolunteer.profile.rating}` : t('Volunteer Driver')}</span>
+                    {isVolunteerActive ? (
+                      <>
+                        <strong>{selectedDonation?.assignedVolunteer?.name}</strong>
+                        <span>{selectedDonation?.assignedVolunteer?.profile?.rating ? `${t('Volunteer Driver')} - ${selectedDonation.assignedVolunteer.profile.rating}` : t('Volunteer Driver')}</span>
+                      </>
+                    ) : isVolunteerAwaiting ? (
+                      <>
+                        <strong>{t("Logistics Crew Assigned")}</strong>
+                        <span>{t("Awaiting volunteer acceptance...")}</span>
+                      </>
+                    ) : (
+                      <>
+                        <strong>{t("No driver assigned yet")}</strong>
+                        <span>{t("NGO coordinator will dispatch a courier soon")}</span>
+                      </>
+                    )}
                   </div>
                 </div>
-                <div className="track-map-actions">
-                  <button type="button"><MessageSquare size={22} /></button>
-                  <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trackMapQuery)}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    title={t("Open in Google Maps")}
-                  >
-                    <Send size={22} />
-                  </a>
-                </div>
+                {isVolunteerActive && (
+                  <div className="track-map-actions">
+                    <button type="button"><MessageSquare size={22} /></button>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trackMapQuery)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      title={t("Open in Google Maps")}
+                    >
+                      <Send size={22} />
+                    </a>
+                  </div>
+                )}
               </footer>
             </article>
 
@@ -793,7 +839,7 @@ export default function DonorDashboard() {
               </div>
               <div className="track-instructions-box">
                 <small>{t("Special Instructions")}</small>
-                <p>"{selectedDonation?.storageInstructions || 'Please use the rear loading dock entrance. Ring the bell for bakery staff.'}"</p>
+                <p>"{selectedDonation?.storageInstructions || 'Please use the rear loading dock entrance. Ring the bell for staff.'}"</p>
               </div>
             </article>
 

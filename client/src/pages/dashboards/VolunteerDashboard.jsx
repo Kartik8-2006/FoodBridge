@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AlertCircle, Award, CheckCircle2, ChevronDown, Clock, Lightbulb, MapPin, Maximize2, MessageSquare, Navigation, Package, PackageCheck, RefreshCw, Send, ShieldCheck, Star, Store, Timer, Truck, Users, Utensils, X, HelpCircle, Soup, Download, Filter, Calendar, ShoppingBag, Coffee, Leaf, MoreVertical } from 'lucide-react';
+import { AlertCircle, Award, CheckCircle2, ChevronDown, Clock, Lightbulb, Lock, MapPin, Maximize2, MessageSquare, Navigation, Package, PackageCheck, RefreshCw, Send, ShieldCheck, Star, Store, Timer, Truck, Users, Utensils, X, HelpCircle, Soup, Download, Filter, Calendar, ShoppingBag, Coffee, Leaf, MoreVertical } from 'lucide-react';
 import { api } from '../../api.js';
 import TrackingMap from '../../components/TrackingMap.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -28,7 +28,7 @@ export default function VolunteerDashboard() {
   const tasks = data?.tasks || [];
   const assignedDeliveries = data?.assignedDeliveries || [];
   const history = data?.deliveryHistory || [];
-  const availablePickups = tasks.filter((task) => task.status === 'posted');
+  const availablePickups = tasks;
 
   const displayTasks = useMemo(() => {
     const items = availablePickups.map((task, index) => ({
@@ -53,51 +53,7 @@ export default function VolunteerDashboard() {
       allergenNotes: task.allergenNotes || ''
     }));
 
-    const mockTasks = [
-      {
-        _id: 'mock-sorting-1',
-        type: 'sorting',
-        title: 'Central Sorting Hub Help',
-        isNew: true,
-        isUrgent: false,
-        distance: '~ 0.8 km away',
-        pickupLocation: 'Central Logistics Depot',
-        pickupAddress: 'Central Logistics Depot, Bay 4',
-        description: 'Assist in organizing dry goods for morning deliveries.',
-        duration: '2 hours',
-        loadSize: 'Indoor Task',
-        quantity: '50+ Crates',
-        foodType: 'mixed',
-        dietType: 'mixed',
-        dietaryLabels: ['Dry Goods', 'Canned'],
-        allergenNotes: ''
-      },
-      {
-        _id: 'mock-pickup-2',
-        type: 'pickup',
-        title: 'Artisan Bakery Surplus',
-        isNew: false,
-        isUrgent: true,
-        distance: '~ 1.2 km away',
-        pickupLocation: 'Artisan Bakery',
-        pickupAddress: '124 Main Street, Downtown',
-        dropoffLocation: 'City Community Kitchen',
-        dropoffAddress: '456 Hope Blvd, East Side',
-        description: 'Baguettes, sourdough loaves, and miscellaneous sweet pastries.',
-        duration: '25 mins est.',
-        loadSize: 'Small Load',
-        quantity: '15 KG',
-        estimatedMeals: 35,
-        foodType: 'bakery',
-        dietType: 'vegan',
-        dietaryLabels: ['Vegetarian', 'Vegan', 'Dairy Free'],
-        allergenNotes: 'Contains Wheat/Gluten'
-      }
-    ];
-
-    const merged = [...mockTasks, ...items];
-
-    let filtered = merged;
+    let filtered = items;
     if (taskFilter === 'Pickup') {
       filtered = filtered.filter(t => t.type === 'pickup');
     } else if (taskFilter === 'Sorting') {
@@ -137,11 +93,12 @@ export default function VolunteerDashboard() {
     ? `${selectedDelivery.pickupAddress}, ${selectedDelivery.city || ''}`.trim()
     : '';
   const directionsUrl = mapDestination ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapDestination)}` : '#';
-  const deliveryCount = data?.performance?.totalDeliveries || data?.stats?.completed || 128;
-  const pointsEarned = data?.performance?.points || 2450;
-  const hoursWorked = data?.performance?.hoursWorked || 48.5;
-  const impactCount = data?.performance?.impact || 1420;
-  const nextPickup = selectedDelivery || availablePickups[0];
+  const deliveryCount = data?.performance?.totalDeliveries ?? data?.stats?.completed ?? 0;
+  const pointsEarned = data?.performance?.points ?? 0;
+  const hoursWorked = data?.performance?.hoursWorked ?? 0;
+  const impactCount = data?.performance?.impact ?? 0;
+  const weeklyKg = data?.performance?.weeklySaved ?? 0;
+  const nextPickup = assignedDeliveries.find(d => d.status !== 'delivered') || assignedDeliveries[0] || null;
   const pickupMapQuery = nextPickup?.pickupLocation?.latitude && nextPickup?.pickupLocation?.longitude
     ? `${nextPickup.pickupLocation.latitude},${nextPickup.pickupLocation.longitude}`
     : nextPickup?.pickupAddress
@@ -149,32 +106,15 @@ export default function VolunteerDashboard() {
       : 'Whole Foods Market, New York';
   const pickupMapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(pickupMapQuery)}&z=13&output=embed`;
   const urgentTasks = availablePickups.slice(0, 2);
-  const dashboardTasks = urgentTasks.length
-    ? urgentTasks
-    : [
-      { _id: 'sample-bakery', title: 'Artisan Bakery Surplus', distanceLabel: '1.2 miles away', expires: 'Expires in 30m', foodType: 'bakery' },
-      { _id: 'sample-sorting', title: 'Central Sorting Hub Help', distanceLabel: '0.8 miles away', expires: 'Expires in 1h', foodType: 'produce' }
-    ];
+  const dashboardTasks = urgentTasks;
 
   // Redesigned Active Pickup bindings
-  const activePickup = assignedDeliveries.find((delivery) => delivery.status !== 'delivered') || assignedDeliveries[0] || {
-    _id: 'mock-active-1',
-    title: 'Downtown Deli Surplus',
-    status: 'accepted',
-    donorName: 'Sarah Chen',
-    contactNumber: '+1 (555) 234-5678',
-    pickupAddress: '789 Market St, Downtown',
-    dropoffLocation: 'Hope Community Kitchen',
-    dropoffAddress: '456 Hope Blvd, East Side',
-    description: 'Handle with care — contains hot soup containers. Use insulated bags.',
-    estimatedMeals: 45,
-    foodType: 'prepared',
-    dietType: 'mixed'
-  };
+  const activePickup = assignedDeliveries.find((delivery) => delivery.status !== 'delivered') || assignedDeliveries[0] || null;
 
   const activePickupStatus = activePickup?.status || '';
-  const activePickupStatusLabel = activePickupStatus === 'delivered' ? 'DELIVERED' : activePickupStatus === 'posted' ? 'ASSIGNED' : 'IN TRANSIT';
-  const activePickupProgress = activePickupStatus === 'delivered' ? '100%' : activePickupStatus === 'posted' ? '33%' : '67%';
+  const isAwaitingAcceptance = activePickup && !activePickup.volunteerAccepted;
+  const activePickupStatusLabel = activePickupStatus === 'delivered' ? 'DELIVERED' : isAwaitingAcceptance ? 'AWAITING ACCEPTANCE' : activePickupStatus === 'pickup_scheduled' ? 'ASSIGNED' : 'IN TRANSIT';
+  const activePickupProgress = activePickupStatus === 'delivered' ? '100%' : isAwaitingAcceptance ? '33%' : activePickupStatus === 'pickup_scheduled' ? '50%' : '75%';
   const activePickupId = activePickup?._id ? `FR-2026-${String(activePickup._id).slice(-3).toUpperCase()}` : '';
   const activePickupMapQuery = activePickup?.volunteerLocation?.latitude && activePickup?.volunteerLocation?.longitude
     ? `${activePickup.volunteerLocation.latitude},${activePickup.volunteerLocation.longitude}`
@@ -244,9 +184,21 @@ export default function VolunteerDashboard() {
   async function accept(id) {
     setMessage('');
     try {
-      await api(`/donations/${id}/accept`, { method: 'PATCH' });
+      await api(`/donations/${id}/volunteer-claim`, { method: 'PATCH' });
       setSelectedId(id);
-      setMessage('Pickup accepted. Navigate to the donor location and update progress.');
+      setMessage('Pickup claimed successfully. Drive to the pickup location and coordinate delivery.');
+      await refresh();
+    } catch (err) {
+      setMessage(err.message);
+    }
+  }
+
+  async function acceptAssignment(id) {
+    setMessage('');
+    try {
+      await api(`/donations/${id}/volunteer-accept`, { method: 'PATCH' });
+      setSelectedId(id);
+      setMessage('Assignment accepted. Pickup details unlocked.');
       await refresh();
     } catch (err) {
       setMessage(err.message);
@@ -318,8 +270,8 @@ export default function VolunteerDashboard() {
       <section className="volunteer-overview-reference" id="volunteer-home">
         <div className="volunteer-overview-head">
           <div>
-            <h2>Good Morning, {user?.name || 'Sarah'}</h2>
-            <p>You&apos;ve saved 45 lbs of food this week. Keep it up!</p>
+            <h2>Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 17 ? 'Afternoon' : 'Evening'}, {user?.name?.split(' ')[0] || 'Volunteer'}</h2>
+            <p>{weeklyKg > 0 ? `You've rescued ${weeklyKg} kg of food this week. Keep it up!` : 'Welcome back! Check available tasks and start making an impact.'}</p>
           </div>
           <span><ShieldCheck size={29} /> Active Volunteer Status</span>
         </div>
@@ -344,27 +296,35 @@ export default function VolunteerDashboard() {
             <article className="volunteer-pickup-card">
               <header>
                 <h3><CalendarMiniIcon /> Next Scheduled Pickup</h3>
-                <span>Starts in 1h 24m</span>
+                <span>{nextPickup ? `Pickup: ${formatDate(nextPickup.pickupWindowStart || nextPickup.createdAt)}` : 'No upcoming pickups'}</span>
               </header>
-              <div className="volunteer-pickup-body">
-                <div className="volunteer-route-details">
-                  <RoutePoint icon={<Store size={28} />} label="Pickup" title={nextPickup?.donor?.profile?.organizationName || nextPickup?.donor?.name || 'Whole Foods Market'} text={nextPickup?.pickupAddress || '123 Market St, Central Heights'} />
-                  <RoutePoint icon={<MapPin size={31} />} label="Drop-Off" title={nextPickup?.acceptedBy?.name || 'St. Jude Community Kitchen'} text={nextPickup?.deliveryAddress || '456 Hope Blvd, East Side'} />
-                  <div className="volunteer-estimate-row">
-                    <span><Package size={24} /></span>
-                    <p>Estimated: <strong>~35 lbs (Bakery, Produce)</strong></p>
+              {nextPickup ? (
+                <div className="volunteer-pickup-body">
+                  <div className="volunteer-route-details">
+                    <RoutePoint icon={<Store size={28} />} label="Pickup" title={nextPickup?.donor?.profile?.organizationName || nextPickup?.donor?.name || 'Donor'} text={nextPickup?.pickupAddress || 'Address unlocked after acceptance'} />
+                    <RoutePoint icon={<MapPin size={31} />} label="Drop-Off" title={nextPickup?.acceptedBy?.name || 'Receiving NGO'} text={nextPickup?.deliveryAddress || 'NGO Hub'} />
+                    <div className="volunteer-estimate-row">
+                      <span><Package size={24} /></span>
+                      <p>Estimated: <strong>~{nextPickup.estimatedMeals || '?'} meals ({nextPickup.foodType ? titleCase(nextPickup.foodType) : 'Various'})</strong></p>
+                    </div>
+                    <button type="button" onClick={() => nextPickup?._id && setSelectedId(nextPickup._id)}>Open Pickup Details</button>
                   </div>
-                  <button type="button" onClick={() => nextPickup?._id && setSelectedId(nextPickup._id)}>Open Pickup Details</button>
+                  <div className="volunteer-map-image">
+                    <iframe
+                      title={`Pickup map for ${nextPickup?.title || 'scheduled pickup'}`}
+                      src={pickupMapSrc}
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                    />
+                  </div>
                 </div>
-                <div className="volunteer-map-image">
-                  <iframe
-                    title={`Pickup map for ${nextPickup?.title || 'scheduled pickup'}`}
-                    src={pickupMapSrc}
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                  />
+              ) : (
+                <div style={{ padding: '24px', color: '#7b818a', textAlign: 'center' }}>
+                  <Truck size={36} style={{ margin: '0 auto 8px', display: 'block', opacity: 0.3 }} />
+                  <p style={{ margin: 0 }}>No pickups scheduled yet.</p>
+                  <p style={{ margin: '4px 0 0', fontSize: '13px' }}>Claim a task below to get started.</p>
                 </div>
-              </div>
+              )}
             </article>
 
             <section className="volunteer-urgent-section">
@@ -378,11 +338,12 @@ export default function VolunteerDashboard() {
                     <span className={index === 0 ? 'warm' : 'green'}>{index === 0 ? <Store size={27} /> : <Utensils size={30} />}</span>
                     <div>
                       <strong>{task.title}</strong>
-                      <small>{task.distanceLabel || `${(index + 1) * 1.2} miles away`} &middot; {task.expires || 'Expires in 1h'}</small>
+                      <small>{task.distanceLabel || `${(index + 1) * 1.2} miles away`} &middot; {task.expires || 'Expires soon'}</small>
                     </div>
-                    <button type="button" onClick={() => !String(task._id).startsWith('sample-') && accept(task._id)}>Claim</button>
+                    <button type="button" onClick={() => accept(task._id)}>Claim</button>
                   </article>
                 ))}
+                {!dashboardTasks.length && <p style={{ color: '#7b818a', padding: '10px 0' }}>No urgent tasks available.</p>}
               </div>
             </section>
           </div>
@@ -390,9 +351,15 @@ export default function VolunteerDashboard() {
           <aside className="volunteer-side-column">
             <article className="volunteer-goal-card">
               <h3><Award size={31} /> Monthly Goal</h3>
-              <div><span>Community Hero II</span><strong>75% Complete</strong></div>
-              <i><b /></i>
-              <p>Rescue <strong>500 lbs</strong> of food to earn the Hero badge. 125 lbs remaining.</p>
+              {data.performance?.monthlyGoalKg ? (
+                <>
+                  <div><span>{data.performance.rankLabel || 'Active Volunteer'}</span><strong>{data.performance.monthlyGoalProgress || 0}% Complete</strong></div>
+                  <i><b style={{ width: `${data.performance.monthlyGoalProgress || 0}%` }} /></i>
+                  <p>Rescue <strong>{data.performance.monthlyGoalKg} kg</strong> of food this month. <strong>{data.performance.monthlyGoalRemaining || 0} kg</strong> remaining.</p>
+                </>
+              ) : (
+                <p style={{ color: '#7b818a', padding: '8px 0' }}>Set a monthly rescue goal in your profile to track progress here.</p>
+              )}
             </article>
 
             <article className="volunteer-impact-card">
@@ -582,7 +549,7 @@ export default function VolunteerDashboard() {
           </div>
           <span className="ap-live-chip">
             <span className="ap-dot" />
-            {assignedDeliveries.filter(d => d.status !== 'delivered').length || 1} LIVE TASKS
+            {assignedDeliveries.filter(d => d.status !== 'delivered').length} LIVE {assignedDeliveries.filter(d => d.status !== 'delivered').length === 1 ? 'TASK' : 'TASKS'}
           </span>
         </div>
 
@@ -622,15 +589,20 @@ export default function VolunteerDashboard() {
                   </div>
                 </div>
 
-                {/* Info panels */}
                 <div className="ap-info-grid">
                   <div className="ap-info-block">
                     <h4><Store size={18} /> DONOR INFORMATION</h4>
                     <div className="ap-info-content-box">
                       <strong>{activeDonorName}</strong>
                       <p>{activeDonorRole || 'Manager, Logistics'}</p>
-                      <strong className="ap-phone-text">{activeDonorPhone || '+1 (555) 234-5678'}</strong>
-                      <p>{activePickup.pickupAddress}</p>
+                      {isAwaitingAcceptance ? (
+                        <p style={{ color: '#c05621', fontWeight: 'bold' }}>Locked until task is accepted</p>
+                      ) : (
+                        <>
+                          <strong className="ap-phone-text">{activeDonorPhone || 'Not provided'}</strong>
+                          <p>{activePickup.pickupAddress}</p>
+                        </>
+                      )}
                     </div>
                   </div>
                   <div className="ap-info-block">
@@ -638,7 +610,11 @@ export default function VolunteerDashboard() {
                     <div className="ap-info-content-box">
                       <strong>{activeRecipientName || 'Hope Community Kitchen'}</strong>
                       <p>Delivery Window: {activeDeliveryWindowLabel || 'Closes at 6:00 PM'}</p>
-                      <p>{activeDropoffAddress || '456 Hope Blvd, East Side'}</p>
+                      {isAwaitingAcceptance ? (
+                        <p style={{ color: '#c05621', fontWeight: 'bold' }}>Locked until task is accepted</p>
+                      ) : (
+                        <p>{activeDropoffAddress || 'NGO Hub'}</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -649,26 +625,45 @@ export default function VolunteerDashboard() {
                     <AlertCircle size={18} />
                     <span>Special Instructions</span>
                   </div>
-                  <p>{activeInstructions || 'Handle with care — contains hot soup containers. Use insulated bags.'}</p>
+                  {isAwaitingAcceptance ? (
+                    <p style={{ color: '#7b818a', fontStyle: 'italic' }}>Instructions will be visible once the task is accepted.</p>
+                  ) : (
+                    <p>{activeInstructions || 'Safe surplus food dispatch.'}</p>
+                  )}
                 </div>
 
                 {/* Actions footer */}
                 <div className="ap-card-footer">
-                  <div className="ap-footer-actions-left">
-                    <button type="button" className="ap-btn-nav" onClick={() => window.open(activePickupDirectionsUrl, '_blank')}>
-                      <Navigation size={16} /> Start Navigation
-                    </button>
-                    {activePickupStatus === 'posted' || activePickupStatus === 'accepted' ? (
-                      <button type="button" className="ap-btn-pickup" onClick={async () => { if (String(activePickup._id).startsWith('mock-')) { setMessage('Picked up package successfully (Simulated)'); } else { await updateStatus(activePickup._id, 'picked_up'); } }}>
-                        Mark as Picked Up
+                  {isAwaitingAcceptance ? (
+                    <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
+                      <button
+                        type="button"
+                        className="ap-btn-pickup"
+                        style={{ flex: 1, backgroundColor: '#83531b', borderColor: '#83531b', color: '#fff' }}
+                        onClick={() => acceptAssignment(activePickup._id)}
+                      >
+                        Accept Assignment
                       </button>
-                    ) : (
-                      <button type="button" className="ap-btn-pickup" onClick={async () => { if (String(activePickup._id).startsWith('mock-')) { setMessage('Delivery completed successfully (Simulated)'); } else { await updateStatus(activePickup._id, 'delivered'); } }} disabled={activePickupStatus === 'delivered'}>
-                        Mark as Delivered
+                    </div>
+                  ) : (
+                    <div className="ap-footer-actions-left">
+                      <button type="button" className="ap-btn-nav" onClick={() => window.open(activePickupDirectionsUrl, '_blank')}>
+                        <Navigation size={16} /> Start Navigation
                       </button>
-                    )}
-                  </div>
-                  <button type="button" className="ap-btn-help"><HelpCircle size={16} /> Help/Support</button>
+                      {activePickupStatus === 'posted' || activePickupStatus === 'accepted' || (activePickupStatus === 'pickup_scheduled' && activePickup.volunteerAccepted) ? (
+                        <button type="button" className="ap-btn-pickup" onClick={async () => { await updateStatus(activePickup._id, 'picked_up'); }}>
+                          Mark as Picked Up
+                        </button>
+                      ) : (
+                        <button type="button" className="ap-btn-pickup" onClick={async () => { await updateStatus(activePickup._id, 'delivered'); }} disabled={activePickupStatus === 'delivered'}>
+                          Mark as Delivered
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  {!isAwaitingAcceptance && (
+                    <button type="button" className="ap-btn-help"><HelpCircle size={16} /> Help/Support</button>
+                  )}
                 </div>
               </div>
             ) : (
@@ -687,7 +682,16 @@ export default function VolunteerDashboard() {
                 <h3>MY PICKUPS</h3>
               </div>
               <div className="ap-map-card-iframe">
-                <iframe title="My Pickups Route Map" src={activePickupMapSrc || 'https://maps.google.com/maps?q=Manhattan,%20New%20York&t=m&z=14&output=embed'} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+                {isAwaitingAcceptance ? (
+                  <div style={{ display: 'grid', placeItems: 'center', height: '100%', background: '#f7fafc', color: '#718096', textAlign: 'center', padding: '20px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                      <Lock size={32} />
+                      <p style={{ margin: 0, fontSize: '13px', fontWeight: '600' }}>Map locked until accepted</p>
+                    </div>
+                  </div>
+                ) : (
+                  <iframe title="My Pickups Route Map" src={activePickupMapSrc || 'https://maps.google.com/maps?q=Manhattan,%20New%20York&t=m&z=14&output=embed'} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+                )}
               </div>
               <div className="ap-map-card-footer">
                 <span className="ap-map-footer-label">CURRENT LOCATION</span>
@@ -743,7 +747,7 @@ export default function VolunteerDashboard() {
             <div className="dh-champion-stats">
               <div>
                 <small>TOTAL RESCUED</small>
-                <strong>{Number(data.performance?.totalWeight || 1240).toLocaleString()} kg</strong>
+                <strong>{Number(data.performance?.totalWeight ?? 0).toLocaleString()} kg</strong>
               </div>
               <div>
                 <small>TOTAL POINTS</small>
@@ -810,7 +814,7 @@ export default function VolunteerDashboard() {
                     xp: '+' + Math.round((d.estimatedMeals || 10) * 3.5) + ' XP',
                     _id: d._id,
                   }));
-                  const rows = realRows.length ? realRows : mockRows;
+                  const rows = realRows;
                   const iconMap = {
                     bag: <ShoppingBag size={18} />,
                     utensils: <Utensils size={18} />,
@@ -818,6 +822,15 @@ export default function VolunteerDashboard() {
                     package: <Package size={18} />,
                     coffee: <Coffee size={18} />,
                   };
+                  if (!rows.length) {
+                    return (
+                      <tr>
+                        <td colSpan="6" style={{ textAlign: 'center', padding: '20px', color: '#7b818a' }}>
+                          No delivery history logs recorded yet.
+                        </td>
+                      </tr>
+                    );
+                  }
                   return rows.map((row, idx) => (
                     <tr key={row._id || idx}>
                       <td className="dh-cell-date">{row.date}</td>
