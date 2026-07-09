@@ -1,12 +1,16 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { api } from '../api.js';
+// `createContext` - Creates a "storage box" to share data between components
 
+import { api } from '../api.js';  // api func for talking to server
+
+// creates a user session context to share user data across the app
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // checks for existing login
   useEffect(() => {
     const token = localStorage.getItem('foodbridge_token');
     if (!token) {

@@ -43,6 +43,7 @@ export default function App() {
 
   useEffect(() => {
     if (location.hash) {
+      // Scroll to section when URL has #section-name
       const id = decodeURIComponent(location.hash.replace('#', ''));
       const timer = setTimeout(() => {
         const element = document.getElementById(id);

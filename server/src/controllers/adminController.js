@@ -10,6 +10,7 @@ export const verifyNgo = asyncHandler(async (req, res) => {
     throw new Error('Verification status must be verified or rejected');
   }
 
+  // Find the NGO in the database by their ID
   const ngo = await User.findOne({ _id: req.params.id, role: 'ngo' });
   if (!ngo) {
     res.status(404);

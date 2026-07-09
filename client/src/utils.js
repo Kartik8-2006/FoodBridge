@@ -1,4 +1,4 @@
-export const dashboardPath = (role) => `/dashboard/${role || 'donor'}`;
+export const dashboardPath = (role) => `/dashboard/${role || 'donor'}`;   // creating URL for user dashboard
 
 export function formatDate(value) {
   if (!value) return 'Not scheduled';

@@ -1,4 +1,6 @@
 import React from 'react';
+
+// put React app into the HTML page
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import App from './App.jsx';

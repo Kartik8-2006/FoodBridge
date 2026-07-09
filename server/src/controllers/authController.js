@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import crypto from 'crypto';  // creates random tokens
 import { User } from '../models/User.js';
 import { Notification } from '../models/Notification.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
@@ -21,6 +21,7 @@ function clientUrl() {
   return urls.find((url) => url.includes('localhost:5175')) || urls[0] || 'http://localhost:5175';
 }
 
+// Makes text safe for HTML emails (prevents hacking)
 function escapeHtml(value = '') {
   return String(value).replace(/[&<>'"]/g, (character) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'

@@ -283,66 +283,7 @@ export default function Layout({ children }) {
   );
 }
 
-function DonationModal({ onClose }) {
-  const [frequency, setFrequency] = useState('monthly');
-  const [amount, setAmount] = useState(7000);
-  const amounts = [40000, 20000, 7000, 5000, 3500, 2000];
 
-  return (
-    <div className="donation-overlay" role="dialog" aria-modal="true" aria-labelledby="donation-title">
-      <button className="donation-close" type="button" aria-label="Close donation form" onClick={onClose}><X size={24} /></button>
-      <section className="donation-modal">
-        <div className="donation-story">
-          <div className="donation-photo" />
-          <div className="donation-brand">
-            <span className="brand-symbol"><HeartHandshake size={28} /></span>
-            <span className="brand-type"><small>FOODBRIDGE</small><strong>NETWORK</strong></span>
-          </div>
-          <h2>You Will Make a Difference</h2>
-          <p>Help us move surplus food quickly and safely. Every rupee supports pickup coordination, storage, and verified community distribution.</p>
-          <p>Prefer to donate food instead? You can post a pickup-ready donation from your donor dashboard after signup.</p>
-        </div>
-        <form className="donation-form">
-          <div className="secure-title">
-            <ShieldCheck size={28} />
-            <h2 id="donation-title">Secure donation</h2>
-          </div>
-          <div className="frequency-toggle">
-            {['once', 'monthly'].map((item) => (
-              <button className={frequency === item ? 'selected' : ''} type="button" key={item} onClick={() => setFrequency(item)}>
-                {item === 'monthly' && <Heart size={16} fill="currentColor" />}
-                {item === 'once' ? 'Give once' : 'Monthly'}
-              </button>
-            ))}
-          </div>
-          <div className="amount-grid">
-            {amounts.map((value) => (
-              <button className={amount === value ? 'selected' : ''} type="button" key={value} onClick={() => setAmount(value)}>
-                Rs {value.toLocaleString('en-IN')}
-              </button>
-            ))}
-          </div>
-          <label className="amount-input">
-            <input value={`Rs ${amount.toLocaleString('en-IN')}`} readOnly />
-            <span>INR <ChevronDown size={16} /></span>
-          </label>
-          <label className="dedicate-check">
-            <input type="checkbox" />
-            <span>Dedicate this donation</span>
-          </label>
-          <div className="donation-assurance">
-            <CheckCircle2 size={17} />
-            <span>Encrypted checkout. Receipts are sent by email.</span>
-          </div>
-          <button className="donation-submit" type="button">
-            <LockKeyhole size={18} />
-            Donate {frequency === 'monthly' ? 'monthly' : 'now'}
-          </button>
-        </form>
-      </section>
-    </div>
-  );
-}
 
 export function AuthModal({ initialMode, initialRole = 'donor', lockRole = false, allowedRoles = ['donor', 'ngo', 'volunteer'], roleSelectorPlacement = 'form', onClose }) {
   const navigate = useNavigate();
@@ -527,7 +468,7 @@ export function AuthModal({ initialMode, initialRole = 'donor', lockRole = false
           {message && <div className="notice" role="status">{message}</div>}
           {!isForgot && <div className="donation-assurance">
             <LockKeyhole size={17} />
-            <span>After login, your separate dashboard page opens automatically.</span>
+            <span style={{ paddingBottom: '12px' }}>We only use your contact details to coordinate pickups and deliveries.</span>
           </div>}
           <button className="donation-submit" type="submit" disabled={submitting}>
             {isSignup ? <UserPlus size={18} /> : isForgot ? <LockKeyhole size={18} /> : <LogIn size={18} />}

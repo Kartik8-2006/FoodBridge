@@ -2,10 +2,12 @@ import { LocateFixed, MapPin, Navigation, Truck } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { formatDate, titleCase } from '../utils.js';
 
+//Checks if a location has valid latitude/longitude numbers
 function hasCoordinates(location) {
   return Number.isFinite(Number(location?.latitude)) && Number.isFinite(Number(location?.longitude));
 }
 
+// Creates a "lat,lng" string for map URLs
 function coordinateQuery(location) {
   return `${location.latitude},${location.longitude}`;
 }
@@ -14,7 +16,8 @@ function addressQuery(address, city) {
   return [address, city].filter(Boolean).join(', ');
 }
 
-function pickupQuery(donation) {
+//Gets the pickup location
+  function pickupQuery(donation) {
   if (hasCoordinates(donation?.pickupLocation)) return coordinateQuery(donation.pickupLocation);
   return addressQuery(donation?.pickupAddress, donation?.city);
 }
@@ -24,11 +27,13 @@ function deliveryQuery(donation) {
   return donation?.deliveryAddress || '';
 }
 
+// Gets the volunteer's live location
 function volunteerQuery(donation) {
   if (hasCoordinates(donation?.volunteerLocation)) return coordinateQuery(donation.volunteerLocation);
   return '';
 }
 
+//Google Maps embed URL
 function mapUrl(query) {
   return query ? `https://maps.google.com/maps?q=${encodeURIComponent(query)}&z=14&output=embed` : '';
 }
