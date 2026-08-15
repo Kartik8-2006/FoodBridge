@@ -21,6 +21,7 @@ export default function Layout({ children }) {
   const [toastNotification, setToastNotification] = useState(null);
   const [newsletter, setNewsletter] = useState({ firstName: '', lastName: '', phone: '', email: '' });
   const [newsletterStatus, setNewsletterStatus] = useState({ loading: false, message: '', error: '' });
+  const [searchExpanded, setSearchExpanded] = useState(false);
   const seenNotificationIds = useRef(new Set());
 
   function updateNewsletter(event) {
@@ -125,7 +126,8 @@ export default function Layout({ children }) {
     <>
       <header className="site-header">
         <div className="top-nav">
-          <Link className="brand" to="/">
+          {/* Left Zone: Logo */}
+          <Link className="brand top-nav-left" to="/">
             <span className="brand-symbol"><HeartHandshake size={32} /></span>
             <span className="brand-type">
               <small>FOODBRIDGE</small>
@@ -133,81 +135,83 @@ export default function Layout({ children }) {
             </span>
           </Link>
 
-          <div className="top-nav-center">
-            <div className="language-selector">
-              <button 
-                type="button" 
+          {/* Center Zone: Search + Language */}
+          <div className="top-nav-center-group">
+            <SearchInput />
+            <div className="language-selector nav-lang-selector">
+              <button
+                type="button"
                 className={language === 'en' ? 'lang-btn active' : 'lang-btn'}
                 onClick={() => setLanguage('en')}
               >
-                English
+                Eng
               </button>
               <span className="lang-separator">/</span>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className={language === 'hi' ? 'lang-btn active' : 'lang-btn'}
                 onClick={() => setLanguage('hi')}
               >
                 हिंदी
               </button>
             </div>
-            <SearchInput />
           </div>
 
-          <div className="utility-actions">
-            <button className="utility-find" type="button" onClick={() => setAuthModal({ initialMode: 'signup', initialRole: 'ngo', allowedRoles: ['ngo', 'volunteer'], roleSelectorPlacement: 'story' })}><ShoppingCart size={24} /> {t("FIND FOOD")}</button>
-            <button className="utility-donate" type="button" onClick={() => setAuthModal({ initialMode: 'signup', initialRole: 'donor', lockRole: true })}><CircleDollarSign size={23} /> {t("DONATE FOOD")}</button>
-            {user ? (
-              <>
-                <Link className="utility-dashboard" to={dashboardPath(user.role)}><UserCircle size={20} /> {t("DASHBOARD")}</Link>
-                <div className="site-notification-menu">
-                  <button className="notification-button" type="button" aria-label="Notifications" onClick={() => setNotificationOpen((value) => !value)}>
-                    <Bell size={20} />
-                    {unreadCount > 0 && <span>{unreadCount > 9 ? '9+' : unreadCount}</span>}
-                  </button>
-                  {notificationOpen && (
-                    <div className="site-notification-popover">
-                      <div className="notification-popover-head">
-                        <strong>{t("Notifications")}</strong>
-                        {unreadCount > 0 && <small>{unreadCount} new</small>}
+          {/* Right Zone: Utility Actions (desktop) + 3-bar menu (mobile) */}
+          <div className="top-nav-right">
+            <div className="utility-actions">
+              <button className="utility-find" type="button" onClick={() => setAuthModal({ initialMode: 'signup', initialRole: 'ngo', allowedRoles: ['ngo', 'volunteer'], roleSelectorPlacement: 'story' })}><ShoppingCart size={24} /> {t("FIND FOOD")}</button>
+              <button className="utility-donate" type="button" onClick={() => setAuthModal({ initialMode: 'signup', initialRole: 'donor', lockRole: true })}><CircleDollarSign size={23} /> {t("DONATE FOOD")}</button>
+              {user ? (
+                <>
+                  <Link className="utility-dashboard" to={dashboardPath(user.role)}><UserCircle size={20} /> {t("DASHBOARD")}</Link>
+                  <div className="site-notification-menu">
+                    <button className="notification-button" type="button" aria-label="Notifications" onClick={() => setNotificationOpen((value) => !value)}>
+                      <Bell size={20} />
+                      {unreadCount > 0 && <span>{unreadCount > 9 ? '9+' : unreadCount}</span>}
+                    </button>
+                    {notificationOpen && (
+                      <div className="site-notification-popover">
+                        <div className="notification-popover-head">
+                          <strong>{t("Notifications")}</strong>
+                          {unreadCount > 0 && <small>{unreadCount} new</small>}
+                        </div>
+                        <div className="site-notification-list">
+                          {notifications.map((notification) => (
+                            <button className={notification.readAt ? 'site-notification-item' : 'site-notification-item unread'} type="button" key={notification._id} onClick={() => openNotification(notification)}>
+                              <strong>{notification.title}</strong>
+                              <span>{notification.message}</span>
+                              {notification.distanceLabel && <em>{notification.distanceLabel} from donor</em>}
+                            </button>
+                          ))}
+                          {!notifications.length && <p>No notifications yet.</p>}
+                        </div>
                       </div>
-                      <div className="site-notification-list">
-                        {notifications.map((notification) => (
-                          <button className={notification.readAt ? 'site-notification-item' : 'site-notification-item unread'} type="button" key={notification._id} onClick={() => openNotification(notification)}>
-                            <strong>{notification.title}</strong>
-                            <span>{notification.message}</span>
-                            {notification.distanceLabel && <em>{notification.distanceLabel} from donor</em>}
-                          </button>
-                        ))}
-                        {!notifications.length && <p>No notifications yet.</p>}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="profile-menu">
-                  <button className="profile-trigger" type="button">
-                    <span className="profile-avatar">{user.name?.charAt(0) || 'U'}</span>
-                    <ChevronDown size={15} />
-                  </button>
-                  <div className="profile-dropdown">
-                    <Link to={dashboardPath(user.role)}>{t("MY DASHBOARD")}</Link>
-                    <Link to={dashboardPath(user.role)}>{t("PROFILE SETTINGS")}</Link>
-                    <button type="button" onClick={logout}><LogOut size={16} /> {t("LOGOUT")}</button>
+                    )}
                   </div>
-                </div>
-              </>
-            ) : (
-              null
-            )}
+                  <div className="profile-menu">
+                    <button className="profile-trigger" type="button">
+                      <span className="profile-avatar">{user.name?.charAt(0) || 'U'}</span>
+                      <ChevronDown size={15} />
+                    </button>
+                    <div className="profile-dropdown">
+                      <Link to={dashboardPath(user.role)}>{t("MY DASHBOARD")}</Link>
+                      <Link to={dashboardPath(user.role)}>{t("PROFILE SETTINGS")}</Link>
+                      <button type="button" onClick={logout}><LogOut size={16} /> {t("LOGOUT")}</button>
+                    </div>
+                  </div>
+                </>
+              ) : null}
+            </div>
+            <button className="menu-button mobile-menu-btn" onClick={() => setOpen(!open)} aria-label="Open navigation">
+              {open ? <X /> : <Menu />}
+            </button>
           </div>
         </div>
 
         <div className="primary-nav">
-          <button className="menu-button" onClick={() => setOpen(!open)} aria-label="Open navigation">
-            {open ? <X /> : <Menu />}
-          </button>
-
           <nav className={open ? 'nav-links open' : 'nav-links'}>
+
             {links.map((item) => (
               <div className={item.items ? 'nav-item has-dropdown' : 'nav-item'} key={item.path + item.label}>
                 <NavLink to={item.path} onClick={() => setOpen(false)}>
@@ -224,6 +228,11 @@ export default function Layout({ children }) {
               </div>
             ))}
           </nav>
+          {/* Mobile-only action buttons row */}
+          <div className="mobile-action-row">
+            <button className="utility-find" type="button" onClick={() => setAuthModal({ initialMode: 'signup', initialRole: 'ngo', allowedRoles: ['ngo', 'volunteer'], roleSelectorPlacement: 'story' })}><ShoppingCart size={20} /> {t("FIND FOOD")}</button>
+            <button className="utility-donate" type="button" onClick={() => setAuthModal({ initialMode: 'signup', initialRole: 'donor', lockRole: true })}><CircleDollarSign size={20} /> {t("DONATE FOOD")}</button>
+          </div>
         </div>
       </header>
       {toastNotification && (
@@ -341,26 +350,26 @@ export function AuthModal({ initialMode, initialRole = 'donor', lockRole = false
 
       const user = isSignup
         ? await register({
-            name: form.name,
-            email: form.email,
-            password: form.password,
-            role: form.role,
-            profile: {
-              organizationName: form.organizationName,
-              organizationType: form.organizationType,
-              registrationNumber: form.registrationNumber,
-              contactPerson: form.contactPerson || form.name,
-              serviceArea: form.serviceArea || form.city,
-              availability: form.availability,
-              hasTransport: form.hasTransport,
-              serviceRadiusKm: Number(form.serviceRadiusKm) || 10,
-              city: form.city,
-              phone: form.phone,
-              address: form.address,
-              serviceArea: form.city,
-              foodSourceType: 'event'
-            }
-          })
+          name: form.name,
+          email: form.email,
+          password: form.password,
+          role: form.role,
+          profile: {
+            organizationName: form.organizationName,
+            organizationType: form.organizationType,
+            registrationNumber: form.registrationNumber,
+            contactPerson: form.contactPerson || form.name,
+            serviceArea: form.serviceArea || form.city,
+            availability: form.availability,
+            hasTransport: form.hasTransport,
+            serviceRadiusKm: Number(form.serviceRadiusKm) || 10,
+            city: form.city,
+            phone: form.phone,
+            address: form.address,
+            serviceArea: form.city,
+            foodSourceType: 'event'
+          }
+        })
         : await login(form.email, form.password);
       onClose();
       navigate(dashboardPath(user.role));
@@ -434,8 +443,8 @@ export function AuthModal({ initialMode, initialRole = 'donor', lockRole = false
                 {lockRole
                   ? <div className="auth-role-label">Registering as <strong>{form.role === 'ngo' ? 'NGO partner' : form.role}</strong></div>
                   : !storyRoleSelector && <select name="role" value={form.role} onChange={update}>
-                      {allowedRoles.map((role) => <option value={role} key={role}>{role === 'ngo' ? 'NGO' : role.charAt(0).toUpperCase() + role.slice(1)}</option>)}
-                    </select>}
+                    {allowedRoles.map((role) => <option value={role} key={role}>{role === 'ngo' ? 'NGO' : role.charAt(0).toUpperCase() + role.slice(1)}</option>)}
+                  </select>}
                 {form.role !== 'volunteer' && <input name="organizationName" placeholder={form.role === 'ngo' ? 'Registered organization name' : 'Organization or household name'} value={form.organizationName} onChange={update} required={form.role === 'ngo'} />}
                 {form.role === 'ngo' && (
                   <>

@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AlertCircle, Award, CheckCircle2, ChevronDown, Clock, Lightbulb, Lock, MapPin, Maximize2, MessageSquare, Navigation, Package, PackageCheck, RefreshCw, Send, ShieldCheck, Star, Store, Timer, Truck, Users, Utensils, X, HelpCircle, Soup, Download, Filter, Calendar, ShoppingBag, Coffee, Leaf, MoreVertical } from 'lucide-react';
+import { AlertCircle, Award, Bell, CheckCircle2, ChevronDown, Clock, Edit2, Eye, EyeOff, Globe, HelpCircle, Info, Languages, Leaf, Lightbulb, Lock, Mail, MapPin, Maximize2, MessageSquare, MoreVertical, Navigation, Package, PackageCheck, Phone, RefreshCw, Save, Send, Shield, ShieldCheck, ShoppingBag, Soup, Star, Store, Timer, Truck, User, Users, Utensils, X, Download, Filter, Calendar, Coffee } from 'lucide-react';
 import { api } from '../../api.js';
 import TrackingMap from '../../components/TrackingMap.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
+import { useLanguage } from '../../context/LanguageContext.jsx';
 import { formatDate, titleCase } from '../../utils.js';
 import { DashboardShell, NotificationList, StatGrid } from './DashboardParts.jsx';
 import { useDashboardData } from './dashboardHooks.js';
@@ -17,6 +18,7 @@ const deliverySteps = [
 
 export default function VolunteerDashboard() {
   const { user } = useAuth();
+  const { language, setLanguage, t } = useLanguage();
   const { data, error, refresh } = useDashboardData();
   const [selectedId, setSelectedId] = useState('');
   const [message, setMessage] = useState('');
@@ -24,6 +26,84 @@ export default function VolunteerDashboard() {
   const [taskFilter, setTaskFilter] = useState('All Tasks');
   const [sortBy, setSortBy] = useState('Closest First');
   const [activeChips, setActiveChips] = useState(['Distance: <2km', 'Urgency: High']);
+
+  // ── Profile & Settings State ──
+  const [profileForm, setProfileForm] = useState({
+    name: user?.name || '',
+    email: user?.email || '',
+    phone: user?.profile?.phone || '',
+    vehicleType: user?.profile?.vehicleType || 'Bike',
+    address: user?.profile?.address || ''
+  });
+  const [profileNotice, setProfileNotice] = useState('');
+
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [smsAlerts, setSmsAlerts] = useState(false);
+  const [sysAnnouncements, setSysAnnouncements] = useState(true);
+
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [securityNotice, setSecurityNotice] = useState('');
+  const [securityError, setSecurityError] = useState('');
+  const [settingsNotice, setSettingsNotice] = useState('');
+
+  const updateProfileField = (e) => {
+    const { name, value } = e.target;
+    setProfileForm(current => ({ ...current, [name]: value }));
+  };
+
+  const handleProfileSave = async (e) => {
+    e.preventDefault();
+    setProfileNotice('');
+    try {
+      const res = await api('/auth/profile', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          name: profileForm.name,
+          profile: {
+            phone: profileForm.phone,
+            vehicleType: profileForm.vehicleType,
+            address: profileForm.address
+          }
+        })
+      });
+      setProfileNotice(t(res.message || 'Profile settings saved successfully!'));
+      setTimeout(() => setProfileNotice(''), 3000);
+    } catch (err) {
+      setProfileNotice(t(err.message || 'Unable to update profile.'));
+    }
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    setSecurityNotice('');
+    setSecurityError('');
+    if (newPassword !== confirmNewPassword) {
+      setSecurityError(t('Confirm password does not match new password'));
+      return;
+    }
+    try {
+      const res = await api('/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword })
+      });
+      setSecurityNotice(t(res.message || 'Password changed successfully'));
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmNewPassword('');
+    } catch (err) {
+      setSecurityError(t(err.message || 'Failed to change password'));
+    }
+  };
+
+  const handleSettingsSave = (e) => {
+    if (e) e.preventDefault();
+    setSettingsNotice(t('Platform preferences saved successfully!'));
+    setTimeout(() => setSettingsNotice(''), 3000);
+  };
 
   const tasks = data?.tasks || [];
   const assignedDeliveries = data?.assignedDeliveries || [];
@@ -956,6 +1036,322 @@ export default function VolunteerDashboard() {
           </div>
         </div>
       </section>
+
+      {/* ── Profile Section ── */}
+      <section className="prof-page" id="profile" data-dashboard-section="profile">
+        <div className="prof-header">
+          <div className="prof-header-text">
+            <h2>{t('Profile Settings')}</h2>
+            <p>{t('Manage your personal information and volunteer preferences.')}</p>
+          </div>
+          <div className="prof-verified-badge">
+            <ShieldCheck size={16} />
+            <span>{t('Active Volunteer')}</span>
+          </div>
+        </div>
+
+        <div className="prof-layout">
+          {/* Left Column Card (Profile Summary) */}
+          <div className="prof-summary-card">
+            <div className="prof-avatar-container">
+              <div className="prof-avatar-outline">
+                {user?.profile?.avatarUrl ? (
+                  <img src={user.profile.avatarUrl} alt={profileForm.name} className="prof-avatar-img" />
+                ) : (
+                  <User size={48} />
+                )}
+                <button type="button" className="prof-avatar-edit-btn" title={t('Edit avatar')}>
+                  <Edit2 size={14} />
+                </button>
+              </div>
+            </div>
+            <h3 className="prof-summary-name">{profileForm.name}</h3>
+            {user?.createdAt && <span className="prof-summary-active-since">{t('Active since')} {formatDate(user.createdAt)}</span>}
+
+            <div className="prof-divider-horizontal" />
+
+            <div className="prof-metrics-row">
+              <div className="prof-metric-item">
+                <strong className="prof-metric-val">{data?.performance?.totalDeliveries ?? 0}</strong>
+                <span className="prof-metric-lbl">{t('Deliveries')}</span>
+              </div>
+              <div className="prof-metric-item">
+                <strong className="prof-metric-val">{data?.performance?.points ?? 0}</strong>
+                <span className="prof-metric-lbl">{t('XP Points')}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column Card (Form Details) */}
+          <form className="prof-details-card" onSubmit={handleProfileSave}>
+            <div className="prof-form-grid">
+              <label className="prof-field">
+                <span className="prof-field-label">{t('Full Name')}</span>
+                <input type="text" name="name" value={profileForm.name} onChange={updateProfileField} required />
+              </label>
+
+              <label className="prof-field">
+                <span className="prof-field-label">{t('Email Address')}</span>
+                <input type="email" name="email" value={profileForm.email} onChange={updateProfileField} required />
+              </label>
+
+              <label className="prof-field">
+                <span className="prof-field-label">{t('Phone Number')}</span>
+                <input type="text" name="phone" value={profileForm.phone} onChange={updateProfileField} required />
+              </label>
+
+              <label className="prof-field">
+                <span className="prof-field-label">{t('Vehicle Type')}</span>
+                <select name="vehicleType" value={profileForm.vehicleType} onChange={updateProfileField}>
+                  <option value="Bike">{t('Bike')}</option>
+                  <option value="Car">{t('Car')}</option>
+                  <option value="Van">{t('Van / Truck')}</option>
+                  <option value="Scooter">{t('Scooter')}</option>
+                  <option value="Walk">{t('Walk / Public Transit')}</option>
+                </select>
+              </label>
+
+              <label className="prof-field full-width">
+                <span className="prof-field-label">{t('Address')}</span>
+                <input type="text" name="address" value={profileForm.address} onChange={updateProfileField} placeholder={t('Your home or base address')} />
+              </label>
+            </div>
+
+            {profileNotice && (
+              <div className={`prof-notice ${profileNotice.toLowerCase().includes('success') || profileNotice.toLowerCase().includes('saved') ? 'success' : 'error'}`}>
+                {profileNotice}
+              </div>
+            )}
+
+            <button type="submit" className="prof-save-btn">
+              <Save size={16} />
+              {t('Save Profile')}
+            </button>
+          </form>
+        </div>
+      </section>
+
+      {/* ── Settings Section ── */}
+      <section className="sett-page" id="settings" data-dashboard-section="settings">
+        <div className="sett-header">
+          <div className="sett-header-text">
+            <h2>{t('Platform Settings')}</h2>
+            <p>{t('Manage your account preferences, notifications, and security settings.')}</p>
+          </div>
+          <button type="button" className="btn-sett-save-top" onClick={handleSettingsSave}>
+            <Save size={16} />
+            <span>{t('Save Changes')}</span>
+          </button>
+        </div>
+
+        {settingsNotice && (
+          <div className="sett-notice-success">
+            {settingsNotice}
+          </div>
+        )}
+
+        {/* Main Two-Column Row */}
+        <div className="sett-grid-two-col">
+          {/* Notifications Card */}
+          <div className="sett-card">
+            <div className="sett-card-header">
+              <div className="sett-icon-square icon-orange">
+                <Bell size={20} />
+              </div>
+              <h3>{t('Notifications')}</h3>
+            </div>
+
+            <div className="sett-notif-list">
+              <div className="sett-notif-row">
+                <div className="sett-notif-text">
+                  <strong>{t('Email Notifications')}</strong>
+                  <span>{t('Receive delivery updates and pickup assignments')}</span>
+                </div>
+                <label className="sett-switch" htmlFor="vol-email-notif-toggle">
+                  <input type="checkbox" id="vol-email-notif-toggle" checked={emailNotifications} onChange={(e) => setEmailNotifications(e.target.checked)} />
+                  <span className="sett-slider" />
+                </label>
+              </div>
+
+              <div className="sett-notif-row">
+                <div className="sett-notif-text">
+                  <strong>{t('SMS Alerts')}</strong>
+                  <span>{t('Real-time pickup confirmations and urgent tasks')}</span>
+                </div>
+                <label className="sett-switch" htmlFor="vol-sms-alerts-toggle">
+                  <input type="checkbox" id="vol-sms-alerts-toggle" checked={smsAlerts} onChange={(e) => setSmsAlerts(e.target.checked)} />
+                  <span className="sett-slider" />
+                </label>
+              </div>
+
+              <div className="sett-notif-row">
+                <div className="sett-notif-text">
+                  <strong>{t('System Announcements')}</strong>
+                  <span>{t('New platform features and community news')}</span>
+                </div>
+                <label className="sett-switch" htmlFor="vol-sys-ann-toggle">
+                  <input type="checkbox" id="vol-sys-ann-toggle" checked={sysAnnouncements} onChange={(e) => setSysAnnouncements(e.target.checked)} />
+                  <span className="sett-slider" />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Language Card */}
+          <div className="sett-card">
+            <div className="sett-card-header">
+              <div className="sett-icon-square icon-gray">
+                <Languages size={20} />
+              </div>
+              <h3>{t('Language')}</h3>
+            </div>
+
+            <div className="sett-lang-content">
+              <p className="sett-lang-lbl">{t('Select your preferred platform language')}</p>
+
+              <div className="sett-select-wrap">
+                <select value={language} onChange={(e) => setLanguage(e.target.value)} className="sett-select">
+                  <option value="en">English (United States)</option>
+                  <option value="hi">Hindi (हिंदी)</option>
+                </select>
+              </div>
+
+              <div className="sett-lang-info-banner">
+                <Info size={18} />
+                <span>{t('Changing language will reload the dashboard.')}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Security & Password Card (Full Width) */}
+        <div className="sett-card full-width-card">
+          <div className="sett-card-header-between">
+            <div className="sett-card-header">
+              <div className="sett-icon-square icon-dark">
+                <Shield size={20} />
+              </div>
+              <h3>{t('Security & Password')}</h3>
+            </div>
+            <div className="sett-security-badge">
+              <span className="sett-badge-dot" />
+              <span>{t('Last changed 3 months ago')}</span>
+            </div>
+          </div>
+
+          <form onSubmit={handleChangePassword} className="sett-security-form">
+            <div className="sett-security-inputs">
+              <div className="sett-field">
+                <span className="sett-field-label">{t('CURRENT PASSWORD')}</span>
+                <div className="sett-input-with-eye">
+                  <input type={showCurrentPassword ? "text" : "password"} placeholder="••••••••" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
+                  <button type="button" className="sett-eye-btn" onClick={() => setShowCurrentPassword(!showCurrentPassword)}>
+                    {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="sett-field">
+                <span className="sett-field-label">{t('NEW PASSWORD')}</span>
+                <input type="password" placeholder={t("Enter new password")} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
+              </div>
+
+              <div className="sett-field">
+                <span className="sett-field-label">{t('CONFIRM NEW PASSWORD')}</span>
+                <input type="password" placeholder={t("Re-type new password")} value={confirmNewPassword} onChange={(e) => setConfirmNewPassword(e.target.value)} required />
+              </div>
+            </div>
+
+            {securityNotice && (
+              <div className="sett-sec-notice-success">{securityNotice}</div>
+            )}
+            {securityError && (
+              <div className="sett-sec-notice-error">{securityError}</div>
+            )}
+
+            <div className="sett-security-actions">
+              <div className="sett-sec-left">
+                <button type="submit" className="btn-sett-change-pw">{t('Change Password')}</button>
+                <a href="#support" className="sett-forgot-link">{t('Forgot Password?')}</a>
+              </div>
+              <div className="sett-sec-right">
+                <span className="sett-tfa-lbl">{t('Two-Factor Authentication:')}</span>
+                <span className="sett-tfa-badge-disabled">{t('Disabled')}</span>
+                <button type="button" className="btn-sett-tfa-enable">{t('Enable 2FA')}</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      {/* ── Support Section ── */}
+      <section className="donor-support-page" id="support" data-dashboard-section="support">
+        <div className="support-header-row">
+          <div className="support-header-text">
+            <h2>{t('Help & Support')}</h2>
+            <p>{t('Have questions about pickups, deliveries, or your volunteer account? We\'re here to help 24/7.')}</p>
+          </div>
+        </div>
+
+        <div className="support-main-card">
+          <div className="support-faq-section">
+            <h3 className="support-section-title">{t('Frequently Asked Questions')}</h3>
+
+            <VolunteerSupportFAQ
+              question={t('How do I accept a pickup task?')}
+              answer={t('Navigate to "Available Pickups" from the sidebar. Browse nearby tasks, review pickup and drop-off details, then click "Claim Task" to accept. You\'ll receive confirmation and route details immediately.')}
+            />
+            <VolunteerSupportFAQ
+              question={t('How does live location sharing work?')}
+              answer={t('Once you accept a delivery, use the "Share Location" button on your active pickup card. This sends your GPS coordinates to the donor and NGO dashboards so they can track your progress in real time.')}
+            />
+            <VolunteerSupportFAQ
+              question={t('What if I can\'t complete a delivery?')}
+              answer={t('If you\'re unable to finish a delivery, contact the NGO coordinator through the Messages section. The platform will reassign the task to another available volunteer automatically.')}
+            />
+            <VolunteerSupportFAQ
+              question={t('How are XP points calculated?')}
+              answer={t('You earn XP for each completed delivery based on distance, food weight, and urgency. Bonus points are awarded for on-time pickups and positive feedback from donors and NGOs.')}
+            />
+          </div>
+
+          <div className="support-divider" />
+
+          <div className="support-contact-section">
+            <h3 className="support-section-title">
+              <MessageSquare size={18} />
+              {t('Message Support Team')}
+            </h3>
+            <textarea className="support-textarea" placeholder={t('Describe your issue — e.g. a pickup wasn\'t available, you need to update your vehicle details, or have a question about the platform…')} rows={5} />
+            <button className="btn-support-submit" type="button">
+              <Send size={15} />
+              {t('Submit Message')}
+            </button>
+          </div>
+        </div>
+
+        <div className="support-quick-contacts">
+          <div className="support-contact-card">
+            <div className="support-contact-icon email"><Mail size={24} /></div>
+            <h4>{t('Email Support')}</h4>
+            <p>{t('Get a response within 24 hours for non-urgent queries.')}</p>
+            <a href="mailto:support@foodbridge.org">support@foodbridge.org</a>
+          </div>
+          <div className="support-contact-card">
+            <div className="support-contact-icon phone"><Phone size={24} /></div>
+            <h4>{t('Phone Support')}</h4>
+            <p>{t('Speak directly with our team for urgent delivery issues.')}</p>
+            <a href="tel:+911800123456">+91 1800-123-456</a>
+          </div>
+          <div className="support-contact-card">
+            <div className="support-contact-icon chat"><MessageSquare size={24} /></div>
+            <h4>{t('Live Chat')}</h4>
+            <p>{t('Chat with our support agents in real-time during business hours.')}</p>
+            <a href="#support">{t('Start Chat')}</a>
+          </div>
+        </div>
+      </section>
+
     </DashboardShell>
   );
 }

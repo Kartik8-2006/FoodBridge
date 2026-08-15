@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { Search, X, MapPin, FileText, CornerDownLeft } from 'lucide-react';
@@ -36,33 +35,67 @@ const getSuggestionsData = (t) => [
   { key: "partner-support", label: t("Partner Support Details"), category: "Section", path: "/contact#partner-support" }
 ];
 
-export default function SearchInput() {
+export default function SearchInput({ onExpandChange }) {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [expanded, setExpanded] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 768);
   
-  const containerRef = useRef(null);
+  const modalCardRef = useRef(null);
+  const inlineContainerRef = useRef(null);
   const inputRef = useRef(null);
 
   const suggestionsList = getSuggestionsData(t);
 
-  // Handle click outside to collapse
   useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth <= 768);
+    }
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    onExpandChange?.(expanded);
+  }, [expanded, onExpandChange]);
+
+  // Handle auto-close on scroll OR outside click for mobile pop-up and desktop inline
+  useEffect(() => {
+    if (!expanded) return;
+
+    function handleScroll() {
+      setExpanded(false);
+      setQuery('');
+      setSuggestions([]);
+    }
+
     function handleClickOutside(event) {
-      if (containerRef.current && !containerRef.current.contains(event.target)) {
-        setIsOpen(false);
-        if (!query.trim()) {
+      if (isMobile) {
+        if (modalCardRef.current && !modalCardRef.current.contains(event.target)) {
           setExpanded(false);
+          setQuery('');
+          setSuggestions([]);
+        }
+      } else {
+        if (inlineContainerRef.current && !inlineContainerRef.current.contains(event.target)) {
+          setExpanded(false);
+          setQuery('');
+          setSuggestions([]);
         }
       }
     }
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [query]);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [expanded, isMobile]);
 
   // Update suggestions when query changes
   useEffect(() => {
@@ -85,20 +118,18 @@ export default function SearchInput() {
 
   const selectItem = (item) => {
     setQuery('');
-    setIsOpen(false);
     setExpanded(false);
     navigate(item.path);
   };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Escape') {
-      setIsOpen(false);
       setExpanded(false);
       setQuery('');
       return;
     }
 
-    if (!isOpen || suggestions.length === 0) return;
+    if (suggestions.length === 0) return;
 
     if (e.key === 'ArrowDown') {
       e.preventDefault();
@@ -121,9 +152,8 @@ export default function SearchInput() {
       setExpanded(true);
       setTimeout(() => {
         inputRef.current?.focus();
-      }, 100);
-    } else if (query.trim() && suggestions.length > 0) {
-      // If already expanded and has text, select first match on click
+      }, 50);
+    } else if (!isMobile && query.trim() && suggestions.length > 0) {
       selectItem(suggestions[0]);
     }
   };
@@ -133,49 +163,95 @@ export default function SearchInput() {
     setQuery('');
     setSuggestions([]);
     inputRef.current?.focus();
-    if (!query) {
+    if (!isMobile && !query) {
       setExpanded(false);
     }
   };
 
-  return (
-    <Container ref={containerRef}>
-      <SearchWrapper expanded={expanded}>
-        <SearchIconBtn type="button" onClick={handleSearchClick} aria-label="Search">
+  // Render Mobile Pop-up Overlay Modal
+  if (isMobile) {
+    return (
+      <div className="search-input-container">
+        <button type="button" className="search-trigger-btn" onClick={handleSearchClick} aria-label="Search">
           <Search size={20} />
-        </SearchIconBtn>
-        
-        <StyledInput
+        </button>
+
+        {expanded && (
+          <div className="search-overlay-backdrop">
+            <div className="search-modal-card" ref={modalCardRef}>
+              <form className="search-popup-form" onSubmit={(e) => { e.preventDefault(); if (suggestions[0]) selectItem(suggestions[0]); }}>
+                <Search size={20} className="search-icon-inside" />
+                <input
+                  type="text"
+                  className="search-modal-input"
+                  ref={inputRef}
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder={t("SEARCH...") || "Search..."}
+                  autoComplete="off"
+                />
+                <button type="button" className="search-close-modal-btn" onClick={() => setExpanded(false)} aria-label="Close search">
+                  <X size={20} />
+                </button>
+              </form>
+
+              {suggestions.length > 0 && (
+                <ul className="search-suggestions-list">
+                  {suggestions.map((item, index) => (
+                    <li
+                      key={item.path + item.label}
+                      className={`search-suggestion-item ${index === activeIndex ? 'active' : ''}`}
+                      onClick={() => selectItem(item)}
+                      onMouseEnter={() => setActiveIndex(index)}
+                    >
+                      {item.category === 'Page' ? <FileText size={15} /> : <MapPin size={15} />}
+                      <span>{item.label}</span>
+                      <span className="category">{item.category}</span>
+                      {index === activeIndex && <CornerDownLeft size={13} className="enter-hint" />}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Render Desktop / Tablet Inline Search Bar
+  return (
+    <div className="search-input-container" ref={inlineContainerRef}>
+      <div className={`search-inline-wrapper ${expanded ? 'expanded' : ''}`}>
+        <button type="button" className="search-trigger-btn" onClick={handleSearchClick} aria-label="Search">
+          <Search size={20} />
+        </button>
+
+        <input
           type="text"
+          className="search-inline-input"
           ref={inputRef}
           value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setIsOpen(true);
-          }}
-          onFocus={() => setIsOpen(true)}
+          onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={t("SEARCH...") || "Search..."}
-          expanded={expanded}
           autoComplete="off"
         />
 
-        <ClearIconBtn 
-          type="button" 
-          visible={expanded && !!query} 
-          onClick={handleClear}
-          aria-label="Clear search"
-        >
-          <X size={16} />
-        </ClearIconBtn>
-      </SearchWrapper>
+        {expanded && query && (
+          <button type="button" className="search-clear-btn" onClick={handleClear} aria-label="Clear search">
+            <X size={16} />
+          </button>
+        )}
+      </div>
 
-      {expanded && isOpen && suggestions.length > 0 && (
-        <SuggestionsDropdown>
+      {expanded && suggestions.length > 0 && (
+        <ul className="search-inline-dropdown">
           {suggestions.map((item, index) => (
-            <SuggestionItem
+            <li
               key={item.path + item.label}
-              className={index === activeIndex ? 'active' : ''}
+              className={`search-suggestion-item ${index === activeIndex ? 'active' : ''}`}
               onClick={() => selectItem(item)}
               onMouseEnter={() => setActiveIndex(index)}
             >
@@ -183,167 +259,13 @@ export default function SearchInput() {
               <span>{item.label}</span>
               <span className="category">{item.category}</span>
               {index === activeIndex && <CornerDownLeft size={11} className="enter-hint" />}
-            </SuggestionItem>
+            </li>
           ))}
-        </SuggestionsDropdown>
+        </ul>
       )}
-    </Container>
+    </div>
   );
 }
 
-const Container = styled.div`
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-`;
 
-const SearchWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  position: relative;
-  width: ${props => props.expanded ? '250px' : '40px'};
-  height: 40px;
-  background: ${props => props.expanded ? '#ffffff' : 'transparent'};
-  border: 1px solid ${props => props.expanded ? '#d8dce2' : 'transparent'};
-  border-radius: 20px;
-  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
-  box-sizing: border-box;
-  box-shadow: ${props => props.expanded ? '0 2px 8px rgba(0, 0, 0, 0.06)' : 'none'};
 
-  &:hover {
-    background: ${props => props.expanded ? '#ffffff' : 'rgba(0, 0, 0, 0.04)'};
-    border-color: ${props => props.expanded ? '#c0c4cc' : 'transparent'};
-  }
-`;
-
-const StyledInput = styled.input`
-  width: 100%;
-  height: 100%;
-  border: none;
-  background: transparent;
-  outline: none;
-  padding: 0 34px 0 38px;
-  font-size: 14px;
-  color: #303133;
-  opacity: ${props => props.expanded ? 1 : 0};
-  transition: opacity 0.2s ease;
-  pointer-events: ${props => props.expanded ? 'auto' : 'none'};
-  font-family: inherit;
-  box-sizing: border-box;
-`;
-
-const SearchIconBtn = styled.button`
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 40px;
-  height: 40px;
-  display: grid;
-  place-items: center;
-  background: transparent;
-  border: none;
-  color: #5e6167;
-  cursor: pointer;
-  border-radius: 50%;
-  z-index: 2;
-  transition: color 0.25s;
-
-  &:hover {
-    color: #ed8b00;
-  }
-`;
-
-const ClearIconBtn = styled.button`
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 24px;
-  height: 24px;
-  display: grid;
-  place-items: center;
-  background: transparent;
-  border: none;
-  color: #909399;
-  cursor: pointer;
-  border-radius: 50%;
-  z-index: 2;
-  opacity: ${props => props.visible ? 1 : 0};
-  pointer-events: ${props => props.visible ? 'auto' : 'none'};
-  transition: all 0.2s ease;
-
-  &:hover {
-    color: #303133;
-    background: rgba(0, 0, 0, 0.08);
-  }
-`;
-
-const SuggestionsDropdown = styled.ul`
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: 100%;
-  min-width: 260px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.12);
-  margin: 6px 0 0 0;
-  padding: 6px 0;
-  list-style: none;
-  z-index: 1000;
-  max-height: 260px;
-  overflow-y: auto;
-  border: 1px solid #e4e7ed;
-  box-sizing: border-box;
-
-  scrollbar-width: thin;
-  &::-webkit-scrollbar {
-    width: 5px;
-  }
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.12);
-    border-radius: 10px;
-  }
-`;
-
-const SuggestionItem = styled.li`
-  padding: 8px 14px;
-  font-size: 13px;
-  color: #606266;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.15s ease;
-  text-align: left;
-  font-weight: 500;
-  box-sizing: border-box;
-
-  &:hover, &.active {
-    background: #f5f7fa;
-    color: #303133;
-  }
-
-  .category {
-    font-size: 9px;
-    color: #ed8b00;
-    text-transform: uppercase;
-    font-weight: 700;
-    margin-left: auto;
-    background: #fdf6ec;
-    padding: 2px 6px;
-    border-radius: 4px;
-    letter-spacing: 0.5px;
-  }
-
-  .enter-hint {
-    color: #c0c4cc;
-    margin-left: 4px;
-  }
-`;
