@@ -174,8 +174,6 @@ export const updateProfile = asyncHandler(async (req, res) => {
     'organizationType',
     'foodSourceType',
     'registrationNumber',
-    'contactPerson',
-    'serviceArea',
     'availability',
     'hasTransport',
     'vehicleType',

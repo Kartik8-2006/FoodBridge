@@ -37,7 +37,7 @@ export const listDonations = asyncHandler(async (req, res) => {
     filter.assignedVolunteer = req.user._id;
   }
   if (!city && ['ngo', 'volunteer'].includes(req.user.role)) {
-    const userCity = req.user.profile?.city || req.user.profile?.serviceArea;
+    const userCity = req.user.profile?.city;
     const sameCity = cityRegex(userCity);
     if (sameCity) filter.city = sameCity;
   }
@@ -150,7 +150,7 @@ export const createDonation = asyncHandler(async (req, res) => {
       distanceLabel: donationWithDistance.distanceLabel,
       metadata: {
         donorCity,
-        ngoCity: user.profile?.city || user.profile?.serviceArea,
+        ngoCity: user.profile?.city,
         donorName: req.user.name,
         donationTitle: donation.title
       }
@@ -429,7 +429,7 @@ export const claimVolunteerDonation = asyncHandler(async (req, res) => {
   donation.assignedVolunteer = req.user._id;
   donation.volunteerAccepted = true;
   donation.status = 'pickup_scheduled';
-  donation.deliveryAddress = donation.acceptedBy?.profile?.address || donation.acceptedBy?.profile?.serviceArea || 'NGO Hub';
+  donation.deliveryAddress = donation.acceptedBy?.profile?.address || donation.acceptedBy?.profile?.city || 'NGO Hub';
   
   await donation.save();
 

@@ -8,8 +8,6 @@ const profileSchema = new mongoose.Schema(
     organizationType: String,
     foodSourceType: String,
     registrationNumber: String,
-    contactPerson: String,
-    serviceArea: String,
     availability: String,
     hasTransport: Boolean,
     vehicleType: String,

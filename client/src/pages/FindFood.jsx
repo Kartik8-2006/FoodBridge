@@ -46,7 +46,7 @@ export default function FindFood() {
           reverse: true,
           image: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=1000&q=85',
           bullets: [
-            'NGOs review available donations that match their service area.',
+            'NGOs review available donations in their city.',
             'Volunteers help with pickup and last-mile delivery when needed.',
             'Recipients receive support through organized and accountable partners.'
           ]

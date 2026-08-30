@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AlertCircle, Award, Bell, CheckCircle2, ChevronDown, Clock, Edit2, Eye, EyeOff, Globe, HelpCircle, Info, Languages, Leaf, Lightbulb, Lock, Mail, MapPin, Maximize2, MessageSquare, MoreVertical, Navigation, Package, PackageCheck, Phone, RefreshCw, Save, Send, Shield, ShieldCheck, ShoppingBag, Soup, Star, Store, Timer, Truck, User, Users, Utensils, X, Download, Filter, Calendar, Coffee } from 'lucide-react';
+import { AlertCircle, Award, Bell, CheckCircle2, ChevronDown, ChevronUp, Clock, Edit2, Eye, EyeOff, Globe, HelpCircle, Info, Languages, Leaf, Lightbulb, Lock, Mail, MapPin, Maximize2, MessageSquare, MoreVertical, Navigation, Package, PackageCheck, Phone, RefreshCw, Save, Send, Shield, ShieldCheck, ShoppingBag, Soup, Star, Store, Timer, Truck, User, Users, Utensils, X, Download, Filter, Calendar, Coffee } from 'lucide-react';
 import { api } from '../../api.js';
 import TrackingMap from '../../components/TrackingMap.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -1297,19 +1297,19 @@ export default function VolunteerDashboard() {
           <div className="support-faq-section">
             <h3 className="support-section-title">{t('Frequently Asked Questions')}</h3>
 
-            <VolunteerSupportFAQ
+            <SupportFAQ
               question={t('How do I accept a pickup task?')}
               answer={t('Navigate to "Available Pickups" from the sidebar. Browse nearby tasks, review pickup and drop-off details, then click "Claim Task" to accept. You\'ll receive confirmation and route details immediately.')}
             />
-            <VolunteerSupportFAQ
+            <SupportFAQ
               question={t('How does live location sharing work?')}
               answer={t('Once you accept a delivery, use the "Share Location" button on your active pickup card. This sends your GPS coordinates to the donor and NGO dashboards so they can track your progress in real time.')}
             />
-            <VolunteerSupportFAQ
+            <SupportFAQ
               question={t('What if I can\'t complete a delivery?')}
               answer={t('If you\'re unable to finish a delivery, contact the NGO coordinator through the Messages section. The platform will reassign the task to another available volunteer automatically.')}
             />
-            <VolunteerSupportFAQ
+            <SupportFAQ
               question={t('How are XP points calculated?')}
               answer={t('You earn XP for each completed delivery based on distance, food weight, and urgency. Bonus points are awarded for on-time pickups and positive feedback from donors and NGOs.')}
             />
@@ -1356,6 +1356,18 @@ export default function VolunteerDashboard() {
   );
 }
 
+function SupportFAQ({ question, answer }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={`support-faq-item${open ? ' open' : ''}`}>
+      <button className="support-faq-q" type="button" onClick={() => setOpen(o => !o)}>
+        <span>{question}</span>
+        {open ? <ChevronUp size={17} /> : <ChevronDown size={17} />}
+      </button>
+      {open && <p className="support-faq-a">{answer}</p>}
+    </div>
+  );
+}
 function CalendarMiniIcon() {
   return (
     <svg viewBox="0 0 24 24" width="30" height="30" fill="none" aria-hidden="true">

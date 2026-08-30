@@ -32,7 +32,7 @@ const sections = [
     title: 'Prepare a pickup that volunteers can complete quickly',
     image: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=1000&q=85',
     text: [
-      'Pack donations in clean containers, keep hot food hot and cold food cold, and make sure the contact person is available during the pickup window.',
+      'Pack donations in clean containers, keep hot food hot and cold food cold, and make sure someone is available during the pickup window.',
       'Clear pickup details reduce delays and help NGOs distribute food while it is still safe and useful.'
     ]
   }

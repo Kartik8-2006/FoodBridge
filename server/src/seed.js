@@ -65,19 +65,6 @@ async function run() {
       }
     },
     {
-      name: 'Ravi Kumar',
-      email: 'recipient@foodbridge.org',
-      passwordHash,
-      role: 'recipient',
-      profile: {
-        householdSize: 4,
-        assistanceNeed: 'Weekly cooked meal support',
-        city: 'Bengaluru',
-        phone: '+91 98765 43213',
-        verificationStatus: 'not_required'
-      }
-    },
-    {
       name: 'FoodBridge Admin',
       email: 'admin@foodbridge.org',
       passwordHash,
@@ -142,14 +129,6 @@ async function run() {
       status: 'posted'
     }
   ]);
-
-  await SupportRequest.create({
-    recipient: users.find((user) => user.role === 'recipient')._id,
-    householdSize: 4,
-    location: 'Bengaluru East',
-    need: 'Cooked meals for family support this week',
-    urgency: 'this_week'
-  });
 
   console.log('Seed data created. Password for all users: Password123!');
   await mongoose.disconnect();

@@ -783,9 +783,27 @@ body {
   line-height: 1;
 }
 
-/* Mobile-only action row — hidden on desktop */
-.mobile-action-row {
+/* Mobile-only action row & drawer elements — hidden on desktop */
+.mobile-action-row,
+.mobile-drawer-header,
+.mobile-drawer-backdrop,
+.mobile-user-actions {
   display: none;
+}
+
+/* Logged-in bell + profile cluster inside the 2nd navbar (hidden on desktop) */
+.mobile-action-row .mobile-user-actions {
+  flex: 0 0 auto;
+}
+.mobile-action-row .mobile-user-actions .notification-button,
+.mobile-action-row .mobile-user-actions .profile-trigger {
+  flex: 0 0 auto;
+}
+
+@keyframes fadeInBackdrop {
+  to {
+    opacity: 1;
+  }
 }
 
 @media (max-width: 1024px) {
@@ -851,6 +869,13 @@ body {
   /* Hide desktop utility actions from top-nav-right on mobile */
   .top-nav-right .utility-actions {
     display: none !important;
+  }
+
+  /* Show the compact logged-in bell + profile cluster inside the 2nd navbar (tablet) */
+  .mobile-action-row .mobile-user-actions {
+    display: inline-flex !important;
+    align-items: center !important;
+    margin-left: auto !important;
   }
 
   .nav-lang-selector {
@@ -17924,30 +17949,110 @@ body {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06) !important;
   }
 
+  /* 1st navbar: compact height, stays fixed on scroll (site-header is sticky top:0) */
   .top-nav {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    padding: 12px 16px !important;
-    gap: 10px !important;
+    padding: 5px 12px !important;
+    gap: 6px !important;
+    position: relative !important;
+    min-height: 44px !important;
   }
 
+  .top-nav-left {
+    flex-shrink: 0 !important;
+    z-index: 2 !important;
+    gap: 6px !important;
+  }
+
+  /* Smaller logo mark + icon on mobile */
+  .top-nav-left .brand-symbol {
+    width: 32px !important;
+    height: 32px !important;
+    border-width: 2px !important;
+    box-shadow: 0 0 0 1.5px #d7d7d7 !important;
+  }
+
+  .top-nav-left .brand-symbol svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  /* Center search icon & language selector centered between logo and menu icon */
   .top-nav-center-group {
+    display: flex !important;
+    position: absolute !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    z-index: 10 !important;
+    pointer-events: auto !important;
+  }
+
+  /* Smaller search button in mobile 1st navbar */
+  .top-nav-center-group .search-trigger-btn {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .top-nav-center-group .search-trigger-btn svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  /* Smaller language selector on mobile */
+  .top-nav-center-group .lang-btn {
+    font-size: 12.5px !important;
+    padding: 2px 4px !important;
+  }
+
+  .top-nav-center-group .lang-separator {
+    font-size: 12.5px !important;
+  }
+
+  .top-nav-right {
+    margin-left: auto !important;
+    flex-shrink: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    z-index: 2 !important;
+  }
+
+  /* Hide desktop utility actions from top bar on mobile */
+  .top-nav-right .utility-actions {
     display: none !important;
   }
 
-  .utility-actions {
+  /* Mobile user icons (notification bell & profile trigger) — smaller */
+  .mobile-user-actions {
     display: flex !important;
     align-items: center !important;
-    gap: 8px !important;
+    gap: 4px !important;
   }
 
-  .utility-find,
-  .utility-donate {
-    padding: 6px 12px !important;
+  .mobile-user-actions .notification-button {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .mobile-user-actions .notification-button svg {
+    width: 17px !important;
+    height: 17px !important;
+  }
+
+  .mobile-user-actions .profile-trigger {
+    min-height: 32px !important;
+    padding: 3px 7px 3px 3px !important;
+  }
+
+  .mobile-user-actions .profile-avatar {
+    width: 24px !important;
+    height: 24px !important;
     font-size: 11px !important;
-    min-height: 36px !important;
-    border-radius: 20px !important;
   }
 
   .menu-button,
@@ -17955,76 +18060,260 @@ body {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    width: 40px !important;
-    height: 40px !important;
+    width: 34px !important;
+    height: 34px !important;
     border-radius: 10px !important;
-    background: #f4f4f6 !important;
+    background: transparent !important;
     color: #1a1a2e !important;
     border: none !important;
     cursor: pointer !important;
+    flex-shrink: 0 !important;
+    padding: 0 !important;
   }
 
-  /* Slide-down / Full Drawer Mobile Menu */
+  /* Mobile Drawer Backdrop (Click outside / scroll auto-closes with smooth animation) */
+  .mobile-drawer-backdrop {
+    position: fixed !important;
+    inset: 0 !important;
+    background: rgba(0, 0, 0, 0.4) !important;
+    backdrop-filter: blur(2px) !important;
+    z-index: 1090 !important;
+    opacity: 0 !important;
+    animation: fadeInBackdrop 0.25s forwards ease !important;
+  }
+
+  /* Pop-Up Menu: Starts right below 1st navbar (top: 60px), Clean spacing, No heading lines */
   .primary-nav {
     padding: 0 !important;
     display: block !important;
   }
 
   .nav-links {
-    display: none !important;
-    flex-direction: column !important;
+    position: fixed !important;
+    top: 48px !important;
+    right: 10px !important;
+    width: 205px !important;
+    max-width: 64vw !important;
+    height: auto !important;
+    max-height: calc(100vh - 62px) !important;
     background: #ffffff !important;
-    border-top: 1px solid #eee !important;
-    padding: 12px 16px 20px !important;
-    max-height: 80vh !important;
+    z-index: 1100 !important;
+    padding: 8px 6px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 3px !important;
     overflow-y: auto !important;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+    border-radius: 14px !important;
+    box-shadow: 0 14px 38px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+    border: 1px solid #edf0f5 !important;
+    transform: scale(0.92) translateY(-8px) !important;
+    transform-origin: top right !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, visibility 0.2s ease !important;
   }
 
   .nav-links.open {
     display: flex !important;
+    transform: scale(1) translateY(0) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+
+  /* Show ONLY Main Headings in mobile pop-up - Hide Subheadings & Dropdown chevrons */
+  .nav-dropdown {
+    display: none !important;
+  }
+
+  .desktop-dropdown-arrow {
+    display: none !important;
   }
 
   .nav-item {
     width: 100% !important;
-    border-bottom: 1px solid #f5f5f7 !important;
-    padding: 10px 0 !important;
+    border-bottom: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
 
   .nav-item a {
     display: flex !important;
-    justify-content: space-between !important;
     align-items: center !important;
-    font-size: 14px !important;
+    padding: 9.5px 10px !important;
+    font-size: 13.5px !important;
     font-weight: 700 !important;
-    color: #222 !important;
-    padding: 6px 0 !important;
+    color: #2c3038 !important;
+    border-radius: 8px !important;
+    line-height: 1.2 !important;
+    margin: 0 !important;
+    transition: background 0.15s ease, color 0.15s ease !important;
   }
 
-  .nav-dropdown {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 8px !important;
-    padding: 8px 0 4px 14px !important;
+  .nav-item a:hover,
+  .nav-item a.active {
+    background: #fff8ed !important;
+    color: #ed8b00 !important;
   }
 
-  .nav-dropdown a {
-    font-size: 13px !important;
-    font-weight: 500 !important;
-    color: #666 !important;
-  }
-
+  /* Secondary Mobile Action Bar (Second Nav - 2 or 3 buttons) */
   .mobile-action-row {
     display: flex !important;
-    gap: 10px !important;
-    padding: 12px 16px !important;
-    background: #fafafa !important;
-    border-top: 1px solid #eee !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+    padding: 8px 10px !important;
+    background: #ffffff !important;
+    border-top: 1px solid #edf0f5 !important;
+    border-bottom: 1px solid #edf0f5 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
-  .mobile-action-row button {
-    flex: 1 !important;
+  .mobile-action-row .utility-find,
+  .mobile-action-row .utility-donate {
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    padding: 8px 4px !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.1px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    border-radius: 20px !important;
+    min-height: 38px !important;
+    max-height: 40px !important;
+    white-space: nowrap !important;
+    text-transform: uppercase !important;
+    box-sizing: border-box !important;
+    text-decoration: none !important;
+    line-height: 1 !important;
+  }
+
+  .mobile-action-row .utility-find {
+    color: #df902c !important;
+    border: 1.5px solid #df902c !important;
+    background: #ffffff !important;
+  }
+
+  .mobile-action-row .utility-donate {
+    color: #ffffff !important;
+    background: #83bd3a !important;
+    border: 1.5px solid #83bd3a !important;
+  }
+
+  .mobile-action-row .utility-dashboard {
+    color: #ffffff !important;
+    background: #ed8b00 !important;
+    border: 1.5px solid #ed8b00 !important;
+  }
+
+  .mobile-action-row svg {
+    flex-shrink: 0 !important;
+  }
+
+  .mobile-action-row span {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  /* Bell + profile in 2nd navbar: keep compact, proper pill/round look */
+  .mobile-action-row .mobile-user-actions {
+    flex: 0 0 auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    margin-left: auto !important;
+    flex-shrink: 0 !important;
+  }
+
+  .mobile-action-row .mobile-user-actions .notification-button {
+    flex: 0 0 auto !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 1px solid #d8dce2 !important;
+    border-radius: 50% !important;
+    background: #ffffff !important;
+    color: #5e6167 !important;
+    display: inline-grid !important;
+    place-items: center !important;
+  }
+
+  .mobile-action-row .mobile-user-actions .notification-button svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .mobile-action-row .mobile-user-actions .profile-menu {
+    flex: 0 0 auto !important;
+  }
+
+  .mobile-action-row .mobile-user-actions .profile-trigger {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+    margin: 0 !important;
+    padding: 4px 8px 4px 4px !important;
+    gap: 6px !important;
+    border: 1px solid #d8dce2 !important;
+    border-radius: 999px !important;
+    background: #ffffff !important;
+    color: #30343a !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+  }
+
+  .mobile-action-row .mobile-user-actions .profile-avatar {
+    width: 27px !important;
+    height: 27px !important;
+    min-height: 27px !important;
     font-size: 12px !important;
+    border-radius: 999px !important;
+    display: grid !important;
+    place-items: center !important;
+  }
+
+  /* Structured, viewport-safe mobile popover + profile dropdown */
+  .mobile-action-row .site-notification-popover {
+    position: fixed !important;
+    top: 104px !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    width: calc(100vw - 32px) !important;
+    max-width: 420px !important;
+    max-height: calc(100vh - 124px) !important;
+    z-index: 1200 !important;
+    box-sizing: border-box !important;
+  }
+
+  .mobile-action-row .profile-dropdown {
+    position: fixed !important;
+    top: 104px !important;
+    right: 12px !important;
+    left: auto !important;
+    z-index: 1200 !important;
+    min-width: 210px !important;
+    max-width: calc(100vw - 24px) !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Hide vertical sticky gift tab on mobile screens to prevent blocking content */
+  .gift-tab {
+    display: none !important;
   }
 
   /* Donor Dashboard Phone Dimensions Layout */
@@ -18222,5 +18511,283 @@ body {
 
   .dashboard-sidebar.mobile-open {
     left: 0 !important;
+  }
+
+  /* ===== Mobile Auth Pop-Up (Login / Sign Up) ===== */
+  .donation-overlay {
+    padding: 16px !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(6px) !important;
+    z-index: 2000 !important;
+  }
+
+  .auth-modal {
+    position: relative !important;
+    grid-template-columns: 1fr !important;
+    width: min(390px, 100%) !important;
+    height: auto !important;
+    max-height: calc(100dvh - 32px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.9) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 22px 54px rgba(13, 24, 42, 0.3) !important;
+    overflow: hidden !important;
+  }
+
+  .auth-modal .donation-close {
+    position: absolute !important;
+    top: 8px !important;
+    right: 8px !important;
+    z-index: 60 !important;
+    width: 26px !important;
+    height: 26px !important;
+    border-radius: 50% !important;
+    background: #f1f3f7 !important;
+    color: #2d3136 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .auth-story {
+    display: none !important;
+  }
+
+  .auth-form {
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 16px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    overflow: hidden !important;
+    border-left: none !important;
+    box-shadow: none !important;
+  }
+
+  .auth-form .secure-title {
+    margin-bottom: 10px !important;
+    gap: 6px !important;
+  }
+
+  .auth-form .secure-title svg {
+    width: 19px !important;
+    height: 19px !important;
+  }
+
+  .auth-form .secure-title h2 {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+  }
+
+  .auth-form .auth-toggle {
+    display: flex !important;
+    background: transparent !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    margin-bottom: 10px !important;
+    gap: 6px !important;
+  }
+
+  .auth-form .auth-toggle button {
+    flex: 1 !important;
+    min-height: 38px !important;
+    padding: 6px 10px !important;
+    border: 1px solid #d4d9e3 !important;
+    background: #ffffff !important;
+    border-radius: 9px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: #343943 !important;
+    cursor: pointer !important;
+  }
+
+  .auth-form .auth-toggle button.selected {
+    border-color: #5878e8 !important;
+    background: #f3f6ff !important;
+    color: #5878e8 !important;
+    box-shadow: inset 0 0 0 1px rgba(88, 120, 232, 0.45) !important;
+  }
+
+  .auth-form .auth-field-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 6px !important;
+  }
+
+  /* Only sign-up needs two compact columns; login keeps its familiar vertical fields. */
+  .auth-form .auth-field-grid:has(input[name="name"]) {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .auth-form .auth-field-grid input,
+  .auth-form .auth-field-grid select {
+    width: 100% !important;
+    min-height: 34px !important;
+    height: 34px !important;
+    padding: 6px 9px !important;
+    border: 1px solid #d8dce2 !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+    color: #1a1a2e !important;
+    background: #f9fafb !important;
+    box-sizing: border-box !important;
+  }
+
+  .auth-form .auth-field-grid input:focus,
+  .auth-form .auth-field-grid select:focus {
+    border-color: #5878e8 !important;
+    background: #ffffff !important;
+    box-shadow: 0 0 0 3px rgba(88, 120, 232, 0.12) !important;
+  }
+
+  .auth-form .auth-field-grid input::placeholder {
+    color: #9ca3af !important;
+    font-weight: 400 !important;
+  }
+
+  .auth-form .auth-forgot-link {
+    grid-column: 1 / -1 !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    color: #c02b0a !important;
+    margin-top: 0 !important;
+  }
+
+  .auth-form .donation-assurance {
+    margin-top: 8px !important;
+    font-size: 10px !important;
+    color: #6b7280 !important;
+    gap: 5px !important;
+    line-height: 1.25 !important;
+  }
+
+  .auth-form .donation-assurance span {
+    padding-bottom: 0 !important;
+  }
+
+  .auth-form .donation-submit {
+    min-height: 40px !important;
+    margin-top: 10px !important;
+    border-radius: 10px !important;
+    font-size: 13px !important;
+    font-weight: 650 !important;
+    background: #5878e8 !important;
+    box-shadow: none !important;
+  }
+
+  .auth-form .donation-submit:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  .auth-form .auth-checkbox {
+    grid-column: 1 / -1 !important;
+    font-size: 11px !important;
+    gap: 6px !important;
+  }
+
+  .auth-form .auth-checkbox input {
+    width: 14px !important;
+    height: 14px !important;
+    min-height: 14px !important;
+  }
+
+  .auth-form .auth-number-label {
+    font-size: 11px !important;
+    gap: 6px !important;
+  }
+
+  .auth-form .auth-number-label input {
+    width: 72px !important;
+  }
+
+  .auth-form .auth-mobile-role {
+    width: fit-content !important;
+    min-width: 108px !important;
+    margin: 0 0 7px !important;
+  }
+
+  .auth-form .auth-mobile-role select {
+    width: 128px !important;
+    min-height: 30px !important;
+    height: 30px !important;
+    padding: 4px 8px !important;
+    border-width: 1px !important;
+    font-size: 11px !important;
+    font-weight: 400 !important;
+  }
+
+  .auth-form .auth-mobile-role > label {
+    font-size: 10px !important;
+    font-weight: 500 !important;
+  }
+
+  .auth-form .auth-role-label {
+    grid-column: 1 / -1 !important;
+    font-size: 11px !important;
+    margin-bottom: 0 !important;
+  }
+
+  .auth-form .auth-field-grid input[name="organizationName"],
+  .auth-form .auth-field-grid input[name="availability"],
+  .auth-form .auth-field-grid input[name="address"] {
+    grid-column: 1 / -1 !important;
+  }
+}
+
+/* ── Logged-in Top Navbar: Structured Desktop Layout (>=1025px) ── */
+@media (min-width: 1025px) {
+  .site-header .top-nav {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 24px !important;
+  }
+
+  .site-header .top-nav-left {
+    display: inline-flex !important;
+    justify-content: flex-start !important;
+  }
+
+  /* Center search + language sits in its own flow column (no overlap) */
+  .site-header .top-nav-center-group {
+    position: static !important;
+    left: auto !important;
+    transform: none !important;
+    justify-content: center !important;
+    min-width: 0 !important;
+  }
+
+  .site-header .top-nav-right {
+    margin-left: 0 !important;
+    justify-content: flex-end !important;
+    max-width: 100% !important;
+  }
+
+  /* Keep the logged-in utility cluster on a single, clean row */
+  .site-header .utility-actions {
+    flex-wrap: nowrap !important;
+    justify-content: flex-end !important;
+  }
+
+  /* Compact utility buttons so the row stays tidy when logged in */
+  .site-header .utility-find,
+  .site-header .utility-donate,
+  .site-header .utility-login,
+  .site-header .utility-signup {
+    min-width: 0 !important;
+    width: auto !important;
+    white-space: nowrap !important;
+    padding: 9px 16px !important;
+  }
+
+  /* Never show the mobile bell/profile cluster on full desktop */
+  .site-header .mobile-user-actions {
+    display: none !important;
+  }
+
+  /* Notification & profile dropdowns align to the right edge neatly */
+  .site-header .site-notification-popover,
+  .site-header .profile-dropdown {
+    right: 0 !important;
   }
 }

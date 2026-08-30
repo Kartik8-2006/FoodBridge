@@ -52,14 +52,14 @@ const ngoSections = [
     title: 'Register as a verified distribution partner',
     image: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=1000&q=85',
     text: [
-      'NGOs provide organization details, contact person, service area, and registration information so FoodBridge can review operating readiness.',
+      'NGOs provide organization details and registration information so FoodBridge can review operating readiness.',
       'Verification protects donors, volunteers, recipients, and the wider food rescue network.'
     ],
     cta: { label: 'Register NGO', action: 'register-ngo' }
   },
   {
     id: 'ngo-donations',
-    title: 'Claim donations that match your service area',
+    title: 'Claim donations in your city',
     reverse: true,
     image: 'https://images.unsplash.com/photo-1606787366850-de6330128bfc?auto=format&fit=crop&w=1000&q=85',
     bullets: [
@@ -73,7 +73,7 @@ const ngoSections = [
     title: 'Serve beneficiaries with dignity and minimal data',
     image: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=1000&q=85',
     text: [
-      'FoodBridge focuses on household need, location, urgency, and service area instead of public exposure of recipient identity.',
+      'FoodBridge focuses on household need, location, and urgency instead of public exposure of recipient identity.',
       'NGOs can use requests and accepted donations to plan reliable distribution.'
     ]
   },
@@ -120,7 +120,6 @@ export default function Resources({ type }) {
         partner.name,
         partner.city,
         partner.state,
-        partner.serviceArea,
         ...(partner.focusAreas || [])
       ].join(' ').toLowerCase().includes(query);
       return matchesCity && matchesSearch;
@@ -134,7 +133,7 @@ export default function Resources({ type }) {
       hero={ngoPage ? {
         eyebrow: 'NGO Partners',
         title: 'Verified partners make distribution reliable',
-        text: 'NGOs turn rescued food into organized community support through trusted service areas.',
+        text: 'NGOs turn rescued food into organized community support across trusted city networks.',
         tone: 'green',
         image: 'https://images.unsplash.com/photo-1544027993-37dbfe43562a?auto=format&fit=crop&w=1400&q=85'
       } : {
@@ -170,7 +169,7 @@ export default function Resources({ type }) {
             <div>
               <p className="eyebrow">FoodBridge city network</p>
               <h2>Partner NGOs across 20 major cities</h2>
-              <p>Explore distribution partners by service area and operating focus. These demo profiles show how verified partner information appears before confirmed organizations are published.</p>
+              <p>Explore distribution partners by city and operating focus. These demo profiles show how verified partner information appears before confirmed organizations are published.</p>
             </div>
             <div className="partner-directory-stat">
               <strong>{partners.length || 20}</strong>
@@ -214,7 +213,7 @@ export default function Resources({ type }) {
                     </div>
                     <p>{partner.summary}</p>
                     <dl>
-                      <div><dt><Building2 size={15} /> Service area</dt><dd>{partner.serviceArea}</dd></div>
+                      <div><dt><Building2 size={15} /> City</dt><dd>{partner.city}</dd></div>
                       <div><dt><UsersRound size={15} /> Weekly capacity</dt><dd>{partner.weeklyCapacity.toLocaleString('en-IN')} meals</dd></div>
                     </dl>
                     <div className="partner-focus">

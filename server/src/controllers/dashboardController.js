@@ -99,7 +99,7 @@ export const dashboard = asyncHandler(async (req, res) => {
       openRequests: await SupportRequest.countDocuments({ status: 'open' }),
       todaysDistribution: totalMealsDistributed
     };
-    const userCity = req.user.profile?.city || req.user.profile?.serviceArea;
+    const userCity = req.user.profile?.city;
     const sameCity = cityRegex(userCity);
     const availableFilter = sameCity ? { status: 'posted', city: sameCity } : { status: 'posted' };
     const availableDonations = await Donation.find(availableFilter).populate('donor', 'name email profile').sort({ safeBefore: 1 }).limit(12);
@@ -135,7 +135,7 @@ export const dashboard = asyncHandler(async (req, res) => {
   }
 
   if (role === 'volunteer') {
-    const userCity = req.user.profile?.city || req.user.profile?.serviceArea;
+    const userCity = req.user.profile?.city;
     const sameCity = cityRegex(userCity);
     const availableFilter = {
       status: 'accepted',

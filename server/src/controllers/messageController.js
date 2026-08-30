@@ -160,7 +160,7 @@ export const getChatContacts = asyncHandler(async (req, res) => {
     email: u.email,
     role: u.role,
     avatarUrl: u.profile?.avatarUrl,
-    phone: u.profile?.phone || u.profile?.contactPerson,
+    phone: u.profile?.phone,
     organizationName: u.profile?.organizationName
   }));
 

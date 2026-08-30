@@ -69,7 +69,6 @@ export default function AuthPage({ mode }) {
               city: form.city,
               phone: form.phone,
               address: form.address,
-              serviceArea: form.city,
               foodSourceType: 'event'
             }
           })
@@ -96,7 +95,7 @@ export default function AuthPage({ mode }) {
               <input name="organizationName" placeholder="Organization or household name" value={form.organizationName} onChange={update} />
               <input name="city" placeholder="City" value={form.city} onChange={update} required />
               <input name="phone" placeholder="Phone number" value={form.phone} onChange={update} required />
-              <input name="address" placeholder="Address or service area" value={form.address} onChange={update} />
+              <input name="address" placeholder="Address" value={form.address} onChange={update} />
             </>
           )}
           {error && <div className="error">{error}</div>}

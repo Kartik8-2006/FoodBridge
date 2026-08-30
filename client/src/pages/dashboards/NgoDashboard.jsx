@@ -181,7 +181,7 @@ export default function NgoDashboard() {
         body: JSON.stringify({
           assignedVolunteer: selectedVolunteerId,
           scheduledAt: new Date(Date.now() + 2 * 60 * 60 * 1000), // scheduled in 2 hrs
-          deliveryLocation: user?.profile?.serviceArea || user?.profile?.city || 'NGO Hub',
+          deliveryLocation: user?.profile?.city || 'NGO Hub',
           notes: 'Standard pickup coordinated via ReliefShare dashboard.'
         })
       });
@@ -1596,7 +1596,7 @@ export default function NgoDashboard() {
           <div className="panel-heading"><div><p className="dashboard-kicker">{t("Profile")}</p><h2>{t("NGO partner details")}</h2></div></div>
           <div className="profile-detail-grid">
             <div><UsersRound size={18} /><span>{t("Organization")}</span><strong>{user?.name}</strong></div>
-            <div><MapPin size={18} /><span>{t("Service Area")}</span><strong>{user?.profile?.serviceArea || user?.profile?.city || t('Service area not set')}</strong></div>
+            <div><MapPin size={18} /><span>{t("City")}</span><strong>{user?.profile?.city || t('City not set')}</strong></div>
             <div><CheckCircle2 size={18} /><span>{t("Verification")}</span><strong>{titleCase(user?.profile?.verificationStatus || 'pending')}</strong></div>
             <div><Soup size={18} /><span>{t("Distribution Focus")}</span><strong>{titleCase(deliveryTarget)}</strong></div>
           </div>

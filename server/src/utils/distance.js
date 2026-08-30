@@ -14,7 +14,7 @@ export function cityDistanceKm(fromCity, toCity) {
 export function addDistanceToDonation(donation, user) {
   const item = typeof donation.toObject === 'function' ? donation.toObject() : donation;
   const donorCity = item.donor?.profile?.city || item.city;
-  const userCity = user?.profile?.city || user?.profile?.serviceArea || user?.profile?.address;
+  const userCity = user?.profile?.city || user?.profile?.address;
   const distanceKm = cityDistanceKm(donorCity, userCity);
 
   return {
@@ -31,8 +31,8 @@ export function cityRegex(city) {
 
 export function sortUsersByDistance(users, donorCity) {
   return [...users].sort((a, b) => {
-    const aDistance = cityDistanceKm(donorCity, a.profile?.city || a.profile?.serviceArea) ?? 999;
-    const bDistance = cityDistanceKm(donorCity, b.profile?.city || b.profile?.serviceArea) ?? 999;
+    const aDistance = cityDistanceKm(donorCity, a.profile?.city) ?? 999;
+    const bDistance = cityDistanceKm(donorCity, b.profile?.city) ?? 999;
     return aDistance - bDistance;
   });
 }

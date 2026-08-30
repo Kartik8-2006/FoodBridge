@@ -13,7 +13,6 @@ export default function Layout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [open, setOpen] = useState(false);
-  const [donationOpen, setDonationOpen] = useState(false);
   const [authModal, setAuthModal] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -122,6 +121,15 @@ export default function Layout({ children }) {
     });
   }, [location.search, user?.id]);
 
+  useEffect(() => {
+    if (!open) return;
+    function handleScroll() {
+      setOpen(false);
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [open]);
+
   return (
     <>
       <header className="site-header">
@@ -164,7 +172,6 @@ export default function Layout({ children }) {
               <button className="utility-donate" type="button" onClick={() => setAuthModal({ initialMode: 'signup', initialRole: 'donor', lockRole: true })}><CircleDollarSign size={23} /> {t("DONATE FOOD")}</button>
               {user ? (
                 <>
-                  <Link className="utility-dashboard" to={dashboardPath(user.role)}><UserCircle size={20} /> {t("DASHBOARD")}</Link>
                   <div className="site-notification-menu">
                     <button className="notification-button" type="button" aria-label="Notifications" onClick={() => setNotificationOpen((value) => !value)}>
                       <Bell size={20} />
@@ -203,6 +210,7 @@ export default function Layout({ children }) {
                 </>
               ) : null}
             </div>
+
             <button className="menu-button mobile-menu-btn" onClick={() => setOpen(!open)} aria-label="Open navigation">
               {open ? <X /> : <Menu />}
             </button>
@@ -210,13 +218,13 @@ export default function Layout({ children }) {
         </div>
 
         <div className="primary-nav">
+          {open && <div className="mobile-drawer-backdrop" onClick={() => setOpen(false)} />}
           <nav className={open ? 'nav-links open' : 'nav-links'}>
-
             {links.map((item) => (
               <div className={item.items ? 'nav-item has-dropdown' : 'nav-item'} key={item.path + item.label}>
                 <NavLink to={item.path} onClick={() => setOpen(false)}>
                   <span>{item.label}</span>
-                  {item.items && <ChevronDown size={16} fill="currentColor" />}
+                  {item.items && <ChevronDown size={16} fill="currentColor" className="desktop-dropdown-arrow" />}
                 </NavLink>
                 {item.items && (
                   <div className="nav-dropdown">
@@ -228,10 +236,49 @@ export default function Layout({ children }) {
               </div>
             ))}
           </nav>
-          {/* Mobile-only action buttons row */}
-          <div className="mobile-action-row">
-            <button className="utility-find" type="button" onClick={() => setAuthModal({ initialMode: 'signup', initialRole: 'ngo', allowedRoles: ['ngo', 'volunteer'], roleSelectorPlacement: 'story' })}><ShoppingCart size={20} /> {t("FIND FOOD")}</button>
-            <button className="utility-donate" type="button" onClick={() => setAuthModal({ initialMode: 'signup', initialRole: 'donor', lockRole: true })}><CircleDollarSign size={20} /> {t("DONATE FOOD")}</button>
+          {/* Mobile-only action buttons row (2 buttons for guests, 3 buttons for logged in users) */}
+          <div className={`mobile-action-row ${user ? 'has-user' : ''}`}>
+            <button className="utility-find" type="button" onClick={() => setAuthModal({ initialMode: 'signup', initialRole: 'ngo', allowedRoles: ['ngo', 'volunteer'], roleSelectorPlacement: 'story' })}><ShoppingCart size={16} /> <span>{t("FIND FOOD")}</span></button>
+            <button className="utility-donate" type="button" onClick={() => setAuthModal({ initialMode: 'signup', initialRole: 'donor', lockRole: true })}><CircleDollarSign size={16} /> <span>{t("DONATE FOOD")}</span></button>
+            {user && (
+              <div className="mobile-user-actions">
+                <div className="site-notification-menu">
+                  <button className="notification-button" type="button" aria-label="Notifications" onClick={() => setNotificationOpen((value) => !value)}>
+                    <Bell size={17} />
+                    {unreadCount > 0 && <span>{unreadCount > 9 ? '9+' : unreadCount}</span>}
+                  </button>
+                  {notificationOpen && (
+                    <div className="site-notification-popover">
+                      <div className="notification-popover-head">
+                        <strong>{t("Notifications")}</strong>
+                        {unreadCount > 0 && <small>{unreadCount} new</small>}
+                      </div>
+                      <div className="site-notification-list">
+                        {notifications.map((notification) => (
+                          <button className={notification.readAt ? 'site-notification-item' : 'site-notification-item unread'} type="button" key={notification._id} onClick={() => openNotification(notification)}>
+                            <strong>{notification.title}</strong>
+                            <span>{notification.message}</span>
+                            {notification.distanceLabel && <em>{notification.distanceLabel} from donor</em>}
+                          </button>
+                        ))}
+                        {!notifications.length && <p>No notifications yet.</p>}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="profile-menu">
+                  <button className="profile-trigger" type="button">
+                    <span className="profile-avatar">{user.name?.charAt(0) || 'U'}</span>
+                    <ChevronDown size={14} />
+                  </button>
+                  <div className="profile-dropdown">
+                    <Link to={dashboardPath(user.role)}>{t("MY DASHBOARD")}</Link>
+                    <Link to={dashboardPath(user.role)}>{t("PROFILE SETTINGS")}</Link>
+                    <button type="button" onClick={logout}><LogOut size={16} /> {t("LOGOUT")}</button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -249,7 +296,6 @@ export default function Layout({ children }) {
         <Heart size={18} fill="currentColor" />
       </Link>
       {children}
-      {donationOpen && <DonationModal onClose={() => setDonationOpen(false)} />}
       {authModal && <AuthModal {...authModal} onClose={() => setAuthModal(null)} />}
       <footer className="footer foodbank-footer">
         <section className="footer-newsletter">
@@ -309,8 +355,6 @@ export function AuthModal({ initialMode, initialRole = 'donor', lockRole = false
     organizationName: '',
     organizationType: '',
     registrationNumber: '',
-    contactPerson: '',
-    serviceArea: '',
     availability: '',
     hasTransport: false,
     serviceRadiusKm: 10,
@@ -358,15 +402,12 @@ export function AuthModal({ initialMode, initialRole = 'donor', lockRole = false
             organizationName: form.organizationName,
             organizationType: form.organizationType,
             registrationNumber: form.registrationNumber,
-            contactPerson: form.contactPerson || form.name,
-            serviceArea: form.serviceArea || form.city,
             availability: form.availability,
             hasTransport: form.hasTransport,
             serviceRadiusKm: Number(form.serviceRadiusKm) || 10,
             city: form.city,
             phone: form.phone,
             address: form.address,
-            serviceArea: form.city,
             foodSourceType: 'event'
           }
         })
@@ -382,8 +423,8 @@ export function AuthModal({ initialMode, initialRole = 'donor', lockRole = false
 
   return (
     <div className="donation-overlay" role="dialog" aria-modal="true" aria-labelledby="auth-title">
-      <button className="donation-close" type="button" aria-label="Close login form" onClick={onClose}><X size={24} /></button>
       <section className="donation-modal auth-modal">
+        <button className="donation-close" type="button" aria-label="Close login form" onClick={onClose}><X size={24} /></button>
         <div className="donation-story auth-story">
           <div className="auth-photo" />
           <div className="donation-brand">
@@ -430,7 +471,7 @@ export function AuthModal({ initialMode, initialRole = 'donor', lockRole = false
             </div>
           )}
           <div className="auth-field-grid">
-            {isSignup && <input name="name" placeholder="Full name or contact person" value={form.name} onChange={update} required />}
+            {isSignup && <input name="name" placeholder="Full name" value={form.name} onChange={update} required />}
             <input name="email" type="email" placeholder="Email address" value={form.email} onChange={update} required />
             {!isForgot && <input name="password" type="password" placeholder="Password" value={form.password} onChange={update} required />}
             {!isSignup && !isForgot && (
@@ -456,8 +497,6 @@ export function AuthModal({ initialMode, initialRole = 'donor', lockRole = false
                       <option value="shelter">Shelter or relief center</option>
                     </select>
                     <input name="registrationNumber" placeholder="Registration number" value={form.registrationNumber} onChange={update} required />
-                    <input name="contactPerson" placeholder="Authorized contact person" value={form.contactPerson} onChange={update} required />
-                    <input name="serviceArea" placeholder="Service area" value={form.serviceArea} onChange={update} required />
                   </>
                 )}
                 {form.role === 'volunteer' && (
@@ -469,7 +508,7 @@ export function AuthModal({ initialMode, initialRole = 'donor', lockRole = false
                 )}
                 <input name="city" placeholder="City" value={form.city} onChange={update} required />
                 <input name="phone" placeholder="Phone number" value={form.phone} onChange={update} required />
-                <input name="address" placeholder="Address or service area" value={form.address} onChange={update} />
+                <input name="address" placeholder="Address" value={form.address} onChange={update} />
               </>
             )}
           </div>
