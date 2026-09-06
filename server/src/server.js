@@ -16,6 +16,7 @@ import { partnerRoutes } from './routes/partnerRoutes.js';
 import { supportRoutes } from './routes/supportRoutes.js';
 import { messageRoutes } from './routes/messageRoutes.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
+import { seedDemoDataIfMissing } from './seedDemoData.js';
 
 dotenv.config({ path: fileURLToPath(new URL('../.env', import.meta.url)) });
 
@@ -50,7 +51,8 @@ app.use(errorHandler);
 const port = process.env.PORT || 5001;
 
 connectDatabase()
-  .then(() => {
+  .then(async () => {
+    await seedDemoDataIfMissing();
     app.listen(port, () => console.log(`FoodBridge API running on port ${port}`));
   })
   .catch((error) => {

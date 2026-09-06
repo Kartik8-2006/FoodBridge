@@ -6,10 +6,11 @@ import { Notification } from './models/Notification.js';
 import { PickupSchedule } from './models/PickupSchedule.js';
 import { SupportRequest } from './models/SupportRequest.js';
 import { User } from './models/User.js';
+import { DEMO_PASSWORD, demoDonations, demoUsers } from './data/demoData.js';
 
 dotenv.config();
 
-const passwordHash = await User.hashPassword('Password123!');
+const passwordHash = await User.hashPassword(DEMO_PASSWORD);
 
 async function run() {
   await connectDatabase();
@@ -21,116 +22,14 @@ async function run() {
     SupportRequest.deleteMany({})
   ]);
 
-  const users = await User.insertMany([
-    {
-      name: 'Anika Sharma',
-      email: 'donor@foodbridge.org',
-      passwordHash,
-      role: 'donor',
-      profile: {
-        organizationName: 'Harvest Table Events',
-        foodSourceType: 'event',
-        city: 'Bengaluru',
-        address: 'Indiranagar, Bengaluru',
-        phone: '+91 98765 43210',
-        verificationStatus: 'not_required'
-      }
-    },
-    {
-      name: 'Seva Meals Foundation',
-      email: 'ngo@foodbridge.org',
-      passwordHash,
-      role: 'ngo',
-      profile: {
-        registrationNumber: 'NGO-4821-KA',
-        contactPerson: 'Rahul Menon',
-        serviceArea: 'Bengaluru East',
-        city: 'Bengaluru',
-        phone: '+91 98765 43211',
-        verificationStatus: 'pending'
-      }
-    },
-    {
-      name: 'Meera Iyer',
-      email: 'volunteer@foodbridge.org',
-      passwordHash,
-      role: 'volunteer',
-      profile: {
-        availability: 'Weekday evenings and weekends',
-        hasTransport: true,
-        serviceRadiusKm: 12,
-        city: 'Bengaluru',
-        phone: '+91 98765 43212',
-        verificationStatus: 'not_required'
-      }
-    },
-    {
-      name: 'FoodBridge Admin',
-      email: 'admin@foodbridge.org',
-      passwordHash,
-      role: 'admin',
-      profile: { verificationStatus: 'not_required' }
-    }
-  ]);
+  const users = await User.insertMany(
+    demoUsers.map((user) => ({ ...user, passwordHash }))
+  );
 
   const donor = users.find((user) => user.role === 'donor');
-  const now = new Date();
-  await Donation.insertMany([
-    {
-      donor: donor._id,
-      title: 'Fresh vegetable biryani trays',
-      foodType: 'cooked',
-      dietType: 'veg',
-      quantity: '6 hotel pans',
-      estimatedMeals: 95,
-      pickupAddress: 'Harvest Table Events, Indiranagar, Bengaluru',
-      pickupLocation: { latitude: 12.9784, longitude: 77.6408, label: 'Harvest Table Events' },
-      city: 'Bengaluru',
-      pickupWindowStart: new Date(now.getTime() + 60 * 60 * 1000),
-      pickupWindowEnd: new Date(now.getTime() + 4 * 60 * 60 * 1000),
-      safeBefore: new Date(now.getTime() + 7 * 60 * 60 * 1000),
-      storageInstructions: 'Keep covered and warm until pickup.',
-      allergenNotes: 'Contains dairy and cashews.',
-      status: 'posted'
-    },
-    {
-      donor: donor._id,
-      title: 'Packaged bread and fruit boxes',
-      foodType: 'packaged',
-      dietType: 'veg',
-      quantity: '40 sealed boxes',
-      estimatedMeals: 40,
-      pickupAddress: 'Community Hall, Koramangala, Bengaluru',
-      pickupLocation: { latitude: 12.9352, longitude: 77.6245, label: 'Community Hall Koramangala' },
-      city: 'Bengaluru',
-      pickupWindowStart: new Date(now.getTime() + 2 * 60 * 60 * 1000),
-      pickupWindowEnd: new Date(now.getTime() + 5 * 60 * 60 * 1000),
-      safeBefore: new Date(now.getTime() + 18 * 60 * 60 * 1000),
-      storageInstructions: 'Room temperature storage is acceptable.',
-      allergenNotes: 'Contains wheat.',
-      status: 'posted'
-    },
-    {
-      donor: donor._id,
-      title: 'Restaurant dinner meal packs',
-      foodType: 'packaged',
-      dietType: 'mixed',
-      quantity: '55 sealed meal packs',
-      estimatedMeals: 55,
-      pickupAddress: 'Restaurant ABC, MG Road, Bengaluru',
-      pickupLocation: { latitude: 12.9756, longitude: 77.6068, label: 'Restaurant ABC MG Road' },
-      city: 'Bengaluru',
-      pickupWindowStart: new Date(now.getTime() + 90 * 60 * 1000),
-      pickupWindowEnd: new Date(now.getTime() + 4 * 60 * 60 * 1000),
-      safeBefore: new Date(now.getTime() + 10 * 60 * 60 * 1000),
-      storageInstructions: 'Keep sealed. Pickup from rear service counter.',
-      allergenNotes: 'Contains wheat and dairy.',
-      contactNumber: '+91 98765 43214',
-      status: 'posted'
-    }
-  ]);
+  await Donation.insertMany(demoDonations(donor._id));
 
-  console.log('Seed data created. Password for all users: Password123!');
+  console.log(`Seed data created. Password for all users: ${DEMO_PASSWORD}`);
   await mongoose.disconnect();
 }
 

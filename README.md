@@ -22,6 +22,12 @@ Start MongoDB locally (one-time setup):
 Seed demo data:
   `npm run seed --prefix server`
 
+  Note: the server also auto-seeds the demo users (and 3 sample donations)
+  on startup whenever they are missing, so a fresh deploy has working
+  demo login accounts without running the seed script manually. This
+  auto-seed is non-destructive: it never deletes or overwrites existing
+  data.
+
 Run the app:
   `npm run dev`
 

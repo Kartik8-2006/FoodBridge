@@ -384,6 +384,25 @@ export default function DonorDashboard() {
     setExpiresInHours(hours);
   }
 
+  // The pickup window is 3 hours long and food must stay safe through it
+  // (plus a 1 hour cushion). This keeps the expiry in sync with the
+  // pickup time so donations can never be rejected for "food must remain
+  // safe through the pickup start time".
+  function minExpiryHoursForPickup(pickupValue) {
+    const pickup = new Date(pickupValue);
+    if (Number.isNaN(pickup.getTime())) return 0;
+    const cushionMs = 4 * 60 * 60 * 1000; // 3h pickup window + 1h cushion
+    return Math.max(1, Math.ceil((pickup.getTime() + cushionMs - Date.now()) / (60 * 60 * 1000)));
+  }
+
+  function handlePickupTimeChange(value) {
+    setPickupTime(value);
+    const hoursNeeded = minExpiryHoursForPickup(value);
+    if (hoursNeeded > 0) {
+      setExpiresInHours((current) => Math.max(current, hoursNeeded));
+    }
+  }
+
   function toggleLabel(label) {
     setSelectedLabels((current) =>
       current.includes(label) ? current.filter((l) => l !== label) : [...current, label]
@@ -429,10 +448,26 @@ export default function DonorDashboard() {
 
     const now = new Date();
     const selectedTime = pickupTime ? new Date(pickupTime) : new Date(now.getTime() + 60 * 60 * 1000);
+    if (Number.isNaN(selectedTime.getTime())) {
+      setFormMessage(t('Please enter a valid pickup time.'));
+      return;
+    }
     const pickupWindowStart = selectedTime.toISOString();
-    const pickupWindowEnd = new Date(selectedTime.getTime() + 3 * 60 * 60 * 1000).toISOString();
+    const pickupEnd = new Date(selectedTime.getTime() + 3 * 60 * 60 * 1000);
+    const pickupWindowEnd = pickupEnd.toISOString();
 
-    const safeBefore = new Date(now.getTime() + expiresInHours * 60 * 60 * 1000).toISOString();
+    // Food must remain safe at least until the pickup window ends, with a
+    // 1-hour cushion. If the chosen pickup time is later than the current
+    // expiry, extend the safe-before time automatically so the donation
+    // always passes the backend food-safety rule.
+    let safeBefore = new Date(now.getTime() + expiresInHours * 60 * 60 * 1000);
+    const requiredSafeBefore = new Date(pickupEnd.getTime() + 60 * 60 * 1000);
+    if (safeBefore < requiredSafeBefore) {
+      setExpiresInHours(Math.ceil((requiredSafeBefore.getTime() - now.getTime()) / (60 * 60 * 1000)));
+      safeBefore = requiredSafeBefore;
+      setFormMessage(t('Your pickup time is after the food expiry, so the safe-before time was extended to keep the food safe through the pickup window.'));
+    }
+    const safeBeforeIso = safeBefore.toISOString();
 
     const quantityNum = parseInt(form.quantity.match(/\d+/)?.[0], 10);
     const estimatedMeals = isNaN(quantityNum) ? 20 : quantityNum;
@@ -459,7 +494,7 @@ export default function DonorDashboard() {
           estimatedMeals,
           pickupWindowStart,
           pickupWindowEnd,
-          safeBefore,
+          safeBefore: safeBeforeIso,
           imageUrl: finalImageUrl,
         })
       });
@@ -903,7 +938,7 @@ export default function DonorDashboard() {
                 <input
                   type="datetime-local"
                   value={pickupTime}
-                  onChange={(event) => setPickupTime(event.target.value)}
+                  onChange={(event) => handlePickupTimeChange(event.target.value)}
                   required
                 />
               </label>

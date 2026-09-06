@@ -4,7 +4,13 @@
 // 3. Handles errors nicely
 // 4. Returns the response data
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+const configuredUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+
+// Safety net: the backend only serves routes under /api, so always make sure
+// the base URL ends with "/api" (e.g. if the env value is set without it).
+const API_URL = configuredUrl.endsWith('/api')
+  ? configuredUrl
+  : configuredUrl.replace(/\/+$/, '') + '/api';
 
 export async function api(path, options = {}) {
 
